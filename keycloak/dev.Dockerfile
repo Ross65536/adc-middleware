@@ -1,3 +1,5 @@
+# NOT TO BE RUN IN PRODUCTION
+
 FROM openjdk:8-alpine3.9
 
 ARG KEYCLOAK_ARCHIVE_URL=https://downloads.jboss.org/keycloak/9.0.0/keycloak-9.0.0.tar.gz
@@ -17,6 +19,8 @@ RUN apk del .build-deps
 RUN mv keycloak-* keycloak
 
 WORKDIR keycloak
+
+COPY config.xml standalone/configuration/standalone.xml
 
 RUN sh bin/add-user-keycloak.sh -u admin -p $ADMIN_PASS
 
