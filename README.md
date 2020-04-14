@@ -4,7 +4,7 @@ Middleware server for handling UMA authorization and access control.
 
 ## Instructions
 
-- To run:
+- To install, build and run for development:
 
 ```shell script
 ./gradlew bootRun
@@ -26,14 +26,14 @@ The jar uses java 11
 
 ### Arguments
 
-You can set these by either adding a custom properties file (using `--spring.config.location` to inject the file, see example below) or by passing them as CLI options (with `-D<property>=<value>`)
+You can set these by either adding a custom properties file (using `--spring.config.location` to inject the file, see example below) or by passing them as CLI options (with `-D<property>=<value>`). In the properties files you can use the field names directly as displayed here, for the CLI prepend `-D`, for the gradle CLI prepend `--` (see above example).
 
 Required:
 - `adc.resourceServerUrl`: The url to the underlying resource server.
  
 Optional:
 - `server.servlet.context-path`: The base path of the middleware API, defaults to: `/airr/v2`
-- `server.port`: The port, defaults to `8080`
+- `server.port`: The middleware server port, defaults to `8080`
 
 Running with custom properties file (using deployment jar):
 

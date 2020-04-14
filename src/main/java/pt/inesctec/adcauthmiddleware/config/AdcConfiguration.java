@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware;
+package pt.inesctec.adcauthmiddleware.config;
 
 import org.hibernate.validator.constraints.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -17,6 +17,8 @@ public class AdcConfiguration {
     @NotNull
     @URL(regexp = "^(http|https).*")
     private String resourceServerUrl;
+
+
 
     public String getResourceServerUrl() {
         return resourceServerUrl;
