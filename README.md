@@ -33,6 +33,7 @@ Required:
  
 Optional:
 - `server.servlet.context-path`: The base path of the middleware API, defaults to: `/airr/v2`
+- `server.port`: The port, defaults to `8080`
 
 Running with custom properties file (using deployment jar):
 
