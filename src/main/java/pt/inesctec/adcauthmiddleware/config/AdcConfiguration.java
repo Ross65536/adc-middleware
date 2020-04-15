@@ -18,8 +18,6 @@ public class AdcConfiguration {
     @URL(regexp = "^(http|https).*")
     private String resourceServerUrl;
 
-
-
     public String getResourceServerUrl() {
         return resourceServerUrl;
     }

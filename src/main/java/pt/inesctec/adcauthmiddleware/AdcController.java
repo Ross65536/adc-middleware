@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
+import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 
 import java.io.IOException;
 import java.net.URI;
@@ -17,11 +18,13 @@ public class AdcController {
             .build();
 
     @Autowired
-    private AdcConfiguration config;
+    private AdcConfiguration adcConfig;
+
+    @Autowired
+    private UmaConfig umaConfig;
 
     @RequestMapping(value = "/study/{studyId}/repertoire/{repertoireId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public String greeting(@PathVariable String studyId, @PathVariable String repertoireId) throws IOException, InterruptedException {
-
         final URI uri = this.getResourceServerPath("study", studyId, "repertoire", repertoireId);
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -35,7 +38,7 @@ public class AdcController {
     }
 
     private URI getResourceServerPath(String ... parts) {
-        final String basePath = config.getResourceServerUrl();
+        final String basePath = adcConfig.getResourceServerUrl();
         return Utils.buildUrl(basePath, parts);
     }
 }
