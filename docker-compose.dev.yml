@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  keycloak:
+    build:
+      context: keycloak
+      dockerfile: dev.Dockerfile
+    volumes:
+      - ./tmp/keycloak:/keycloak/standalone/data
+    ports:
+      - 8082:80

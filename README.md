@@ -4,7 +4,28 @@ Middleware server for handling UMA authorization and access control.
 
 ## Instructions
 
-- To install, build and run for development:
+### First time setup (dev):
+
+- Configuring keycloak
+
+You need to setup and configure a keycloak server.
+
+Run:
+```shell script
+docker-compose --file docker-compose.dev.yml build
+docker-compose --file docker-compose.dev.yml keycloak
+```
+
+Then configure keycloak:
+
+1. Go to http://localhost:8081. Login as admin with `admin:admin`. 
+2. Go to master realm settings and enable `User-Managed Access`.
+3. Create a new client in the Clients tab: load (import) and save the client from the file `./keycloak/adc-middleware.json`. Go to credentials tab in the client and note the generated `Secret` value which is the client secret while `adc-middleware` is the client ID.
+4. In the `Users` tab create user with username `owner`, this is the resource owner. Create user with username `user` and `user2`, these are the users that will access resources. For each user in the user's `Credentials` tab create the password (equal to username).
+
+You can use different values for these strings, but you would need to update the some variables and example code.
+
+### To install, build and run for development:
 
 ```shell script
 ./gradlew bootRun
@@ -16,7 +37,7 @@ With arguments:
 ./gradlew bootRun --args='--server.port=9999' # --server.port equivalent to java's -Dserver.port 
 ```
 
-- Build jar
+### Build deployable jar
 
 The jar uses java 11
 

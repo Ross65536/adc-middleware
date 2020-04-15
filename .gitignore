@@ -32,3 +32,4 @@ out/
 .vscode/
 
 dev.properties
+tmp/
