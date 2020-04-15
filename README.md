@@ -2,6 +2,8 @@
 
 Middleware server for handling UMA authorization and access control.
 
+Project runs on java 11, using google style guide.
+
 ## Instructions
 
 ### First time setup (dev):
@@ -43,6 +45,14 @@ The jar uses java 11
 
 ```shell script
 ./gradlew bootJar # jar will be placed in ./build/libs/ 
+```
+
+### Style checks
+
+To run style checker run:
+
+```shell script
+./gradlew checkstyleMain
 ```
 
 ### Arguments
