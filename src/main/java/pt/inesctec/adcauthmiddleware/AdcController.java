@@ -13,15 +13,22 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
+import pt.inesctec.adcauthmiddleware.http.HttpFacade;
+import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 
 
 @RestController
 public class AdcController {
-  private static HttpClient client = HttpClient.newBuilder().build();
 
-  @Autowired private AdcConfiguration adcConfig;
+  private AdcConfiguration adcConfig;
+  private UmaClient umaClient;
 
-  @Autowired private UmaConfig umaConfig;
+  @Autowired
+  public AdcController(AdcConfiguration adcConfig, UmaConfig umaConfig) throws Exception {
+    this.adcConfig = adcConfig;
+
+    this.umaClient = new UmaClient(umaConfig);
+  }
 
   @RequestMapping(
       value = "/study/{studyId}/repertoire/{repertoireId}",
@@ -33,7 +40,7 @@ public class AdcController {
 
     HttpRequest request = HttpRequest.newBuilder().uri(uri).GET().build();
 
-    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    HttpResponse<String> response = HttpFacade.Client.send(request, HttpResponse.BodyHandlers.ofString());
 
     return response.body();
   }

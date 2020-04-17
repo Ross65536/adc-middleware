@@ -15,7 +15,7 @@ You need to setup and configure a keycloak server.
 Run:
 ```shell script
 docker-compose --file docker-compose.dev.yml build
-docker-compose --file docker-compose.dev.yml keycloak
+docker-compose --file docker-compose.dev.yml up keycloak
 ```
 
 Then configure keycloak:
