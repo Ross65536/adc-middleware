@@ -2,7 +2,7 @@
 
 Middleware server for handling UMA authorization and access control.
 
-Project runs on java 11, using google style guide.
+Project runs on java 11, with (modified) google java style guide.
 
 ## Instructions
 
