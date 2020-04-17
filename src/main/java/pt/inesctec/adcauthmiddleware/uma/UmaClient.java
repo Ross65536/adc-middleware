@@ -1,25 +1,49 @@
 package pt.inesctec.adcauthmiddleware.uma;
 
-import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.inesctec.adcauthmiddleware.Utils;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.http.HttpFacade;
+import pt.inesctec.adcauthmiddleware.uma.models.AccessToken;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaWellKnown;
 
-import javax.validation.Validation;
+import java.util.Map;
 
 public class UmaClient {
   private static Logger Logger = LoggerFactory.getLogger(UmaClient.class);
 
   private UmaConfig umaConfig;
   private UmaWellKnown wellKnown;
+  private AccessToken accessToken = null;
 
   public UmaClient(UmaConfig config) throws Exception {
     this.umaConfig = config;
     this.wellKnown = UmaClient.getWellKnown(config.getWellKnownUrl());
+
+    this.updateAccessToken();
+  }
+
+  private void updateAccessToken() throws Exception {
+
+    Logger.info("Getting new UMA access token");
+    var body = Map.of(
+        "grant_type", "client_credentials",
+        "client_id", this.umaConfig.getClientId(),
+        "client_secret", this.umaConfig.getClientSecret()
+    );
+
+    var uri = Utils.buildUrl(wellKnown.getTokenEndpoint());
+    AccessToken accessToken = null;
+    try {
+      accessToken = HttpFacade.postFormExpectJson(uri, body, AccessToken.class);
+      Utils.jaxValidate(accessToken);
+    } catch (Exception e) {
+      Logger.error("Failed to get UMA access token because: {}", e.getMessage());
+      throw e;
+    }
+
+    this.accessToken = accessToken;
   }
 
   private static UmaWellKnown getWellKnown(String wellKnownUrl) throws Exception {

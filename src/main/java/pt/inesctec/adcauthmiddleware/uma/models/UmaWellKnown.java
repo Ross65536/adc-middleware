@@ -18,7 +18,7 @@ public class UmaWellKnown {
 
   @JsonProperty("token_endpoint")
   @NotNull
-  private String tokenEndpoints;
+  private String tokenEndpoint;
 
   @NotNull
   private String issuer;
@@ -43,12 +43,12 @@ public class UmaWellKnown {
     this.introspectionEndpoint = introspectionEndpoint;
   }
 
-  public String getTokenEndpoints() {
-    return tokenEndpoints;
+  public String getTokenEndpoint() {
+    return tokenEndpoint;
   }
 
-  public void setTokenEndpoints(String tokenEndpoints) {
-    this.tokenEndpoints = tokenEndpoints;
+  public void setTokenEndpoint(String tokenEndpoint) {
+    this.tokenEndpoint = tokenEndpoint;
   }
 
   public String getIssuer() {
