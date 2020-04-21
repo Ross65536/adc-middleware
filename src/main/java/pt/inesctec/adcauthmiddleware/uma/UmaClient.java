@@ -40,6 +40,10 @@ public class UmaClient {
     return ticket.getTicket();
   }
 
+  public String getIssuer() {
+    return this.wellKnown.getIssuer();
+  }
+
   private void updateAccessToken() throws Exception {
 
     Logger.info("Getting new UMA access token");

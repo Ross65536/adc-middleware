@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -39,19 +40,24 @@ public class AdcController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity repertoire(@PathVariable String studyId, @PathVariable String repertoireId)
       throws Exception {
-    final URI uri = this.getResourceServerPath("study", studyId, "repertoire", repertoireId);
     final String UmaResourceId = "87e43a0e-9108-41ac-a9da-bee2e3b9bb12";
 
     var umaResource = new UmaResource(UmaResourceId, UmaScopes.SEQUENCE.toString()); // repertoire is level 3
     var ticket = this.umaClient.requestPermissionsTicket(umaResource);
 
+    var headerVal = "UMA as_uri=\"" + this.umaClient.getIssuer() + "\", ticket=\"" + ticket + "\"";
+    var headers = new HttpHeaders();
+    headers.add("WWW-Authenticate", headerVal);
+    return new ResponseEntity(headers, HttpStatus.UNAUTHORIZED);
 
-    HttpRequest request = new HttpRequestBuilderFacade()
-        .getJson(uri)
-        .build();
-    var response = HttpFacade.makeExpectJsonStringRequest(request);
+//    final URI uri = this.getResourceServerPath("study", studyId, "repertoire", repertoireId);
 
-    return new ResponseEntity(ticket + response, HttpStatus.OK);
+//    HttpRequest request = new HttpRequestBuilderFacade()
+//        .getJson(uri)
+//        .build();
+//    var response = HttpFacade.makeExpectJsonStringRequest(request);
+//
+//    return new ResponseEntity(ticket + response, HttpStatus.OK);
   }
 
   private URI getResourceServerPath(String... parts) {
