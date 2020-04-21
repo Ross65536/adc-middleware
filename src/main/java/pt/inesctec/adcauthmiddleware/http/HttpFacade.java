@@ -1,5 +1,8 @@
 package pt.inesctec.adcauthmiddleware.http;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import java.io.IOException;
 import java.net.URI;
@@ -14,6 +17,7 @@ import java.util.stream.Collectors;
 
 public class HttpFacade {
   public static final HttpClient Client = HttpClient.newBuilder().build();
+  static ObjectMapper JsonObjectMapper = new ObjectMapper();
 
   public static HttpRequest buildGetJsonRequest(URI url) {
 
@@ -35,6 +39,24 @@ public class HttpFacade {
         .build();
   }
 
+  public static HttpRequest.Builder buildJsonPostExpectJsonRequest(URI url, Object body) throws JsonProcessingException {
+    var postBody = HttpFacade.toJson(body);
+
+    return HttpRequest.newBuilder()
+        .uri(url)
+        .POST(HttpRequest.BodyPublishers.ofString(postBody))
+        .header("Accept", MediaType.APPLICATION_JSON_VALUE)
+        .headers("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+  }
+
+  public static HttpRequest.Builder addRequestBearer(HttpRequest.Builder request, String token) {
+    return request.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+  }
+
+  private static String toJson(Object body) throws JsonProcessingException {
+    return JsonObjectMapper.writeValueAsString(body);
+  }
+
   public static <T> T makeExpectJsonRequest(HttpRequest request, Class<T> respClass) throws IOException, InterruptedException {
     HttpResponse<Supplier<T>> response = HttpFacade.Client.send(request, new JsonBodyHandler<>(respClass));
 
@@ -45,9 +67,13 @@ public class HttpFacade {
     return response.body().get();
   }
 
-  public static String makeRequest(HttpRequest request) throws IOException, InterruptedException {
-    return HttpFacade.Client.send(request, HttpResponse.BodyHandlers.ofString())
-            .body();
+  public static String makeExpectJsonStringRequest(HttpRequest request) throws IOException, InterruptedException {
+    var response =  HttpFacade.Client.send(request, HttpResponse.BodyHandlers.ofString());
+
+    HttpFacade.validateOkResponse(response);
+    HttpFacade.validateJsonResponseHeader(response);
+
+    return response.body();
   }
 
   private static String parseAsUrlEncodedForm(Map<String, String> data) {

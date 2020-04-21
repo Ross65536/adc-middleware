@@ -1,0 +1,13 @@
+package pt.inesctec.adcauthmiddleware.uma.models.internal;
+
+public class Ticket {
+  private String ticket;
+
+  public String getTicket() {
+    return ticket;
+  }
+
+  public void setTicket(String ticket) {
+    this.ticket = ticket;
+  }
+}

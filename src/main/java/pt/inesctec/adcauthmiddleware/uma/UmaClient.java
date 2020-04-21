@@ -5,8 +5,10 @@ import org.slf4j.LoggerFactory;
 import pt.inesctec.adcauthmiddleware.Utils;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.http.HttpFacade;
-import pt.inesctec.adcauthmiddleware.uma.models.AccessToken;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaWellKnown;
+import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
+import pt.inesctec.adcauthmiddleware.uma.models.internal.AccessToken;
+import pt.inesctec.adcauthmiddleware.uma.models.internal.Ticket;
+import pt.inesctec.adcauthmiddleware.uma.models.internal.UmaWellKnown;
 
 import java.util.Map;
 
@@ -22,6 +24,16 @@ public class UmaClient {
     this.wellKnown = UmaClient.getWellKnown(config.getWellKnownUrl());
 
     this.updateAccessToken();
+  }
+
+  public String requestPermissionsTicket(UmaResource ... resources) throws Exception {
+    this.updateAccessToken();
+    var uri = Utils.buildUrl(wellKnown.getPermissionEndpoint());
+    var request = HttpFacade.buildJsonPostExpectJsonRequest(uri, resources);
+    request = HttpFacade.addRequestBearer(request, this.accessToken.getAccessToken());
+
+    var ticket = HttpFacade.makeExpectJsonRequest(request.build(), Ticket.class);
+    return ticket.getTicket();
   }
 
   private void updateAccessToken() throws Exception {
