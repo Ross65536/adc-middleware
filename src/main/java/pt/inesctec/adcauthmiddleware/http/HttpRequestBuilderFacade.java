@@ -1,0 +1,76 @@
+package pt.inesctec.adcauthmiddleware.http;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpRequest;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+public class HttpRequestBuilderFacade {
+
+  private HttpRequest.Builder builder;
+
+  public HttpRequestBuilderFacade() {
+    this.builder = HttpRequest.newBuilder();
+  }
+
+  public HttpRequestBuilderFacade getJson(URI uri) {
+    this.builder = this.builder.uri(uri)
+        .GET()
+        .header("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+    return this;
+  }
+
+  public HttpRequestBuilderFacade postForm(URI uri, Map<String, String> form) {
+    var postBody = HttpRequestBuilderFacade.parseAsUrlEncodedForm(form);
+    this.builder = this.builder.uri(uri)
+        .POST(HttpRequest.BodyPublishers.ofString(postBody))
+        .headers("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+
+    return this;
+  }
+
+  public HttpRequestBuilderFacade postJson(URI uri, Object body) throws JsonProcessingException {
+    var postBody = HttpFacade.toJson(body);
+
+    this.builder = this.builder.uri(uri)
+        .POST(HttpRequest.BodyPublishers.ofString(postBody))
+        .headers("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+
+    return this;
+  }
+
+  public HttpRequestBuilderFacade expectJson() {
+    this.builder = this.builder.header("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+    return this;
+  }
+
+  public HttpRequestBuilderFacade withBearer(String token) {
+    this.builder = this.builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+
+    return this;
+  }
+
+  public HttpRequest.Builder getBuilder() {
+    return builder;
+  }
+
+  public HttpRequest build() {
+    return builder.build();
+  }
+
+  private static String parseAsUrlEncodedForm(Map<String, String> data) {
+
+    return data.entrySet()
+        .stream()
+        .map(e -> URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
+        .collect(Collectors.joining("&"));
+  }
+}

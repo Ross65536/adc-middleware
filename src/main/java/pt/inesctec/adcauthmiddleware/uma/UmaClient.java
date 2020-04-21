@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import pt.inesctec.adcauthmiddleware.Utils;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.http.HttpFacade;
+import pt.inesctec.adcauthmiddleware.http.HttpRequestBuilderFacade;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 import pt.inesctec.adcauthmiddleware.uma.models.internal.AccessToken;
 import pt.inesctec.adcauthmiddleware.uma.models.internal.Ticket;
@@ -29,10 +30,13 @@ public class UmaClient {
   public String requestPermissionsTicket(UmaResource ... resources) throws Exception {
     this.updateAccessToken();
     var uri = Utils.buildUrl(wellKnown.getPermissionEndpoint());
-    var request = HttpFacade.buildJsonPostExpectJsonRequest(uri, resources);
-    request = HttpFacade.addRequestBearer(request, this.accessToken.getAccessToken());
+    var request = new HttpRequestBuilderFacade()
+        .postJson(uri, resources)
+        .expectJson()
+        .withBearer(this.accessToken.getAccessToken())
+        .build();
 
-    var ticket = HttpFacade.makeExpectJsonRequest(request.build(), Ticket.class);
+    var ticket = HttpFacade.makeExpectJsonRequest(request, Ticket.class);
     return ticket.getTicket();
   }
 
@@ -47,7 +51,11 @@ public class UmaClient {
 
     var uri = Utils.buildUrl(wellKnown.getTokenEndpoint());
     AccessToken accessToken = null;
-    var request = HttpFacade.buildPostFormExpectJsonRequest(uri, body);
+    var request = new HttpRequestBuilderFacade()
+        .postForm(uri, body)
+        .expectJson()
+        .build();
+
     try {
       accessToken = HttpFacade.makeExpectJsonRequest(request, AccessToken.class);
       Utils.jaxValidate(accessToken);
@@ -62,7 +70,9 @@ public class UmaClient {
   private static UmaWellKnown getWellKnown(String wellKnownUrl) throws Exception {
     Logger.info("Requesting UMA 2 well known doc at: {}", wellKnownUrl);
     var uri = Utils.buildUrl(wellKnownUrl);
-    var request = HttpFacade.buildGetJsonRequest(uri);
+    var request = new HttpRequestBuilderFacade()
+        .getJson(uri)
+        .build();
     try {
       var obj = HttpFacade.makeExpectJsonRequest(request, UmaWellKnown.class);
       Utils.jaxValidate(obj);

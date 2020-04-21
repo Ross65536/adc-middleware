@@ -15,6 +15,7 @@ import pt.inesctec.adcauthmiddleware.adc.UmaScopes;
 import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.http.HttpFacade;
+import pt.inesctec.adcauthmiddleware.http.HttpRequestBuilderFacade;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
@@ -44,10 +45,13 @@ public class AdcController {
     var umaResource = new UmaResource(UmaResourceId, UmaScopes.SEQUENCE.toString()); // repertoire is level 3
     var ticket = this.umaClient.requestPermissionsTicket(umaResource);
 
-    HttpRequest request = HttpFacade.buildGetJsonRequest(uri);
+
+    HttpRequest request = new HttpRequestBuilderFacade()
+        .getJson(uri)
+        .build();
     var response = HttpFacade.makeExpectJsonStringRequest(request);
 
-    return new ResponseEntity(response, HttpStatus.OK);
+    return new ResponseEntity(ticket + response, HttpStatus.OK);
   }
 
   private URI getResourceServerPath(String... parts) {
