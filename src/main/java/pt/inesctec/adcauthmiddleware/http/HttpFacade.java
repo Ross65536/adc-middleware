@@ -13,38 +13,29 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class HttpFacade {
-
-
-
   public static final HttpClient Client = HttpClient.newBuilder().build();
 
-  public static <T> T getJson(URI url, Class<T> respClass) throws IOException, InterruptedException {
+  public static HttpRequest buildGetJsonRequest(URI url) {
 
-    HttpRequest request = HttpRequest.newBuilder()
+    return HttpRequest.newBuilder()
         .uri(url)
         .GET()
         .header("Accept", MediaType.APPLICATION_JSON_VALUE)
         .build();
-
-    return HttpFacade.expectJson(request, respClass);
-
   }
 
-  public static <T> T postFormExpectJson(URI url, Map<String, String> form, Class<T> respClass) throws IOException, InterruptedException {
+  public static HttpRequest buildPostFormExpectJsonRequest(URI url, Map<String, String> form) {
 
     var postBody = HttpFacade.parseAsUrlEncodedForm(form);
-
-    HttpRequest request = HttpRequest.newBuilder()
+    return HttpRequest.newBuilder()
         .uri(url)
         .POST(HttpRequest.BodyPublishers.ofString(postBody))
         .header("Accept", MediaType.APPLICATION_JSON_VALUE)
         .headers("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE)
         .build();
-
-    return HttpFacade.expectJson(request, respClass);
   }
 
-  private static <T> T expectJson(HttpRequest request, Class<T> respClass) throws IOException, InterruptedException {
+  public static <T> T makeExpectJsonRequest(HttpRequest request, Class<T> respClass) throws IOException, InterruptedException {
     HttpResponse<Supplier<T>> response = HttpFacade.Client.send(request, new JsonBodyHandler<>(respClass));
 
     HttpFacade.validateOkResponse(response);
@@ -54,6 +45,11 @@ public class HttpFacade {
     return response.body().get();
   }
 
+  public static String makeRequest(HttpRequest request) throws IOException, InterruptedException {
+    return HttpFacade.Client.send(request, HttpResponse.BodyHandlers.ofString())
+            .body();
+  }
+
   private static String parseAsUrlEncodedForm(Map<String, String> data) {
 
     return data.entrySet()
@@ -61,7 +57,6 @@ public class HttpFacade {
         .map(e -> URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
         .collect(Collectors.joining("&"));
   }
-
 
   private static void validateOkResponse(HttpResponse response) throws IOException {
     int statusCode = response.statusCode();

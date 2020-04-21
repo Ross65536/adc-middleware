@@ -35,8 +35,9 @@ public class UmaClient {
 
     var uri = Utils.buildUrl(wellKnown.getTokenEndpoint());
     AccessToken accessToken = null;
+    var request = HttpFacade.buildPostFormExpectJsonRequest(uri, body);
     try {
-      accessToken = HttpFacade.postFormExpectJson(uri, body, AccessToken.class);
+      accessToken = HttpFacade.makeExpectJsonRequest(request, AccessToken.class);
       Utils.jaxValidate(accessToken);
     } catch (Exception e) {
       Logger.error("Failed to get UMA access token because: {}", e.getMessage());
@@ -49,8 +50,9 @@ public class UmaClient {
   private static UmaWellKnown getWellKnown(String wellKnownUrl) throws Exception {
     Logger.info("Requesting UMA 2 well known doc at: {}", wellKnownUrl);
     var uri = Utils.buildUrl(wellKnownUrl);
+    var request = HttpFacade.buildGetJsonRequest(uri);
     try {
-      var obj = HttpFacade.getJson(uri, UmaWellKnown.class);
+      var obj = HttpFacade.makeExpectJsonRequest(request, UmaWellKnown.class);
       Utils.jaxValidate(obj);
       return obj;
     } catch (Exception e) {

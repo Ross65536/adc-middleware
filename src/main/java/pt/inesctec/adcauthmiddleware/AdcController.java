@@ -2,11 +2,12 @@ package pt.inesctec.adcauthmiddleware;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -34,15 +35,14 @@ public class AdcController {
       value = "/study/{studyId}/repertoire/{repertoireId}",
       method = RequestMethod.GET,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public String greeting(@PathVariable String studyId, @PathVariable String repertoireId)
+  public ResponseEntity greeting(@PathVariable String studyId, @PathVariable String repertoireId)
       throws IOException, InterruptedException {
     final URI uri = this.getResourceServerPath("study", studyId, "repertoire", repertoireId);
 
-    HttpRequest request = HttpRequest.newBuilder().uri(uri).GET().build();
+    HttpRequest request = HttpFacade.buildGetJsonRequest(uri);
+    var response = HttpFacade.makeRequest(request);
 
-    HttpResponse<String> response = HttpFacade.Client.send(request, HttpResponse.BodyHandlers.ofString());
-
-    return response.body();
+    return new ResponseEntity(response, HttpStatus.OK);
   }
 
   private URI getResourceServerPath(String... parts) {
