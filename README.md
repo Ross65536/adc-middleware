@@ -63,7 +63,7 @@ Required:
 - `adc.resourceServerUrl`: The url to the underlying resource server.
  
 Optional:
-- `server.servlet.context-path`: The base path of the middleware API, defaults to: `/airr/v2`
+- `server.servlet.context-path`: The base path of the middleware API, used to forward requests. Defaults to: `/airr/v1`
 - `server.port`: The middleware server port, defaults to `8080`
 
 Running with custom properties file (using deployment jar):

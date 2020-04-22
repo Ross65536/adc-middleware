@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.UmaScopes;
 import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
@@ -27,16 +28,15 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 public class AdcController {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcController.class);
+  private final AdcClient adcClient;
 
-  private final UmaClient umaClient;
-  private AdcConfiguration adcConfig;
   private UmaFlow umaFlow;
 
   @Autowired
   public AdcController(AdcConfiguration adcConfig, UmaConfig umaConfig) throws Exception {
-    this.adcConfig = adcConfig;
+    this.adcClient = new AdcClient(adcConfig);
 
-    this.umaClient = new UmaClient(umaConfig);
+    var umaClient = new UmaClient(umaConfig);
     this.umaFlow = new UmaFlow(umaClient);
   }
 
@@ -64,24 +64,18 @@ public class AdcController {
   }
 
   @RequestMapping(
-      value = "/study/{studyId}/repertoire/{repertoireId}",
+      value = "/repertoire/{repertoireId}",
       method = RequestMethod.GET,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity repertoire(HttpServletRequest request, @PathVariable String studyId, @PathVariable String repertoireId)
+  public ResponseEntity repertoire(HttpServletRequest request, @PathVariable String repertoireId)
       throws Exception {
     final String UMA_RESOURCE_ID = "87e43a0e-9108-41ac-a9da-bee2e3b9bb12";
 
     var bearer = AdcController.getBearer(request);
-    var umaResource = new UmaResource(UMA_RESOURCE_ID, UmaScopes.SEQUENCE.toString()); // repertoire is level 3
+    var umaResource = new UmaResource(UMA_RESOURCE_ID, UmaScopes.SEQUENCE.toString()); // repertoire is access level 3
     this.umaFlow.exactMatchFlow(bearer, umaResource);
 
-    final URI uri = this.getResourceServerPath("study", studyId, "repertoire", repertoireId);
-
-    HttpRequest request2 = new HttpRequestBuilderFacade()
-        .getJson(uri)
-        .build();
-    var response = HttpFacade.makeExpectJsonStringRequest(request2);
-
+    var response = this.adcClient.getRepertoireAsString(repertoireId);
     return new ResponseEntity(response, HttpStatus.OK);
   }
 
@@ -98,8 +92,5 @@ public class AdcController {
     return auth.replace("Bearer ", "");
   }
 
-  private URI getResourceServerPath(String... parts) {
-    final String basePath = adcConfig.getResourceServerUrl();
-    return Utils.buildUrl(basePath, parts);
-  }
+
 }
