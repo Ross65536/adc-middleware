@@ -60,17 +60,23 @@ To run style checker run:
 You can set these by either adding a custom properties file (using `--spring.config.location` to inject the file, see example below) or by passing them as CLI options (with `-D<property>=<value>`). In the properties files you can use the field names directly as displayed here, for the CLI prepend `-D`, for the gradle CLI prepend `--` (see above example).
 
 Required:
-- `adc.resourceServerUrl`: The url to the underlying resource server.
+- `adc.resourceServerUrl`: The url to the underlying resource server (ADC backend) including base path (example `http://localhost:80/airr/v1`).
+- `uma.wellKnownUrl`: The url to the keycloak server's UMA well known document (example: `http://localhost:8082/auth/realms/master/.well-known/uma2-configuration`)
+- `uma.clientId`: Client ID for this middleware in keycloak
+- `uma.clientSecret`: Client Secret for the client ID
  
 Optional:
 - `server.servlet.context-path`: The base path of the middleware API, used to forward requests. Defaults to: `/airr/v1`
 - `server.port`: The middleware server port, defaults to `8080`
 
+Optional Dev:
+- `spring.h2.console.enabled`: Will enable H2 web console on `http://localhost:8080/airr/v1/h2-console` (default). Defaults to false.
+
 Running with custom properties file (using deployment jar):
 
 ```shell script
 # ./config.properties is the custom file, in the current working directory
-# makes sure to also include the default properties file 'application.properties' 
+# MAKE sure to also include the MANDATORY default properties file 'classpath:/application.properties' 
 java -jar ./build/libs/adc-auth-middleware-0.0.1-SNAPSHOT.jar \ 
 --spring.config.location=classpath:/application.properties,./config.properties 
 ```
