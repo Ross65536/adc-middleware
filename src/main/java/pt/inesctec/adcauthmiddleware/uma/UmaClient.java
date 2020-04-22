@@ -1,17 +1,23 @@
 package pt.inesctec.adcauthmiddleware.uma;
 
+import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.inesctec.adcauthmiddleware.Utils;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.http.HttpFacade;
 import pt.inesctec.adcauthmiddleware.http.HttpRequestBuilderFacade;
+import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 import pt.inesctec.adcauthmiddleware.uma.models.internal.AccessToken;
 import pt.inesctec.adcauthmiddleware.uma.models.internal.Ticket;
+import pt.inesctec.adcauthmiddleware.uma.models.internal.TokenIntrospection;
 import pt.inesctec.adcauthmiddleware.uma.models.internal.UmaWellKnown;
 
+import java.util.List;
 import java.util.Map;
+
+import static pt.inesctec.adcauthmiddleware.http.HttpFacade.makeExpectJsonRequest;
 
 public class UmaClient {
   private static Logger Logger = LoggerFactory.getLogger(UmaClient.class);
@@ -36,15 +42,50 @@ public class UmaClient {
         .withBearer(this.accessToken.getAccessToken())
         .build();
 
-    var ticket = HttpFacade.makeExpectJsonRequest(request, Ticket.class);
-    return ticket.getTicket();
+    try {
+      return makeExpectJsonRequest(request, Ticket.class)
+          .getTicket();
+    } catch (Exception e) {
+      Logger.info("Failed to get permissions ticket because: " + e.getMessage());
+      throw e;
+    }
   }
+
+
 
   public String getIssuer() {
     return this.wellKnown.getIssuer();
   }
 
+  public List<UmaResource> introspectToken(String rptToken) throws Exception {
+    this.updateAccessToken();
+    var uri = Utils.buildUrl(wellKnown.getIntrospectionEndpoint());
+    var form = ImmutableMap.of("token", rptToken, "token_type_hint", "requesting_party_token");
+    var request = new HttpRequestBuilderFacade()
+        .postForm(uri, form)
+        .expectJson()
+        // TODO update to bearer once keycloak follows spec
+        // Keycloak doesn't follow UMA spec in allowing UMA access tokens to be used here (Bearer).
+        .withBasicAuth(this.umaConfig.getClientId(), this.umaConfig.getClientSecret())
+        .build();
+
+    TokenIntrospection introspection = null;
+    try {
+      introspection = HttpFacade.makeExpectJsonRequest(request, TokenIntrospection.class);
+    } catch (Exception e) {
+      Logger.info("Failed to get permissions ticket because: " + e.getMessage());
+      throw e;
+    }
+
+    if (! introspection.isActive()) {
+      throw new UmaFlowException("RPT token is invalid (not active)");
+    }
+
+    return introspection.getPermissions();
+  }
+
   private void updateAccessToken() throws Exception {
+    // TODO only update token if necessary, use refresh token
 
     Logger.info("Getting new UMA access token");
     var body = Map.of(
@@ -61,7 +102,7 @@ public class UmaClient {
         .build();
 
     try {
-      accessToken = HttpFacade.makeExpectJsonRequest(request, AccessToken.class);
+      accessToken = makeExpectJsonRequest(request, AccessToken.class);
       Utils.jaxValidate(accessToken);
     } catch (Exception e) {
       Logger.error("Failed to get UMA access token because: {}", e.getMessage());
@@ -78,7 +119,7 @@ public class UmaClient {
         .getJson(uri)
         .build();
     try {
-      var obj = HttpFacade.makeExpectJsonRequest(request, UmaWellKnown.class);
+      var obj = makeExpectJsonRequest(request, UmaWellKnown.class);
       Utils.jaxValidate(obj);
       return obj;
     } catch (Exception e) {

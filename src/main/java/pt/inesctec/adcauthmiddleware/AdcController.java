@@ -18,6 +18,7 @@ import pt.inesctec.adcauthmiddleware.http.HttpRequestBuilderFacade;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
+import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
 import javax.servlet.http.HttpServletRequest;
@@ -50,8 +51,15 @@ public class AdcController {
   }
 
   @ResponseStatus(value=HttpStatus.UNAUTHORIZED)
+  @ExceptionHandler(UmaFlowException.class)
+  public void umaFlowHandler(Exception e) {
+    Logger.info("Uma flow access error: " + e.getMessage());
+    Logger.debug("Stacktrace: ", e);
+  }
+
+  @ResponseStatus(value=HttpStatus.UNAUTHORIZED)
   @ExceptionHandler(Exception.class)
-  public void   errorHandler(Exception e) {
+  public void errorHandler(Exception e) {
     Logger.error("Internal error occured: " + e.getMessage(), e);
   }
 

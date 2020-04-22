@@ -1,12 +1,14 @@
 package pt.inesctec.adcauthmiddleware.http;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.base.Charsets;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpRequest;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,6 +56,13 @@ public class HttpRequestBuilderFacade {
 
   public HttpRequestBuilderFacade withBearer(String token) {
     this.builder = this.builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+
+    return this;
+  }
+
+  public HttpRequestBuilderFacade withBasicAuth(String username, String password) {
+    var basic = HttpHeaders.encodeBasicAuth(username, password, Charsets.UTF_8);
+    this.builder = this.builder.setHeader(HttpHeaders.AUTHORIZATION, "Basic " + basic);
 
     return this;
   }
