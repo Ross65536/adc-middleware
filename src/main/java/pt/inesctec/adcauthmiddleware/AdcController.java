@@ -14,6 +14,8 @@ import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.UmaScopes;
 import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
+import pt.inesctec.adcauthmiddleware.db.CacheRepository;
+import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
 import pt.inesctec.adcauthmiddleware.http.HttpFacade;
 import pt.inesctec.adcauthmiddleware.http.HttpRequestBuilderFacade;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
@@ -29,15 +31,18 @@ import javax.servlet.http.HttpServletRequest;
 public class AdcController {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcController.class);
   private final AdcClient adcClient;
+  private final CacheRepository cacheRepository;
 
   private UmaFlow umaFlow;
 
   @Autowired
-  public AdcController(AdcConfiguration adcConfig, UmaConfig umaConfig) throws Exception {
+  public AdcController(AdcConfiguration adcConfig, UmaConfig umaConfig, StudyRepository studyRepository) throws Exception {
     this.adcClient = new AdcClient(adcConfig);
 
     var umaClient = new UmaClient(umaConfig);
     this.umaFlow = new UmaFlow(umaClient);
+    this.cacheRepository = new CacheRepository(this.adcClient, studyRepository);
+    this.cacheRepository.synchronize();
   }
 
   @ExceptionHandler(TicketException.class)
