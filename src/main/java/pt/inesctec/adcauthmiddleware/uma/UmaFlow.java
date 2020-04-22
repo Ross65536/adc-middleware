@@ -48,7 +48,7 @@ public class UmaFlow {
         });
 
     if (anyDeniedAccess) {
-      throw new UmaFlowException("Requested UMA resources not granted access to by RPT token");
+      throw new UmaFlowException("Requested UMA resources not granted access to by RPT token (exact match)");
     }
   }
 }
