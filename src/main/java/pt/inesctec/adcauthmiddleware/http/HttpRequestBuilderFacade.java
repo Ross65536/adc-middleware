@@ -22,7 +22,7 @@ public class HttpRequestBuilderFacade {
   public HttpRequestBuilderFacade getJson(URI uri) {
     this.builder = this.builder.uri(uri)
         .GET()
-        .setHeader("Accept", MediaType.APPLICATION_JSON_VALUE);
+        .setHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
 
     return this;
   }
@@ -31,7 +31,7 @@ public class HttpRequestBuilderFacade {
     var postBody = HttpRequestBuilderFacade.parseAsUrlEncodedForm(form);
     this.builder = this.builder.uri(uri)
         .POST(HttpRequest.BodyPublishers.ofString(postBody))
-        .setHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+        .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
 
     return this;
   }
@@ -41,13 +41,13 @@ public class HttpRequestBuilderFacade {
 
     this.builder = this.builder.uri(uri)
         .POST(HttpRequest.BodyPublishers.ofString(postBody))
-        .setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
     return this;
   }
 
   public HttpRequestBuilderFacade expectJson() {
-    this.builder = this.builder.setHeader("Accept", MediaType.APPLICATION_JSON_VALUE);
+    this.builder = this.builder.setHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
 
     return this;
   }
