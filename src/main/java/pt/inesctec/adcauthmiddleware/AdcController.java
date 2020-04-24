@@ -63,7 +63,7 @@ public class AdcController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity repertoire(HttpServletRequest request, @PathVariable String repertoireId)
       throws Exception {
-    final String UMA_RESOURCE_ID = "87e43a0e-9108-41ac-a9da-bee2e3b9bb12";
+    final String UMA_RESOURCE_ID = "47c1bef6-e102-4c6b-b216-f245687a045c";
 
     var bearer = AdcController.getBearer(request);
     var umaResource = new UmaResource(UMA_RESOURCE_ID, AdcUtils.SEQUENCE_UMA_SCOPE); // repertoire is access level 3

@@ -16,11 +16,23 @@ public class Repertoire {
   @NotNull
   private Study study;
 
+  public Repertoire() {}
+
+  public Repertoire(String repertoireId, Study study) {
+    this.repertoireId = repertoireId;
+    this.study = study;
+  }
+
   public String getRepertoireId() {
     return repertoireId;
   }
 
   public Study getStudy() {
     return study;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("{repertoireId: %s}", repertoireId);
   }
 }

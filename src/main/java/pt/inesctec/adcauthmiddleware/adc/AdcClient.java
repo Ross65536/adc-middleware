@@ -1,10 +1,12 @@
 package pt.inesctec.adcauthmiddleware.adc;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.Utils;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
+import pt.inesctec.adcauthmiddleware.adc.models.RearrangementIds;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireIds;
 import pt.inesctec.adcauthmiddleware.adc.models.internal.AdcIdsResponse;
 import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
@@ -39,7 +41,6 @@ public class AdcClient {
     Preconditions.checkArgument(adcRequest.getFacets() == null);
     Preconditions.checkArgument(adcRequest.isJsonFormat());
 
-
     final URI uri = this.getResourceServerPath("repertoire");
     var request = new HttpRequestBuilderFacade()
         .postJson(uri, adcRequest)
@@ -60,4 +61,21 @@ public class AdcClient {
   }
 
 
+  public List<RearrangementIds> getRearrangementIds(AdcSearchRequest adcRequest) throws Exception {
+    Preconditions.checkArgument(adcRequest.getFacets() == null);
+    Preconditions.checkArgument(adcRequest.isJsonFormat());
+
+    final URI uri = this.getResourceServerPath("rearrangement");
+    var request = new HttpRequestBuilderFacade()
+        .postJson(uri, adcRequest)
+        .build();
+
+    var rearrangements = HttpFacade.makeExpectJsonRequest(request, AdcIdsResponse.class)
+        .getRearrangements();
+
+    Utils.assertNotNull(rearrangements);
+    Utils.jaxValidateList(rearrangements);
+
+    return rearrangements;
+  }
 }

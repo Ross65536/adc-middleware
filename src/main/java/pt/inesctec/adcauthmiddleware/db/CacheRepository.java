@@ -8,6 +8,7 @@ import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcUtils;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireIds;
+import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
 import pt.inesctec.adcauthmiddleware.db.repository.RearrangementRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
@@ -45,18 +46,74 @@ public class CacheRepository {
     this.rearrangementRepository = rearrangementRepository;
   }
 
-  @Transactional
+
   public void synchronize() throws Exception {
-    final var idsRequest = AdcSearchRequest.buildIdsStudySearch();
-    var backendRepertoires = this.adcClient.getRepertoireIds(idsRequest);
+    var backendRepertoires = this.adcClient.getRepertoireIds(AdcSearchRequest.buildIdsRepertoireSearch());
+    var backendRearrangements = this.adcClient.getRearrangementIds(AdcSearchRequest.buildIdsRearrangementSearch());
     var backendStudyMap =
         CollectionsUtils.toMapKeyByLatest(
             backendRepertoires, RepertoireIds::getStudyId, RepertoireIds::getStudyTitle);
+
     this.synchronizeStudies(backendStudyMap);
+
+    this.deleteCache();
+    this.synchronizeRepertoires(backendRepertoires);
   }
 
   @Transactional
-  public void synchronizeStudies(Map<String, String> backendStudyMap) throws Exception {
+  protected void synchronizeRepertoires(List<RepertoireIds> backendRepertoires) {
+    backendRepertoires.forEach(repertoireIds -> {
+      var studyId = repertoireIds.getStudyId();
+      var study = this.studyRepository.findByStudyId(studyId);
+      if (study == null) {
+        Logger.error("Invalid DB state, missing study {}, skipping", studyId);
+        return;
+      }
+
+      var repertoire = new Repertoire(repertoireIds.getRepertoireId(), study);
+      Logger.debug("Saving repertoire {}", repertoire);
+
+      try {
+        this.repertoireRepository.save(repertoire);
+      } catch (RuntimeException e) {
+        Logger.error(
+            "Failed to save DB repertoire {}, because: {}", repertoire, e);
+        Logger.debug("Stacktrace: ", e);
+      }
+    });
+  }
+
+  @Transactional
+  protected void synchronizeRearrangements(List<RepertoireIds> backendRepertoires) {
+    backendRepertoires.forEach(repertoireIds -> {
+      var studyId = repertoireIds.getStudyId();
+      var study = this.studyRepository.findByStudyId(studyId);
+      if (study == null) {
+        Logger.error("Invalid DB state, missing study {}, skipping", studyId);
+        return;
+      }
+
+      var repertoire = new Repertoire(repertoireIds.getRepertoireId(), study);
+      Logger.debug("Saving repertoire {}", repertoire);
+
+      try {
+        this.repertoireRepository.save(repertoire);
+      } catch (RuntimeException e) {
+        Logger.error(
+            "Failed to save DB repertoire {}, because: {}", repertoire, e);
+        Logger.debug("Stacktrace: ", e);
+      }
+    });
+  }
+
+  @Transactional
+  protected void deleteCache() {
+    this.repertoireRepository.deleteAll();
+    this.rearrangementRepository.deleteAll();
+  }
+
+  @Transactional
+  protected void synchronizeStudies(Map<String, String> backendStudyMap) throws Exception {
     var umaResources = List.of(this.umaClient.listUmaResources());
     var dbStudies = this.studyRepository.findAll();
 
