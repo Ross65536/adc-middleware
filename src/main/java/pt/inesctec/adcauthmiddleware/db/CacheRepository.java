@@ -28,6 +28,7 @@ import java.util.stream.StreamSupport;
 @Component
 public class CacheRepository {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(CacheRepository.class);
+  private static Object SyncMonitor = new Object();
 
   private final AdcClient adcClient;
   private final UmaClient umaClient;
@@ -50,16 +51,26 @@ public class CacheRepository {
 
 
   public void synchronize() throws Exception {
+    synchronized (CacheRepository.SyncMonitor) {
+      synchronizeGuts();
+    }
+  }
+
+  private void synchronizeGuts() throws Exception {
     Logger.info("Synchronizing DB and cache");
 
-    var backendRepertoires = this.adcClient.getRepertoireIds(AdcSearchRequest.buildIdsRepertoireSearch());
-    var backendRearrangements = this.adcClient.getRearrangementIds(AdcSearchRequest.buildIdsRearrangementSearch());
+    var backendRepertoires =
+        this.adcClient.getRepertoireIds(AdcSearchRequest.buildIdsRepertoireSearch());
+    var backendRearrangements =
+        this.adcClient.getRearrangementIds(AdcSearchRequest.buildIdsRearrangementSearch());
+
+    // sync studies
     var backendStudyMap =
         CollectionsUtils.toMapKeyByLatest(
             backendRepertoires, RepertoireIds::getStudyId, RepertoireIds::getStudyTitle);
-
     this.synchronizeStudies(backendStudyMap);
 
+    // sync cache
     this.deleteCache();
     this.synchronizeRepertoires(backendRepertoires);
     this.synchronizeRearrangements(backendRearrangements);

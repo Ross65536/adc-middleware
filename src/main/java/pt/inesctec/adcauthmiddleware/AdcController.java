@@ -17,17 +17,13 @@ import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
 import javax.servlet.http.HttpServletRequest;
 
-
 @RestController
 public class AdcController {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcController.class);
 
-  @Autowired
-  private AdcClient adcClient;
-  @Autowired
-  private CacheRepository cacheRepository;
-  @Autowired
-  private UmaFlow umaFlow;
+  @Autowired private AdcClient adcClient;
+  @Autowired private CacheRepository cacheRepository;
+  @Autowired private UmaFlow umaFlow;
 
   @Autowired
   public AdcController(CacheRepository cacheRepository) throws Exception {
@@ -44,14 +40,14 @@ public class AdcController {
     return new ResponseEntity(headers, HttpStatus.UNAUTHORIZED);
   }
 
-  @ResponseStatus(value=HttpStatus.UNAUTHORIZED)
+  @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
   @ExceptionHandler(UmaFlowException.class)
   public void umaFlowHandler(Exception e) {
     Logger.info("Uma flow access error: " + e.getMessage());
     Logger.debug("Stacktrace: ", e);
   }
 
-  @ResponseStatus(value=HttpStatus.UNAUTHORIZED)
+  @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
   @ExceptionHandler(Exception.class)
   public void errorHandler(Exception e) {
     Logger.error("Internal error occured: " + e.getMessage(), e);
@@ -66,11 +62,18 @@ public class AdcController {
     final String UMA_RESOURCE_ID = "47c1bef6-e102-4c6b-b216-f245687a045c";
 
     var bearer = AdcController.getBearer(request);
-    var umaResource = new UmaResource(UMA_RESOURCE_ID, AdcUtils.SEQUENCE_UMA_SCOPE); // repertoire is access level 3
+    var umaResource =
+        new UmaResource(
+            UMA_RESOURCE_ID, AdcUtils.SEQUENCE_UMA_SCOPE); // repertoire is access level 3
     this.umaFlow.exactMatchFlow(bearer, umaResource);
 
     var response = this.adcClient.getRepertoireAsString(repertoireId);
     return new ResponseEntity(response, HttpStatus.OK);
+  }
+
+  @RequestMapping(value = "/synchronize", method = RequestMethod.POST)
+  public void synchronize() throws Exception {
+    this.cacheRepository.synchronize();
   }
 
   private static String getBearer(HttpServletRequest request) {
@@ -79,12 +82,10 @@ public class AdcController {
       return null;
     }
 
-    if (! auth.startsWith("Bearer ")) {
+    if (!auth.startsWith("Bearer ")) {
       return null;
     }
 
     return auth.replace("Bearer ", "");
   }
-
-
 }
