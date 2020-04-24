@@ -70,7 +70,7 @@ Optional:
 - `server.port`: The middleware server port, defaults to `8080`
 
 Optional Dev:
-- `spring.h2.console.enabled`: Will enable H2 web console on `http://localhost:8080/airr/v1/h2-console` (default). Defaults to false.
+- `spring.h2.console.enabled`: Will enable H2 web console on `http://localhost:8080/airr/v1/h2-console` (default with file `jdbc:h2:file:./data/db` account `sa:password`). Defaults to false.
 
 Running with custom properties file (using deployment jar):
 

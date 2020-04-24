@@ -15,6 +15,8 @@ import pt.inesctec.adcauthmiddleware.adc.UmaScopes;
 import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.db.CacheRepository;
+import pt.inesctec.adcauthmiddleware.db.repository.RearrangementRepository;
+import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
 import pt.inesctec.adcauthmiddleware.http.HttpFacade;
 import pt.inesctec.adcauthmiddleware.http.HttpRequestBuilderFacade;
@@ -36,12 +38,12 @@ public class AdcController {
   private UmaFlow umaFlow;
 
   @Autowired
-  public AdcController(AdcConfiguration adcConfig, UmaConfig umaConfig, StudyRepository studyRepository) throws Exception {
+  public AdcController(AdcConfiguration adcConfig, UmaConfig umaConfig, StudyRepository studyRepository, RepertoireRepository repertoireRepository, RearrangementRepository rearrangementRepository) throws Exception {
     this.adcClient = new AdcClient(adcConfig);
 
     var umaClient = new UmaClient(umaConfig);
     this.umaFlow = new UmaFlow(umaClient);
-    this.cacheRepository = new CacheRepository(this.adcClient, studyRepository);
+    this.cacheRepository = new CacheRepository(this.adcClient, studyRepository, repertoireRepository, rearrangementRepository);
     this.cacheRepository.synchronize();
   }
 
