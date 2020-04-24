@@ -1,7 +1,7 @@
 package pt.inesctec.adcauthmiddleware.db;
 
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
-import pt.inesctec.adcauthmiddleware.db.models.Study;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.db.repository.RearrangementRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
@@ -19,8 +19,12 @@ public class CacheRepository {
     this.rearrangementRepository = rearrangementRepository;
   }
 
-  public void synchronize() {
-    this.studyRepository.save(new Study("a2", "bb"));
+  public void synchronize() throws Exception {
+    final var idsRequest = AdcSearchRequest.buildIdsStudySearch();
+    var repertoires = this.adcClient.getRepertoireIds(idsRequest);
+
+
+
 
   }
 }

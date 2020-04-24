@@ -1,8 +1,5 @@
 package pt.inesctec.adcauthmiddleware;
 
-import java.net.URI;
-import java.net.http.HttpRequest;
-
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -11,15 +8,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
-import pt.inesctec.adcauthmiddleware.adc.UmaScopes;
+import pt.inesctec.adcauthmiddleware.adc.AdcUtils;
 import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.db.CacheRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.RearrangementRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
-import pt.inesctec.adcauthmiddleware.http.HttpFacade;
-import pt.inesctec.adcauthmiddleware.http.HttpRequestBuilderFacade;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
@@ -79,7 +74,7 @@ public class AdcController {
     final String UMA_RESOURCE_ID = "87e43a0e-9108-41ac-a9da-bee2e3b9bb12";
 
     var bearer = AdcController.getBearer(request);
-    var umaResource = new UmaResource(UMA_RESOURCE_ID, UmaScopes.SEQUENCE.toString()); // repertoire is access level 3
+    var umaResource = new UmaResource(UMA_RESOURCE_ID, AdcUtils.SEQUENCE_SCOPE); // repertoire is access level 3
     this.umaFlow.exactMatchFlow(bearer, umaResource);
 
     var response = this.adcClient.getRepertoireAsString(repertoireId);

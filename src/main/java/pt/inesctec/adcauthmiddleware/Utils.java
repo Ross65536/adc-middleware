@@ -2,6 +2,8 @@ package pt.inesctec.adcauthmiddleware;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.web.util.UriComponentsBuilder;
@@ -28,4 +30,17 @@ public final class Utils {
       throw new Exception("Invalid JSON received: " + msg);
     }
   }
+
+  public static void jaxValidateList(Iterable list) throws Exception {
+    for (var e : list) {
+      Utils.jaxValidate(e);
+    }
+  }
+
+  public static void assertNotNull(Object arg) throws Exception {
+    if (arg == null) {
+      throw new Exception("Must not be null");
+    }
+  }
+
 }
