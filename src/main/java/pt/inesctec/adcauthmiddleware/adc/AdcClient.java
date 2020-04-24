@@ -37,6 +37,16 @@ public class AdcClient {
     return HttpFacade.makeExpectJsonStringRequest(request);
   }
 
+  public String getRearrangementAsString(String rearrangementId) throws IOException, InterruptedException {
+    final URI uri = this.getResourceServerPath("rearrangement", rearrangementId);
+
+    var request = new HttpRequestBuilderFacade()
+        .getJson(uri)
+        .build();
+
+    return HttpFacade.makeExpectJsonStringRequest(request);
+  }
+
   public List<RepertoireIds> getRepertoireIds(AdcSearchRequest adcRequest) throws Exception {
     Preconditions.checkArgument(adcRequest.getFacets() == null);
     Preconditions.checkArgument(adcRequest.isJsonFormat());

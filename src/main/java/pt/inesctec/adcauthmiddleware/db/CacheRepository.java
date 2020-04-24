@@ -64,6 +64,15 @@ public class CacheRepository {
     return repertoire.getStudy().getUmaId();
   }
 
+  public String getRearrangementUmaId(String rearrangementId) {
+    var rearrangement = this.rearrangementRepository.findByRearrangementId(rearrangementId);
+    if (rearrangement == null) {
+      return null;
+    }
+
+    return rearrangement.getRepertoire().getStudy().getUmaId();
+  }
+
   private void synchronizeGuts() throws Exception {
     Logger.info("Synchronizing DB and cache");
 

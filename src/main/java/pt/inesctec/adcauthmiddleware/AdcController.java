@@ -1,5 +1,6 @@
 package pt.inesctec.adcauthmiddleware;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
+import pt.inesctec.adcauthmiddleware.adc.AdcUtils;
 import pt.inesctec.adcauthmiddleware.db.CacheRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
@@ -66,9 +68,21 @@ public class AdcController {
   public String repertoire(HttpServletRequest request, @PathVariable String repertoireId)
       throws Exception {
     var umaId = this.cacheRepository.getRepertoireUmaId(repertoireId);
-    exactUmaFlow(request, umaId, "non-existing repertoire in cache " + repertoireId);
+    exactUmaFlow(request, umaId, "non-existing repertoire in cache " + repertoireId, AdcUtils.SEQUENCE_UMA_SCOPE);
 
     return this.adcClient.getRepertoireAsString(repertoireId);
+  }
+
+  @RequestMapping(
+      value = "/rearrangement/{rearrangementId}",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public String rearrangement(HttpServletRequest request, @PathVariable String rearrangementId)
+      throws Exception {
+    var umaId = this.cacheRepository.getRearrangementUmaId(rearrangementId);
+    exactUmaFlow(request, umaId, "non-existing rearrangement in cache " + rearrangementId, AdcUtils.SEQUENCE_UMA_SCOPE);
+
+    return this.adcClient.getRearrangementAsString(rearrangementId);
   }
 
   // TODO add security
@@ -80,6 +94,7 @@ public class AdcController {
   private void exactUmaFlow(
       HttpServletRequest request, String umaId, String errorMsg, String... umaScopes)
       throws Exception {
+    Preconditions.checkArgument(umaScopes.length > 0);
 
     if (umaId == null) {
       Logger.info("User tried accessing non-existing resource {}", errorMsg);
