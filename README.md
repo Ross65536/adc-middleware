@@ -66,7 +66,8 @@ Required:
 - `uma.wellKnownUrl`: The url to the keycloak server's UMA well known document (example: `http://localhost:8082/auth/realms/master/.well-known/uma2-configuration`)
 - `uma.clientId`: Client ID for this middleware in keycloak
 - `uma.clientSecret`: Client Secret for the client ID
- 
+- `uma.resourceOwner`: The Keycloak username who will be the owner of the created resources.
+
 Optional:
 - `server.servlet.context-path`: The base path of the middleware API, used to forward requests. Defaults to: `/airr/v1`
 - `server.port`: The middleware server port, defaults to `8080`
