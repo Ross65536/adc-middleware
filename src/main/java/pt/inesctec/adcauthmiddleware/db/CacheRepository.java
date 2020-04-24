@@ -49,11 +49,19 @@ public class CacheRepository {
     this.rearrangementRepository = rearrangementRepository;
   }
 
-
   public void synchronize() throws Exception {
     synchronized (CacheRepository.SyncMonitor) {
       synchronizeGuts();
     }
+  }
+
+  public String getRepertoireUmaId(String repertoireId) {
+    var repertoire = this.repertoireRepository.findByRepertoireId(repertoireId);
+    if (repertoire == null) {
+      return null;
+    }
+
+    return repertoire.getStudy().getUmaId();
   }
 
   private void synchronizeGuts() throws Exception {

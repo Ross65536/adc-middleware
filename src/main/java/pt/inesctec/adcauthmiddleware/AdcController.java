@@ -59,12 +59,14 @@ public class AdcController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity repertoire(HttpServletRequest request, @PathVariable String repertoireId)
       throws Exception {
-    final String UMA_RESOURCE_ID = "47c1bef6-e102-4c6b-b216-f245687a045c";
+    var umaId = this.cacheRepository.getRepertoireUmaId(repertoireId);
+    if (umaId == null) {
+      return new ResponseEntity(HttpStatus.NOT_FOUND); // should it return 401?
+    }
 
     var bearer = AdcController.getBearer(request);
     var umaResource =
-        new UmaResource(
-            UMA_RESOURCE_ID, AdcUtils.SEQUENCE_UMA_SCOPE); // repertoire is access level 3
+        new UmaResource(umaId, AdcUtils.SEQUENCE_UMA_SCOPE); // repertoire is access level 3
     this.umaFlow.exactMatchFlow(bearer, umaResource);
 
     var response = this.adcClient.getRepertoireAsString(repertoireId);
