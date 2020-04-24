@@ -9,13 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcUtils;
-import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
-import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.db.CacheRepository;
-import pt.inesctec.adcauthmiddleware.db.repository.RearrangementRepository;
-import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
-import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
-import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
@@ -27,19 +21,17 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 public class AdcController {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcController.class);
-  private final AdcClient adcClient;
-  private final CacheRepository cacheRepository;
 
+  @Autowired
+  private AdcClient adcClient;
+  @Autowired
+  private CacheRepository cacheRepository;
+  @Autowired
   private UmaFlow umaFlow;
 
   @Autowired
-  public AdcController(AdcConfiguration adcConfig, UmaConfig umaConfig, StudyRepository studyRepository, RepertoireRepository repertoireRepository, RearrangementRepository rearrangementRepository) throws Exception {
-    this.adcClient = new AdcClient(adcConfig);
-
-    var umaClient = new UmaClient(umaConfig);
-    this.umaFlow = new UmaFlow(umaClient);
-    this.cacheRepository = new CacheRepository(this.adcClient, umaClient, studyRepository, repertoireRepository, rearrangementRepository);
-    this.cacheRepository.synchronize();
+  public AdcController(CacheRepository cacheRepository) throws Exception {
+    cacheRepository.synchronize();
   }
 
   @ExceptionHandler(TicketException.class)
@@ -74,7 +66,7 @@ public class AdcController {
     final String UMA_RESOURCE_ID = "87e43a0e-9108-41ac-a9da-bee2e3b9bb12";
 
     var bearer = AdcController.getBearer(request);
-    var umaResource = new UmaResource(UMA_RESOURCE_ID, AdcUtils.SEQUENCE_SCOPE); // repertoire is access level 3
+    var umaResource = new UmaResource(UMA_RESOURCE_ID, AdcUtils.SEQUENCE_UMA_SCOPE); // repertoire is access level 3
     this.umaFlow.exactMatchFlow(bearer, umaResource);
 
     var response = this.adcClient.getRepertoireAsString(repertoireId);

@@ -2,6 +2,7 @@ package pt.inesctec.adcauthmiddleware.adc;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.Utils;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireIds;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
+@Component
 public class AdcClient {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcClient.class);
 

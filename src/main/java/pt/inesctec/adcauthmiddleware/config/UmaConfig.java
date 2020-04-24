@@ -20,6 +20,8 @@ public class UmaConfig {
 
   @NonNull @NotBlank private String clientSecret;
 
+  @NonNull @NotBlank private String resourceOwner;
+
   @NonNull
   public String getWellKnownUrl() {
     return wellKnownUrl;
@@ -44,5 +46,14 @@ public class UmaConfig {
 
   public void setClientSecret(@NonNull String clientSecret) {
     this.clientSecret = clientSecret;
+  }
+
+  @NonNull
+  public String getResourceOwner() {
+    return resourceOwner;
+  }
+
+  public void setResourceOwner(@NonNull String resourceOwner) {
+    this.resourceOwner = resourceOwner;
   }
 }

@@ -8,4 +8,6 @@ import java.util.List;
 public interface StudyRepository extends CrudRepository<Study, Long> {
 
   List<Study> findByStudyId(String studyId);
+
+  void deleteByUmaId(String umaId);
 }

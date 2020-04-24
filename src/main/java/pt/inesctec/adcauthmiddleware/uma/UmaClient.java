@@ -3,22 +3,22 @@ package pt.inesctec.adcauthmiddleware.uma;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.Utils;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.http.HttpFacade;
 import pt.inesctec.adcauthmiddleware.http.HttpRequestBuilderFacade;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
+import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
-import pt.inesctec.adcauthmiddleware.uma.models.internal.AccessToken;
-import pt.inesctec.adcauthmiddleware.uma.models.internal.Ticket;
-import pt.inesctec.adcauthmiddleware.uma.models.internal.TokenIntrospection;
-import pt.inesctec.adcauthmiddleware.uma.models.internal.UmaWellKnown;
+import pt.inesctec.adcauthmiddleware.uma.models.internal.*;
 
 import java.util.List;
 import java.util.Map;
 
 import static pt.inesctec.adcauthmiddleware.http.HttpFacade.makeExpectJsonRequest;
 
+@Component
 public class UmaClient {
   private static Logger Logger = LoggerFactory.getLogger(UmaClient.class);
 
@@ -164,5 +164,34 @@ public class UmaClient {
       Logger.error("Failed to delete UMA resource {} because: {}", umaId, e.getMessage());
       throw e;
     }
+  }
+
+  public String createUmaResource(UmaRegistrationResource resource) throws Exception {
+    this.updateAccessToken();
+
+    resource.setId(null);
+    resource.setOwnerManagedAccess(true);
+    resource.setOwner(this.umaConfig.getResourceOwner());
+    Logger.info("Creating UMA 2 resource: {}", resource);
+
+    var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint());
+    var request = new HttpRequestBuilderFacade()
+        .postJson(uri, resource)
+        .expectJson()
+        .withBearer(this.accessToken.getAccessToken())
+        .build();
+
+    String createdId = null;
+    try {
+      createdId = HttpFacade.makeExpectJsonRequest(request, UmaResourceCreate.class)
+          .getId();
+    } catch (Exception e) {
+      Logger.error("Failed to create UMA resource {} because: {}", resource, e.getMessage());
+      throw e;
+    }
+
+    Utils.assertNotNull(createdId);
+
+    return createdId;
   }
 }

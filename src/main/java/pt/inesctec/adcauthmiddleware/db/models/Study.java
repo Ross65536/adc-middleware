@@ -30,4 +30,9 @@ public class Study {
   public String getUmaId() {
     return umaId;
   }
+
+  @Override
+  public String toString() {
+    return String.format("{studyId: %s, umaId: %s}", studyId, umaId);
+  }
 }

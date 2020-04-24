@@ -1,5 +1,6 @@
 package pt.inesctec.adcauthmiddleware.uma;
 
+import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
@@ -9,6 +10,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Component
 public class UmaFlow {
   private final UmaClient umaClient;
 
