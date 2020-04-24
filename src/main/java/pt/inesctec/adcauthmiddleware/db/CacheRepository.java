@@ -7,7 +7,9 @@ import pt.inesctec.adcauthmiddleware.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcUtils;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
+import pt.inesctec.adcauthmiddleware.adc.models.RearrangementIds;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireIds;
+import pt.inesctec.adcauthmiddleware.db.models.Rearrangement;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
 import pt.inesctec.adcauthmiddleware.db.repository.RearrangementRepository;
@@ -48,6 +50,8 @@ public class CacheRepository {
 
 
   public void synchronize() throws Exception {
+    Logger.info("Synchronizing DB and cache");
+
     var backendRepertoires = this.adcClient.getRepertoireIds(AdcSearchRequest.buildIdsRepertoireSearch());
     var backendRearrangements = this.adcClient.getRearrangementIds(AdcSearchRequest.buildIdsRearrangementSearch());
     var backendStudyMap =
@@ -58,6 +62,9 @@ public class CacheRepository {
 
     this.deleteCache();
     this.synchronizeRepertoires(backendRepertoires);
+    this.synchronizeRearrangements(backendRearrangements);
+
+    Logger.info("Finished DB and cache synchronization");
   }
 
   @Transactional
@@ -84,23 +91,23 @@ public class CacheRepository {
   }
 
   @Transactional
-  protected void synchronizeRearrangements(List<RepertoireIds> backendRepertoires) {
+  protected void synchronizeRearrangements(List<RearrangementIds> backendRepertoires) {
     backendRepertoires.forEach(repertoireIds -> {
-      var studyId = repertoireIds.getStudyId();
-      var study = this.studyRepository.findByStudyId(studyId);
-      if (study == null) {
-        Logger.error("Invalid DB state, missing study {}, skipping", studyId);
+      var repertoireId = repertoireIds.getRepertoireId();
+      var repertoire = this.repertoireRepository.findByRepertoireId(repertoireId);
+      if (repertoire == null) {
+        Logger.error("Invalid DB state, missing repertoire {}, skipping", repertoireId);
         return;
       }
 
-      var repertoire = new Repertoire(repertoireIds.getRepertoireId(), study);
-      Logger.debug("Saving repertoire {}", repertoire);
+      var rearrangement = new Rearrangement(repertoireIds.getRearrangementId(), repertoire);
+      Logger.debug("Saving rearrangement {}", repertoire);
 
       try {
-        this.repertoireRepository.save(repertoire);
+        this.rearrangementRepository.save(rearrangement);
       } catch (RuntimeException e) {
         Logger.error(
-            "Failed to save DB repertoire {}, because: {}", repertoire, e);
+            "Failed to save DB rearrangement {}, because: {}", rearrangement, e);
         Logger.debug("Stacktrace: ", e);
       }
     });
@@ -108,8 +115,8 @@ public class CacheRepository {
 
   @Transactional
   protected void deleteCache() {
-    this.repertoireRepository.deleteAll();
     this.rearrangementRepository.deleteAll();
+    this.repertoireRepository.deleteAll();
   }
 
   @Transactional

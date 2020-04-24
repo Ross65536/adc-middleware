@@ -16,11 +16,23 @@ public class Rearrangement {
   @NotNull
   private Repertoire repertoire;
 
+  public Rearrangement() {}
+
+  public Rearrangement(String rearrangementId, Repertoire repertoire) {
+    this.rearrangementId = rearrangementId;
+    this.repertoire = repertoire;
+  }
+
   public String getRearrangementId() {
     return rearrangementId;
   }
 
   public Repertoire getRepertoire() {
     return repertoire;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("{rearrangementId: %s}", rearrangementId);
   }
 }
