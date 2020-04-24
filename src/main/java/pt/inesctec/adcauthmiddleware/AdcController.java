@@ -38,7 +38,7 @@ public class AdcController {
 
     var umaClient = new UmaClient(umaConfig);
     this.umaFlow = new UmaFlow(umaClient);
-    this.cacheRepository = new CacheRepository(this.adcClient, studyRepository, repertoireRepository, rearrangementRepository);
+    this.cacheRepository = new CacheRepository(this.adcClient, umaClient, studyRepository, repertoireRepository, rearrangementRepository);
     this.cacheRepository.synchronize();
   }
 

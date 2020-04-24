@@ -8,6 +8,8 @@ Project runs on java 11, with (modified) google java style guide.
 
 ### First time setup (dev):
 
+> If using OpenJDK, use minimum v11.0.7
+
 - Configuring keycloak
 
 You need to setup and configure a keycloak server.

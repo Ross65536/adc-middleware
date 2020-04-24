@@ -29,6 +29,13 @@ public class HttpRequestBuilderFacade {
     return this;
   }
 
+  public HttpRequestBuilderFacade delete(URI uri) {
+    this.builder = this.builder.uri(uri)
+        .DELETE();
+
+    return this;
+  }
+
   public HttpRequestBuilderFacade postForm(URI uri, Map<String, String> form) {
     var postBody = HttpRequestBuilderFacade.parseAsUrlEncodedForm(form);
     this.builder = this.builder.uri(uri)

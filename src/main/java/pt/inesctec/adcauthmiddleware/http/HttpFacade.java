@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class HttpFacade {
@@ -16,6 +17,11 @@ public class HttpFacade {
 
   public static String toJson(Object body) throws JsonProcessingException {
     return JsonObjectMapper.writeValueAsString(body);
+  }
+
+  public static void makeRequest(HttpRequest request) throws IOException, InterruptedException {
+    var response = HttpFacade.Client.send(request, HttpResponse.BodyHandlers.discarding());
+    HttpFacade.validateOkResponse(response);
   }
 
   public static <T> T makeExpectJsonRequest(HttpRequest request, Class<T> respClass) throws IOException, InterruptedException {

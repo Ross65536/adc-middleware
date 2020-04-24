@@ -128,4 +128,41 @@ public class UmaClient {
     }
   }
 
+  public String[] listUmaResources() throws Exception {
+    this.updateAccessToken();
+
+    Logger.info("Requesting UMA 2 resource list");
+
+    var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint());
+    var request = new HttpRequestBuilderFacade()
+        .getJson(uri)
+        .withBearer(this.accessToken.getAccessToken())
+        .build();
+
+    try {
+      return makeExpectJsonRequest(request, String[].class);
+    } catch (Exception e) {
+      Logger.error("Failed to get UMA resource list: {}", e.getMessage());
+      throw e;
+    }
+  }
+
+  public void deleteUmaResource(String umaId) throws Exception {
+    this.updateAccessToken();
+
+    Logger.info("Deleting UMA 2 resource: {}", umaId);
+
+    var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint(), umaId);
+    var request = new HttpRequestBuilderFacade()
+        .delete(uri)
+        .withBearer(this.accessToken.getAccessToken())
+        .build();
+
+    try {
+      HttpFacade.makeRequest(request);
+    } catch (Exception e) {
+      Logger.error("Failed to delete UMA resource {} because: {}", umaId, e.getMessage());
+      throw e;
+    }
+  }
 }
