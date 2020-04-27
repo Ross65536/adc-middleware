@@ -52,8 +52,6 @@ public class UmaClient {
     }
   }
 
-
-
   public String getIssuer() {
     return this.wellKnown.getIssuer();
   }
@@ -171,8 +169,9 @@ public class UmaClient {
     this.updateAccessToken();
 
     resource.setId(null);
-    resource.setOwnerManagedAccess(true);
-    resource.setOwner(this.umaConfig.getResourceOwner());
+    resource.setOwnerManagedAccess(true); // keycloak specific
+    resource.setOwner(this.umaConfig.getResourceOwner()); // keycloak specific
+
     Logger.info("Creating UMA 2 resource: {}", resource);
 
     var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint());
@@ -195,4 +194,5 @@ public class UmaClient {
 
     return createdId;
   }
+
 }

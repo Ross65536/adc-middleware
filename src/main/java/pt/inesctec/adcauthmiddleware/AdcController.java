@@ -1,6 +1,7 @@
 package pt.inesctec.adcauthmiddleware;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -21,6 +22,7 @@ import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -33,43 +35,54 @@ public class AdcController {
   @Autowired private UmaFlow umaFlow;
   @Autowired private UmaClient umaClient;
 
+  private static ResponseEntity<HttpError> buildError(HttpStatus status, String msg) {
+    return new ResponseEntity<>(new HttpError(status, msg), status);
+  }
+
+  private static ResponseEntity<HttpError> buildError(HttpStatus status, String msg, Map<String, String> headers) {
+    var responseHeaders = new HttpHeaders();
+    headers.forEach(responseHeaders::set);
+
+    return new ResponseEntity<>(new HttpError(status, msg), responseHeaders, status);
+  }
+
   @Autowired
   public AdcController(DbRepository dbRepository) throws Exception {
     //    cacheRepository.synchronize();
   }
 
   @ExceptionHandler(HttpMessageNotReadableException.class)
-  @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-  public void ticketHandler(HttpMessageNotReadableException e) {
-    Logger.info("User input JSON error: ", e);
+  public ResponseEntity<HttpError> badInputHandler(HttpMessageNotReadableException e) {
+    Logger.info("User input JSON error: {}", e.getMessage());
+    var msg = Utils.getNestedExceptionMessage(e); // TODO hide internals from response
+    return AdcController.buildError(HttpStatus.BAD_REQUEST, "Invalid JSON: " + msg);
   }
 
   @ExceptionHandler(TicketException.class)
-  public ResponseEntity ticketHandler(TicketException e) {
-    var header = e.buildAuthenticateHeader();
+  public ResponseEntity<HttpError> ticketHandler(TicketException e) {
+    var headers = ImmutableMap.of(HttpHeaders.WWW_AUTHENTICATE, e.buildAuthenticateHeader());
+    return AdcController.buildError(HttpStatus.UNAUTHORIZED, "UMA permissions ticket emitted", headers);
+  }
 
-    var headers = new HttpHeaders();
-    headers.add(HttpHeaders.WWW_AUTHENTICATE, header);
-
-    return new ResponseEntity(headers, HttpStatus.UNAUTHORIZED);
+  @ExceptionHandler(ResponseStatusException.class)
+  public ResponseEntity<HttpError> statusException(ResponseStatusException e) {
+    Logger.debug("Stacktrace: ", e);
+    return AdcController.buildError(e.getStatus(), e.getReason());
   }
 
   @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
   @ExceptionHandler(UmaFlowException.class)
-  public void umaFlowHandler(Exception e) {
-    Logger.info("Uma flow access error", e);
-  }
-
-  @ExceptionHandler(ResponseStatusException.class)
-  public ResponseEntity statusException(ResponseStatusException e) {
+  public HttpError umaFlowHandler(Exception e) {
+    Logger.info("Uma flow access error {}", e.getMessage());
     Logger.debug("Stacktrace: ", e);
-    return new ResponseEntity(e.getStatus());
+
+    return new HttpError(HttpStatus.UNAUTHORIZED);
   }
 
-  @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
   @ExceptionHandler(Exception.class)
-  public void errorHandler(Exception e) {
+  public ResponseEntity<HttpError> internalErrorHandler(Exception e) {
     Logger.error("Internal error occurred: ", e);
+    return AdcController.buildError(HttpStatus.UNAUTHORIZED, null);
   }
 
   @RequestMapping(
@@ -79,7 +92,11 @@ public class AdcController {
   public String repertoire(HttpServletRequest request, @PathVariable String repertoireId)
       throws Exception {
     var umaId = this.dbRepository.getRepertoireUmaId(repertoireId);
-    exactUmaFlow(request, umaId, "non-existing repertoire in cache " + repertoireId, AdcUtils.SEQUENCE_UMA_SCOPE);
+    exactUmaFlow(
+        request,
+        umaId,
+        "non-existing repertoire in cache " + repertoireId,
+        AdcUtils.SEQUENCE_UMA_SCOPE);
 
     return this.adcClient.getRepertoireAsString(repertoireId);
   }
@@ -91,7 +108,11 @@ public class AdcController {
   public String rearrangement(HttpServletRequest request, @PathVariable String rearrangementId)
       throws Exception {
     var umaId = this.dbRepository.getRearrangementUmaId(rearrangementId);
-    exactUmaFlow(request, umaId, "non-existing rearrangement in cache " + rearrangementId, AdcUtils.SEQUENCE_UMA_SCOPE);
+    exactUmaFlow(
+        request,
+        umaId,
+        "non-existing rearrangement in cache " + rearrangementId,
+        AdcUtils.SEQUENCE_UMA_SCOPE);
 
     return this.adcClient.getRearrangementAsString(rearrangementId);
   }
@@ -101,13 +122,16 @@ public class AdcController {
       method = RequestMethod.GET,
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public Object repertoire_search(HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch)
-      throws Exception {
+  public Object repertoire_search(
+      HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
+    AdcController.validateAdcSearch(adcSearch);
+
     var bearer = AdcController.getBearer(request);
     if (bearer == null) {
       var idsQuery = adcSearch.queryClone().addFields(AdcUtils.REPERTOIRE_STUDY_ID_FIELD);
       var umaResources =
-          this.adcClient.getRepertoireIds(idsQuery).stream()
+          this.adcClient.getRepertoireIds(idsQuery)
+              .stream()
               .map(e -> this.dbRepository.getStudyUmaId(e.getStudyId()))
               .filter(Objects::nonNull)
               .collect(Collectors.toSet())
@@ -118,7 +142,20 @@ public class AdcController {
       this.umaFlow.noRptToken(umaResources); // will throw
     }
 
-    return null;
+    var tokenResources = this.umaClient.introspectToken(bearer);
+
+    return tokenResources;
+  }
+
+  private static void validateAdcSearch(AdcSearchRequest adcSearch) {
+    if (adcSearch.getFields() != null && adcSearch.getFacets() != null) {
+      throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Can't use 'fields' and 'facets' at the same time in request");
+    }
+
+    if (! adcSearch.isJsonFormat() || adcSearch.getFacets() != null ) {
+      Logger.error("Not implemented");
+      throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Not implemented");
+    }
   }
 
   // TODO add security
@@ -134,7 +171,7 @@ public class AdcController {
 
     if (umaId == null) {
       Logger.info("User tried accessing non-existing resource {}", errorMsg);
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found");
     }
 
     var bearer = AdcController.getBearer(request);
