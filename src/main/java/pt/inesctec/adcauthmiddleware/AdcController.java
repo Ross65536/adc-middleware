@@ -57,6 +57,7 @@ public class AdcController {
   public ResponseEntity<HttpError> badInputHandler(HttpMessageNotReadableException e) {
     Logger.info("User input JSON error: {}", e.getMessage());
 
+    // TODO improve returned error MSG
     var msg = "";
     var matcher = JsonErrorPattern.matcher(e.getMessage());
     if (matcher.find()) {
@@ -78,13 +79,12 @@ public class AdcController {
     return AdcController.buildError(e.getStatus(), e.getReason());
   }
 
-  @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
   @ExceptionHandler(UmaFlowException.class)
-  public HttpError umaFlowHandler(Exception e) {
+  public ResponseEntity<HttpError> umaFlowHandler(Exception e) {
     Logger.info("Uma flow access error {}", e.getMessage());
     Logger.debug("Stacktrace: ", e);
 
-    return new HttpError(HttpStatus.UNAUTHORIZED);
+    return AdcController.buildError(HttpStatus.UNAUTHORIZED, null);
   }
 
   @ExceptionHandler(Exception.class)
