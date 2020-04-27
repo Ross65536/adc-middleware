@@ -24,6 +24,7 @@ import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @RestController
@@ -51,11 +52,18 @@ public class AdcController {
     //    cacheRepository.synchronize();
   }
 
+  private static final Pattern JsonErrorPattern = Pattern.compile(".*line: (\\d+), column: (\\d+).*");
   @ExceptionHandler(HttpMessageNotReadableException.class)
   public ResponseEntity<HttpError> badInputHandler(HttpMessageNotReadableException e) {
     Logger.info("User input JSON error: {}", e.getMessage());
-    var msg = Utils.getNestedExceptionMessage(e); // TODO hide internals from response
-    return AdcController.buildError(HttpStatus.BAD_REQUEST, "Invalid JSON: " + msg);
+
+    var msg = "";
+    var matcher = JsonErrorPattern.matcher(e.getMessage());
+    if (matcher.find()) {
+      msg = String.format(" (malformed or invalid schema) at: line %s, column %s", matcher.group(1), matcher.group(2));
+    }
+
+    return AdcController.buildError(HttpStatus.BAD_REQUEST, "Invalid input JSON" + msg);
   }
 
   @ExceptionHandler(TicketException.class)
