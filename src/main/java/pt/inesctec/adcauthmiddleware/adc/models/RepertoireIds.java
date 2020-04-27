@@ -9,7 +9,6 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RepertoireIds {
   @JsonProperty("repertoire_id")
-  @NotNull
   private String repertoireId;
 
   @NotNull

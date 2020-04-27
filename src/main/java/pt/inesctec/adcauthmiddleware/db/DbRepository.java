@@ -52,11 +52,21 @@ public class DbRepository {
     this.rearrangementRepository = rearrangementRepository;
   }
 
-  @CacheEvict(cacheNames={"repertoires", "rearrangements"}, allEntries=true)
+  @CacheEvict(cacheNames={"studies", "repertoires", "rearrangements"}, allEntries=true)
   public void synchronize() throws Exception {
     synchronized (DbRepository.SyncMonitor) {
       synchronizeGuts();
     }
+  }
+
+  @Cacheable("studies")
+  public String getStudyUmaId(String studyId) {
+    var study = this.studyRepository.findByStudyId(studyId);
+    if (study == null) {
+      return null;
+    }
+
+    return study.getUmaId();
   }
 
   @Cacheable("repertoires")
@@ -82,10 +92,12 @@ public class DbRepository {
   private void synchronizeGuts() throws Exception {
     Logger.info("Synchronizing DB and cache");
 
+    var repertoireSearch = new AdcSearchRequest().addFields(AdcUtils.REPERTOIRE_REPERTOIRE_ID_FIELD, AdcUtils.REPERTOIRE_STUDY_ID_FIELD, AdcUtils.REPERTOIRE_STUDY_TITLE_FIELD);
     var backendRepertoires =
-        this.adcClient.getRepertoireIds(AdcSearchRequest.buildIdsRepertoireSearch());
+        this.adcClient.getRepertoireIds(repertoireSearch);
+    var rearrangementSearch = new AdcSearchRequest().addFields(AdcUtils.REARRANGEMENT_REARRANGEMENT_ID_FIELD, AdcUtils.REARRANGEMENT_REPERTOIRE_ID_FIELD);
     var backendRearrangements =
-        this.adcClient.getRearrangementIds(AdcSearchRequest.buildIdsRearrangementSearch());
+        this.adcClient.getRearrangementIds(rearrangementSearch);
 
     // sync studies
     var backendStudyMap =

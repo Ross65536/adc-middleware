@@ -14,12 +14,15 @@ import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcUtils;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.db.DbRepository;
+import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @RestController
 public class AdcController {
@@ -28,6 +31,7 @@ public class AdcController {
   @Autowired private AdcClient adcClient;
   @Autowired private DbRepository dbRepository;
   @Autowired private UmaFlow umaFlow;
+  @Autowired private UmaClient umaClient;
 
   @Autowired
   public AdcController(DbRepository dbRepository) throws Exception {
@@ -65,7 +69,7 @@ public class AdcController {
   @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
   @ExceptionHandler(Exception.class)
   public void errorHandler(Exception e) {
-    Logger.error("Internal error occured: ", e);
+    Logger.error("Internal error occurred: ", e);
   }
 
   @RequestMapping(
@@ -93,19 +97,28 @@ public class AdcController {
   }
 
   @RequestMapping(
-      value = "/repertoire/",
+      value = "/repertoire",
       method = RequestMethod.GET,
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public AdcSearchRequest repertoire_search(@RequestBody AdcSearchRequest request)
+  public Object repertoire_search(HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch)
       throws Exception {
+    var bearer = AdcController.getBearer(request);
+    if (bearer == null) {
+      var idsQuery = adcSearch.queryClone().addFields(AdcUtils.REPERTOIRE_STUDY_ID_FIELD);
+      var umaResources =
+          this.adcClient.getRepertoireIds(idsQuery).stream()
+              .map(e -> this.dbRepository.getStudyUmaId(e.getStudyId()))
+              .filter(Objects::nonNull)
+              .collect(Collectors.toSet())
+              .stream()
+              .map(id -> new UmaResource(id, AdcUtils.SEQUENCE_UMA_SCOPE))
+              .toArray(UmaResource[]::new);
 
-//    request.get
+      this.umaFlow.noRptToken(umaResources); // will throw
+    }
 
-    return request;
-//    exactUmaFlow(request, umaId, "non-existing repertoire in cache " + repertoireId, AdcUtils.SEQUENCE_UMA_SCOPE);
-
-//    return this.adcClient.getRepertoireAsString(repertoireId);
+    return null;
   }
 
   // TODO add security

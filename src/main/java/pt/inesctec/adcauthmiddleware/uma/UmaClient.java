@@ -3,6 +3,7 @@ package pt.inesctec.adcauthmiddleware.uma;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.Utils;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;

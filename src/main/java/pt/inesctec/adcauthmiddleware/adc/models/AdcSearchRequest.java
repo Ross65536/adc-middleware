@@ -5,12 +5,13 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdcSearchRequest {
-  // filters
+  private AdcFilter filters;
   private List<String> fields;
   private Long from;
   private Long size;
@@ -62,7 +63,7 @@ public class AdcSearchRequest {
     return format == null || format.equals("json");
   }
 
-  private AdcSearchRequest addField(String field) {
+  public AdcSearchRequest addField(String field) {
     if (this.fields == null) {
       this.fields = new ArrayList<>();
     }
@@ -71,33 +72,27 @@ public class AdcSearchRequest {
     return this;
   }
 
-  private AdcSearchRequest queryClone() {
+  public AdcSearchRequest addFields(String ... fields) {
+    Arrays.stream(fields)
+        .forEach(this::addField);
+
+    return this;
+  }
+
+  public AdcSearchRequest queryClone() {
     var ret = new AdcSearchRequest();
     ret.from = from;
     ret.size = size;
-    //TODO copy filters
+    ret.filters = filters;
 
     return ret;
   }
 
-  public static AdcSearchRequest buildIdsRearrangementSearch() {
-    return AdcSearchRequest.filterRearrangementIdsSearch(new AdcSearchRequest());
+  public AdcFilter getFilters() {
+    return filters;
   }
 
-  public static AdcSearchRequest buildIdsRepertoireSearch() {
-    return AdcSearchRequest.filterRepertoireIdsSearch(new AdcSearchRequest())
-        .addField("study_title"); // TODO replace 'study_title' with 'study.study_title' when turnkey backend bug is fixed
-  }
-
-  public static AdcSearchRequest filterRearrangementIdsSearch(AdcSearchRequest request) {
-    return request.queryClone()
-        .addField("repertoire_id")
-        .addField("rearrangement_id");
-  }
-
-  public static AdcSearchRequest filterRepertoireIdsSearch(AdcSearchRequest request) {
-    return request.queryClone()
-        .addField("study_id") // TODO replace 'study_id' with 'study.study_id' when turnkey backend bug is fixed
-        .addField("repertoire_id");
+  public void setFilters(AdcFilter filters) {
+    this.filters = filters;
   }
 }

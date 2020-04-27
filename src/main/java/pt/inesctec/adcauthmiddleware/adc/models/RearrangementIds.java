@@ -12,7 +12,6 @@ public class RearrangementIds {
   private String repertoireId;
 
   @JsonProperty("rearrangement_id")
-  @NotNull
   private String rearrangementId;
 
   public String getRepertoireId() {

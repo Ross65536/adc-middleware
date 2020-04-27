@@ -22,4 +22,8 @@ public final class CollectionsUtils {
         + list.stream().map(e -> String.format("'%s'", e)).collect(Collectors.joining(", "))
         + "]";
   }
+
+  public static <T> T[] toArray(List<T> list) {
+    return (T[]) list.toArray();
+  }
 }

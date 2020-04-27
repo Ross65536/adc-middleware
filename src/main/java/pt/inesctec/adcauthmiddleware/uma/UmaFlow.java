@@ -26,7 +26,7 @@ public class UmaFlow {
     }
   }
 
-  private void noRptToken(UmaResource[] resources) throws Exception {
+  public void noRptToken(UmaResource[] resources) throws Exception {
     var ticket = this.umaClient.requestPermissionsTicket(resources);
     throw new TicketException(ticket, this.umaClient.getIssuer());
   }
