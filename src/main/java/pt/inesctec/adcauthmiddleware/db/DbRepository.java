@@ -52,7 +52,9 @@ public class DbRepository {
     this.rearrangementRepository = rearrangementRepository;
   }
 
-  @CacheEvict(cacheNames={"studies", "repertoires", "rearrangements"}, allEntries=true)
+  @CacheEvict(
+      cacheNames = {"studies", "repertoires", "rearrangements"},
+      allEntries = true)
   public void synchronize() throws Exception {
     synchronized (DbRepository.SyncMonitor) {
       synchronizeGuts();
@@ -92,12 +94,22 @@ public class DbRepository {
   private void synchronizeGuts() throws Exception {
     Logger.info("Synchronizing DB and cache");
 
-    var repertoireSearch = new AdcSearchRequest().addFields(AdcUtils.REPERTOIRE_REPERTOIRE_ID_FIELD, AdcUtils.REPERTOIRE_STUDY_ID_FIELD, AdcUtils.REPERTOIRE_STUDY_TITLE_FIELD);
-    var backendRepertoires =
-        this.adcClient.getRepertoireIds(repertoireSearch);
-    var rearrangementSearch = new AdcSearchRequest().addFields(AdcUtils.REARRANGEMENT_REARRANGEMENT_ID_FIELD, AdcUtils.REARRANGEMENT_REPERTOIRE_ID_FIELD);
-    var backendRearrangements =
-        this.adcClient.getRearrangementIds(rearrangementSearch);
+    var repertoireSearch =
+        new AdcSearchRequest()
+            .addFields(
+                AdcUtils.REPERTOIRE_REPERTOIRE_ID_FIELD,
+                AdcUtils.REPERTOIRE_STUDY_ID_FIELD,
+                AdcUtils.REPERTOIRE_STUDY_TITLE_FIELD);
+    var backendRepertoires = this.adcClient.getRepertoireIds(repertoireSearch);
+    CollectionsUtils.assertList(backendRepertoires, e -> e.getRepertoireId() != null, "Repertoires response must have repertoire_id");
+
+    var rearrangementSearch =
+        new AdcSearchRequest()
+            .addFields(
+                AdcUtils.REARRANGEMENT_REARRANGEMENT_ID_FIELD,
+                AdcUtils.REARRANGEMENT_REPERTOIRE_ID_FIELD);
+    var backendRearrangements = this.adcClient.getRearrangementIds(rearrangementSearch);
+    CollectionsUtils.assertList(backendRearrangements, e -> e.getRearrangementId() != null, "Rearrangements response must have rearrangement_id");
 
     // sync studies
     var backendStudyMap =

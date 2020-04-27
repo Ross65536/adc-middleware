@@ -26,4 +26,12 @@ public final class CollectionsUtils {
   public static <T> T[] toArray(List<T> list) {
     return (T[]) list.toArray();
   }
+
+  public static <T> void assertList(Iterable<T> list, Function<T, Boolean> checker, String errorMsg) throws Exception {
+    for (T e : list) {
+      if (! checker.apply(e)) {
+        throw new Exception(errorMsg);
+      }
+    }
+  }
 }
