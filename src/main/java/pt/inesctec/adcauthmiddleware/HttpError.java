@@ -13,14 +13,6 @@ public class HttpError {
     this.msg = msg;
   }
 
-  public HttpError(HttpStatus status, String msg) {
-    this(status.value(), msg);
-  }
-
-  public HttpError(HttpStatus status) {
-    this(status, null);
-  }
-
   public int getStatus() {
     return status;
   }

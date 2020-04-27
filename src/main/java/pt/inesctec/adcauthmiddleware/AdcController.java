@@ -37,14 +37,14 @@ public class AdcController {
   @Autowired private UmaClient umaClient;
 
   private static ResponseEntity<HttpError> buildError(HttpStatus status, String msg) {
-    return new ResponseEntity<>(new HttpError(status, msg), status);
+    return new ResponseEntity<>(new HttpError(status.value(), msg), status);
   }
 
   private static ResponseEntity<HttpError> buildError(HttpStatus status, String msg, Map<String, String> headers) {
     var responseHeaders = new HttpHeaders();
     headers.forEach(responseHeaders::set);
 
-    return new ResponseEntity<>(new HttpError(status, msg), responseHeaders, status);
+    return new ResponseEntity<>(new HttpError(status.value(), msg), responseHeaders, status);
   }
 
   @Autowired
@@ -162,7 +162,7 @@ public class AdcController {
 
     if (! adcSearch.isJsonFormat() || adcSearch.getFacets() != null ) {
       Logger.error("Not implemented");
-      throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Not implemented");
+      throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Not implemented yet");
     }
   }
 
@@ -183,7 +183,7 @@ public class AdcController {
     }
 
     var bearer = AdcController.getBearer(request);
-    var umaResource = new UmaResource(umaId, umaScopes); // repertoire is access level 3
+    var umaResource = new UmaResource(umaId, umaScopes);
     this.umaFlow.exactMatchFlow(bearer, umaResource);
   }
 
