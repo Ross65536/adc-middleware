@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcUtils;
-import pt.inesctec.adcauthmiddleware.db.CacheRepository;
+import pt.inesctec.adcauthmiddleware.db.DbRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
@@ -24,11 +24,11 @@ public class AdcController {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcController.class);
 
   @Autowired private AdcClient adcClient;
-  @Autowired private CacheRepository cacheRepository;
+  @Autowired private DbRepository dbRepository;
   @Autowired private UmaFlow umaFlow;
 
   @Autowired
-  public AdcController(CacheRepository cacheRepository) throws Exception {
+  public AdcController(DbRepository dbRepository) throws Exception {
     //    cacheRepository.synchronize();
   }
 
@@ -67,7 +67,7 @@ public class AdcController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public String repertoire(HttpServletRequest request, @PathVariable String repertoireId)
       throws Exception {
-    var umaId = this.cacheRepository.getRepertoireUmaId(repertoireId);
+    var umaId = this.dbRepository.getRepertoireUmaId(repertoireId);
     exactUmaFlow(request, umaId, "non-existing repertoire in cache " + repertoireId, AdcUtils.SEQUENCE_UMA_SCOPE);
 
     return this.adcClient.getRepertoireAsString(repertoireId);
@@ -79,7 +79,7 @@ public class AdcController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public String rearrangement(HttpServletRequest request, @PathVariable String rearrangementId)
       throws Exception {
-    var umaId = this.cacheRepository.getRearrangementUmaId(rearrangementId);
+    var umaId = this.dbRepository.getRearrangementUmaId(rearrangementId);
     exactUmaFlow(request, umaId, "non-existing rearrangement in cache " + rearrangementId, AdcUtils.SEQUENCE_UMA_SCOPE);
 
     return this.adcClient.getRearrangementAsString(rearrangementId);
@@ -88,7 +88,7 @@ public class AdcController {
   // TODO add security
   @RequestMapping(value = "/synchronize", method = RequestMethod.POST)
   public void synchronize() throws Exception {
-    this.cacheRepository.synchronize();
+    this.dbRepository.synchronize();
   }
 
   private void exactUmaFlow(

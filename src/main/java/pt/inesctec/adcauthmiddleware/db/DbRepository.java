@@ -2,6 +2,7 @@ package pt.inesctec.adcauthmiddleware.db;
 
 import com.google.common.collect.Sets;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
@@ -26,8 +27,8 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Component
-public class CacheRepository {
-  private static org.slf4j.Logger Logger = LoggerFactory.getLogger(CacheRepository.class);
+public class DbRepository {
+  private static org.slf4j.Logger Logger = LoggerFactory.getLogger(DbRepository.class);
   private static Object SyncMonitor = new Object();
 
   private final AdcClient adcClient;
@@ -36,7 +37,7 @@ public class CacheRepository {
   private final RepertoireRepository repertoireRepository;
   private final RearrangementRepository rearrangementRepository;
 
-  public CacheRepository(
+  public DbRepository(
       AdcClient adcClient,
       UmaClient umaClient,
       StudyRepository studyRepository,
@@ -50,7 +51,7 @@ public class CacheRepository {
   }
 
   public void synchronize() throws Exception {
-    synchronized (CacheRepository.SyncMonitor) {
+    synchronized (DbRepository.SyncMonitor) {
       synchronizeGuts();
     }
   }
@@ -97,48 +98,34 @@ public class CacheRepository {
 
   @Transactional
   protected void synchronizeRepertoires(List<RepertoireIds> backendRepertoires) {
-    backendRepertoires.forEach(repertoireIds -> {
-      var studyId = repertoireIds.getStudyId();
-      var study = this.studyRepository.findByStudyId(studyId);
-      if (study == null) {
-        Logger.error("Invalid DB state, missing study {}, skipping", studyId);
-        return;
-      }
+    backendRepertoires.forEach(
+        repertoireIds -> {
+          var studyId = repertoireIds.getStudyId();
+          var study = this.studyRepository.findByStudyId(studyId);
+          if (study == null) {
+            Logger.error("Invalid DB state, missing study {}, skipping", studyId);
+            return;
+          }
 
-      var repertoire = new Repertoire(repertoireIds.getRepertoireId(), study);
-      Logger.debug("Saving repertoire {}", repertoire);
-
-      try {
-        this.repertoireRepository.save(repertoire);
-      } catch (RuntimeException e) {
-        Logger.error(
-            "Failed to save DB repertoire {}, because: {}", repertoire, e);
-        Logger.debug("Stacktrace: ", e);
-      }
-    });
+          var repertoire = new Repertoire(repertoireIds.getRepertoireId(), study);
+          DbRepository.saveResource(this.repertoireRepository, repertoire);
+        });
   }
 
   @Transactional
   protected void synchronizeRearrangements(List<RearrangementIds> backendRepertoires) {
-    backendRepertoires.forEach(repertoireIds -> {
-      var repertoireId = repertoireIds.getRepertoireId();
-      var repertoire = this.repertoireRepository.findByRepertoireId(repertoireId);
-      if (repertoire == null) {
-        Logger.error("Invalid DB state, missing repertoire {}, skipping", repertoireId);
-        return;
-      }
+    backendRepertoires.forEach(
+        repertoireIds -> {
+          var repertoireId = repertoireIds.getRepertoireId();
+          var repertoire = this.repertoireRepository.findByRepertoireId(repertoireId);
+          if (repertoire == null) {
+            Logger.error("Invalid DB state, missing repertoire {}, skipping", repertoireId);
+            return;
+          }
 
-      var rearrangement = new Rearrangement(repertoireIds.getRearrangementId(), repertoire);
-      Logger.debug("Saving rearrangement {}", repertoire);
-
-      try {
-        this.rearrangementRepository.save(rearrangement);
-      } catch (RuntimeException e) {
-        Logger.error(
-            "Failed to save DB rearrangement {}, because: {}", rearrangement, e);
-        Logger.debug("Stacktrace: ", e);
-      }
-    });
+          var rearrangement = new Rearrangement(repertoireIds.getRearrangementId(), repertoire);
+          DbRepository.saveResource(this.rearrangementRepository, rearrangement);
+        });
   }
 
   @Transactional
@@ -217,5 +204,16 @@ public class CacheRepository {
                 Logger.debug("Stacktrace: ", e);
               }
             });
+  }
+
+  public static <T> void saveResource(CrudRepository<T, ?> repository, T resource) {
+    Logger.debug("Saving resource {}", resource);
+
+    try {
+      repository.save(resource);
+    } catch (RuntimeException e) {
+      Logger.error("Failed to save cache resource {}, because: {}", resource, e);
+      Logger.debug("Stacktrace: ", e);
+    }
   }
 }
