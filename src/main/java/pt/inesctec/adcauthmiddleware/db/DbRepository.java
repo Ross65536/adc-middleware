@@ -2,6 +2,8 @@ package pt.inesctec.adcauthmiddleware.db;
 
 import com.google.common.collect.Sets;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.CollectionsUtils;
@@ -50,12 +52,14 @@ public class DbRepository {
     this.rearrangementRepository = rearrangementRepository;
   }
 
+  @CacheEvict(cacheNames={"repertoires", "rearrangements"}, allEntries=true)
   public void synchronize() throws Exception {
     synchronized (DbRepository.SyncMonitor) {
       synchronizeGuts();
     }
   }
 
+  @Cacheable("repertoires")
   public String getRepertoireUmaId(String repertoireId) {
     var repertoire = this.repertoireRepository.findByRepertoireId(repertoireId);
     if (repertoire == null) {
@@ -65,6 +69,7 @@ public class DbRepository {
     return repertoire.getStudy().getUmaId();
   }
 
+  @Cacheable("rearrangements")
   public String getRearrangementUmaId(String rearrangementId) {
     var rearrangement = this.rearrangementRepository.findByRearrangementId(rearrangementId);
     if (rearrangement == null) {
