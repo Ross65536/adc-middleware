@@ -83,3 +83,10 @@ Running with custom properties file (using deployment jar):
 java -jar ./build/libs/adc-auth-middleware-0.0.1-SNAPSHOT.jar \ 
 --spring.config.location=classpath:/application.properties,./config.properties 
 ```
+
+## Profilling
+
+### Flamegraphs
+
+1. Install JavaFX
+2. Follow https://blog.codecentric.de/en/2017/09/jvm-fire-using-flame-graphs-analyse-performance/
