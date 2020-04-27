@@ -7,10 +7,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcUtils;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.db.DbRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
@@ -32,6 +34,12 @@ public class AdcController {
     //    cacheRepository.synchronize();
   }
 
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+  public void ticketHandler(HttpMessageNotReadableException e) {
+    Logger.info("User input JSON error: ", e);
+  }
+
   @ExceptionHandler(TicketException.class)
   public ResponseEntity ticketHandler(TicketException e) {
     var header = e.buildAuthenticateHeader();
@@ -45,8 +53,7 @@ public class AdcController {
   @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
   @ExceptionHandler(UmaFlowException.class)
   public void umaFlowHandler(Exception e) {
-    Logger.info("Uma flow access error: " + e.getMessage());
-    Logger.debug("Stacktrace: ", e);
+    Logger.info("Uma flow access error", e);
   }
 
   @ExceptionHandler(ResponseStatusException.class)
@@ -58,7 +65,7 @@ public class AdcController {
   @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
   @ExceptionHandler(Exception.class)
   public void errorHandler(Exception e) {
-    Logger.error("Internal error occured: " + e.getMessage(), e);
+    Logger.error("Internal error occured: ", e);
   }
 
   @RequestMapping(
@@ -83,6 +90,22 @@ public class AdcController {
     exactUmaFlow(request, umaId, "non-existing rearrangement in cache " + rearrangementId, AdcUtils.SEQUENCE_UMA_SCOPE);
 
     return this.adcClient.getRearrangementAsString(rearrangementId);
+  }
+
+  @RequestMapping(
+      value = "/repertoire/",
+      method = RequestMethod.GET,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public AdcSearchRequest repertoire_search(@RequestBody AdcSearchRequest request)
+      throws Exception {
+
+//    request.get
+
+    return request;
+//    exactUmaFlow(request, umaId, "non-existing repertoire in cache " + repertoireId, AdcUtils.SEQUENCE_UMA_SCOPE);
+
+//    return this.adcClient.getRepertoireAsString(repertoireId);
   }
 
   // TODO add security

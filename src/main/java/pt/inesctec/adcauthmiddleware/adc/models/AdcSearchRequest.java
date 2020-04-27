@@ -1,5 +1,6 @@
 package pt.inesctec.adcauthmiddleware.adc.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -56,6 +57,7 @@ public class AdcSearchRequest {
     this.facets = facets;
   }
 
+  @JsonIgnore
   public boolean isJsonFormat() {
     return format == null || format.equals("json");
   }
