@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 
-public final class AdcUtils {
+public final class AdcConstants {
   public static final String SEQUENCE_UMA_SCOPE = "sequence";
   public static final String REPERTOIRE_UMA_SCOPE = "repertoire";
   public static final String STATISTICS_UMA_SCOPE = "statistics";

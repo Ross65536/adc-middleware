@@ -36,6 +36,15 @@ public final class CollectionsUtils {
     }
   }
 
+  public static <T> void assertListContains(Collection<T> list, T ... elements)
+      throws Exception {
+    for (T e : elements) {
+      if (!list.contains(e)) {
+        throw new Exception("list missing " + e);
+      }
+    }
+  }
+
   public static <E, K1, K2, K3> Map<K1, Map<K2, Map<K3, E>>> buildMap(
       Collection<E> list, Function<E, K1> keyOuterFunc, Function<E, K2> keyMidFunc, Function<E, K3> keyInnerFunc) {
     var topMap = new HashMap<K1, Map<K2, Map<K3, E>>>();

@@ -25,7 +25,7 @@ Then configure keycloak:
 1. Go to http://localhost:8081. Login as admin with `admin:admin`. 
 2. Go to master realm settings and enable `User-Managed Access`.
 3. Create a new client in the Clients tab: load (import) and save the client from the file `./keycloak/adc-middleware.json`. Go to credentials tab in the client and note the generated `Secret` value which is the client secret while `adc-middleware` is the client ID.
-4. In the `Users` tab create user with username `owner`, this is the resource owner. Create user with username `user` and `user2`, these are the users that will access resources. For each user in the user's `Credentials` tab create the password (equal to username).
+4. In the `Users` tab create user with username `owner`, this is the resource owner. Create user with username `user` and `user2`, these are the users that will access resources. For each user in the user's `Credentials` tab create the password (equal to username). A user can then login on `http://localhost:8082/auth/realms/master/account` (for example owner to grant accesses to users).
 
 You can use different values for these strings, but you would need to update the some variables and example code.
 

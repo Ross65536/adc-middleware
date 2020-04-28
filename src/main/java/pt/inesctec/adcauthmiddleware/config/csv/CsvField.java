@@ -2,34 +2,14 @@ package pt.inesctec.adcauthmiddleware.config.csv;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import pt.inesctec.adcauthmiddleware.adc.AdcUtils;
 
 import javax.validation.constraints.NotNull;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CsvField {
-
-  public enum Class {
-    @JsonProperty("Repertoire")
-    REPERTOIRE,
-    @JsonProperty("Rearrangement")
-    REARRANGEMENT;
-  };
-
-  public enum AccessScope {
-    @JsonProperty(AdcUtils.PUBLIC_ACCESS_SCOPE)
-    PUBLIC,
-    @JsonProperty(AdcUtils.STATISTICS_UMA_SCOPE)
-    STATISTICS,
-    @JsonProperty(AdcUtils.REPERTOIRE_UMA_SCOPE)
-    REPERTOIRE,
-    @JsonProperty(AdcUtils.SEQUENCE_UMA_SCOPE)
-    SEQUENCE;
-  };
-
   @JsonProperty("class")
   @NotNull
-  private Class fieldClass;
+  private FieldClass fieldClass;
 
   @JsonProperty("field")
   @NotNull
@@ -47,11 +27,11 @@ public class CsvField {
     return accessScope;
   }
 
-  public Class getFieldClass() {
+  public FieldClass getFieldClass() {
     return fieldClass;
   }
 
-  public void setFieldClass(Class fieldClass) {
+  public void setFieldClass(FieldClass fieldClass) {
     this.fieldClass = fieldClass;
   }
 

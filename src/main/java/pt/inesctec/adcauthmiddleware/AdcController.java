@@ -12,9 +12,10 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
-import pt.inesctec.adcauthmiddleware.adc.AdcUtils;
+import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
+import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.db.DbRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
@@ -25,6 +26,7 @@ import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -103,11 +105,13 @@ public class AdcController {
   public String repertoire(HttpServletRequest request, @PathVariable String repertoireId)
       throws Exception {
     var umaId = this.dbRepository.getRepertoireUmaId(repertoireId);
+    var scopes = this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE);
+
     exactUmaFlow(
         request,
         umaId,
         "non-existing repertoire in cache " + repertoireId,
-        AdcUtils.SEQUENCE_UMA_SCOPE);
+        scopes);
 
     return this.adcClient.getRepertoireAsString(repertoireId);
   }
@@ -119,11 +123,13 @@ public class AdcController {
   public String rearrangement(HttpServletRequest request, @PathVariable String rearrangementId)
       throws Exception {
     var umaId = this.dbRepository.getRearrangementUmaId(rearrangementId);
+    var scopes = this.csvConfig.getUmaScopes(FieldClass.REARRANGEMENT);
+
     exactUmaFlow(
         request,
         umaId,
         "non-existing rearrangement in cache " + rearrangementId,
-        AdcUtils.SEQUENCE_UMA_SCOPE);
+        scopes);
 
     return this.adcClient.getRearrangementAsString(rearrangementId);
   }
@@ -139,7 +145,7 @@ public class AdcController {
 
     var bearer = AdcController.getBearer(request);
     if (bearer == null) {
-      var idsQuery = adcSearch.queryClone().addFields(AdcUtils.REPERTOIRE_STUDY_ID_FIELD);
+      var idsQuery = adcSearch.queryClone().addFields(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
       var umaResources =
           this.adcClient.getRepertoireIds(idsQuery)
               .stream()
@@ -147,14 +153,14 @@ public class AdcController {
               .filter(Objects::nonNull)
               .collect(Collectors.toSet())
               .stream()
-              .map(id -> new UmaResource(id, AdcUtils.SEQUENCE_UMA_SCOPE))
+              .map(id -> new UmaResource(id, AdcConstants.SEQUENCE_UMA_SCOPE))
               .toArray(UmaResource[]::new);
 
       this.umaFlow.noRptToken(umaResources); // will throw
     }
 
     var tokenResources = this.umaClient.introspectToken(bearer);
-    var query = adcSearch.addField(AdcUtils.REPERTOIRE_STUDY_ID_FIELD);
+    var query = adcSearch.addField(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
 
 
@@ -180,17 +186,19 @@ public class AdcController {
   }
 
   private void exactUmaFlow(
-      HttpServletRequest request, String umaId, String errorMsg, String... umaScopes)
+      HttpServletRequest request, String umaId, String errorMsg, Set<String> umaScopes)
       throws Exception {
-    Preconditions.checkArgument(umaScopes.length > 0);
+    Preconditions.checkArgument(umaScopes.size() > 0);
 
     if (umaId == null) {
       Logger.info("User tried accessing non-existing resource {}", errorMsg);
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found");
     }
 
+    var scopes = umaScopes.toArray(new String[0]);
+
     var bearer = AdcController.getBearer(request);
-    var umaResource = new UmaResource(umaId, umaScopes);
+    var umaResource = new UmaResource(umaId, scopes);
     this.umaFlow.exactMatchFlow(bearer, umaResource);
   }
 

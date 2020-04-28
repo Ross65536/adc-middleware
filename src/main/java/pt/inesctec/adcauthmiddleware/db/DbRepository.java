@@ -8,7 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
-import pt.inesctec.adcauthmiddleware.adc.AdcUtils;
+import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RearrangementIds;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireIds;
@@ -97,17 +97,17 @@ public class DbRepository {
     var repertoireSearch =
         new AdcSearchRequest()
             .addFields(
-                AdcUtils.REPERTOIRE_REPERTOIRE_ID_FIELD,
-                AdcUtils.REPERTOIRE_STUDY_ID_FIELD,
-                AdcUtils.REPERTOIRE_STUDY_TITLE_FIELD);
+                AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD,
+                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+                AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD);
     var backendRepertoires = this.adcClient.getRepertoireIds(repertoireSearch);
     CollectionsUtils.assertList(backendRepertoires, e -> e.getRepertoireId() != null, "Repertoires response must have repertoire_id");
 
     var rearrangementSearch =
         new AdcSearchRequest()
             .addFields(
-                AdcUtils.REARRANGEMENT_REARRANGEMENT_ID_FIELD,
-                AdcUtils.REARRANGEMENT_REPERTOIRE_ID_FIELD);
+                AdcConstants.REARRANGEMENT_REARRANGEMENT_ID_FIELD,
+                AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
     var backendRearrangements = this.adcClient.getRearrangementIds(rearrangementSearch);
     CollectionsUtils.assertList(backendRearrangements, e -> e.getRearrangementId() != null, "Rearrangements response must have rearrangement_id");
 
@@ -213,7 +213,7 @@ public class DbRepository {
               var umaName = String.format("study ID: %s; title: %s", newStudyId, studyTitle);
               var newUmaResource =
                   new UmaRegistrationResource(
-                      umaName, AdcUtils.UMA_STUDY_TYPE, AdcUtils.AllUmaScopes);
+                      umaName, AdcConstants.UMA_STUDY_TYPE, AdcConstants.AllUmaScopes);
 
               String createdUmaId = null;
               try {
