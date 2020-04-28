@@ -67,6 +67,7 @@ Required:
 - `uma.clientId`: Client ID for this middleware in keycloak
 - `uma.clientSecret`: Client Secret for the client ID
 - `uma.resourceOwner`: The Keycloak username who will be the owner of the created resources.
+- `app.adcCsvConfigPath`: The path for the CSV config file containing the fields configuration. You can use `./field-mapping.csv` for a default with the file provided in the repository.
 
 Optional:
 - `server.servlet.context-path`: The base path of the middleware API, used to forward requests. Defaults to: `/airr/v1`
@@ -83,6 +84,16 @@ Running with custom properties file (using deployment jar):
 java -jar ./build/libs/adc-auth-middleware-0.0.1-SNAPSHOT.jar \ 
 --spring.config.location=classpath:/application.properties,./config.properties 
 ```
+
+### CSV field config
+
+Value for the `app.adcCsvConfigPath` config param. You can use the default provided `./field-mapping.csv` or extend it.
+The CSV must have header:
+- `class`: Specifies wheter the field is a `Repertoire` or `Rearrangement`
+- `field`: The field. For nested objects demark with `.`. Example `subject.age_unit.value` or `repertoire_id`.
+- `access_scope`: The UMA scope required to be able to access the field or if the field is public. Values can be `public`, `statistics`, `repertoire` or `rearrangement`.
+
+The CSV can include other columns which are ignored.
 
 ## Profilling
 
