@@ -2,13 +2,12 @@ package pt.inesctec.adcauthmiddleware.config.csv;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.lang.NonNull;
 import pt.inesctec.adcauthmiddleware.adc.AdcUtils;
 
 import javax.validation.constraints.NotNull;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AdcField {
+public class CsvField {
 
   public enum Class {
     @JsonProperty("Repertoire")
@@ -17,8 +16,8 @@ public class AdcField {
     REARRANGEMENT;
   };
 
-  public enum UmaScope {
-    @JsonProperty(AdcUtils.PUBLIC_ACCESS_LEVEL)
+  public enum AccessScope {
+    @JsonProperty(AdcUtils.PUBLIC_ACCESS_SCOPE)
     PUBLIC,
     @JsonProperty(AdcUtils.STATISTICS_UMA_SCOPE)
     STATISTICS,
@@ -37,15 +36,15 @@ public class AdcField {
   private String field;
 
   @NotNull
-  @JsonProperty("uma_scope")
-  private UmaScope umaScope;
+  @JsonProperty("access_scope")
+  private AccessScope accessScope;
 
-  public void setUmaScope(UmaScope umaScope) {
-    this.umaScope = umaScope;
+  public void setAccessScope(AccessScope accessScope) {
+    this.accessScope = accessScope;
   }
 
-  public UmaScope getUmaScope() {
-    return umaScope;
+  public AccessScope getAccessScope() {
+    return accessScope;
   }
 
   public Class getFieldClass() {

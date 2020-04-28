@@ -16,27 +16,27 @@ import java.util.Map;
 @Component
 public class CsvConfig {
 
-    private final Map<AdcField.Class, Map<AdcField.UmaScope, Map<String, AdcField>>> fieldsMapping;
+    private final Map<CsvField.Class, Map<CsvField.AccessScope, Map<String, CsvField>>> fieldsMapping;
 
     public CsvConfig(AppConfig config) throws Exception {
     var csvPath = config.getAdcCsvConfigPath();
 
     var fieldMappings = parseCsv(csvPath);
     Utils.jaxValidateList(fieldMappings);
-    this.fieldsMapping = CollectionsUtils.buildMap(fieldMappings, AdcField::getFieldClass, AdcField::getUmaScope, AdcField::getField);
+    this.fieldsMapping = CollectionsUtils.buildMap(fieldMappings, CsvField::getFieldClass, CsvField::getAccessScope, CsvField::getField);
   }
 
-  private List<AdcField> parseCsv(String csvPath) throws IOException {
+  private List<CsvField> parseCsv(String csvPath) throws IOException {
     var file = new File(csvPath);
 
     var schema = CsvSchema.emptySchema().withHeader();
-    return (List<AdcField>)
+    return (List<CsvField>)
         (List<?>)
             new CsvMapper()
                 .enable(CsvParser.Feature.IGNORE_TRAILING_UNMAPPABLE)
                 .enable(CsvParser.Feature.INSERT_NULLS_FOR_MISSING_COLUMNS)
                 .enable(CsvParser.Feature.TRIM_SPACES)
-                .readerFor(AdcField.class)
+                .readerFor(CsvField.class)
                 .with(schema)
                 .readValues(file)
                 .readAll();
