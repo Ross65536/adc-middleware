@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -32,6 +33,15 @@ public class HttpFacade {
 
     // TODO figure out how to check malformed JSON errors
     return response.body().get();
+  }
+
+  public static InputStream makeExpectJsonAsStreamRequest(HttpRequest request) throws IOException, InterruptedException {
+    var response = HttpFacade.Client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+
+    HttpFacade.validateOkResponse(response);
+    HttpFacade.validateJsonResponseHeader(response);
+
+    return response.body();
   }
 
   public static String makeExpectJsonStringRequest(HttpRequest request) throws IOException, InterruptedException {

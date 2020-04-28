@@ -14,7 +14,9 @@ import pt.inesctec.adcauthmiddleware.http.HttpFacade;
 import pt.inesctec.adcauthmiddleware.http.HttpRequestBuilderFacade;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.net.http.HttpRequest;
 import java.util.List;
 
 @Component
@@ -47,27 +49,23 @@ public class AdcClient {
     return HttpFacade.makeExpectJsonStringRequest(request);
   }
 
+  public InputStream searchRepertoiresAsStream(AdcSearchRequest adcRequest) throws Exception {
+    Preconditions.checkArgument(adcRequest.getFacets() == null);
+    Preconditions.checkArgument(adcRequest.isJsonFormat());
+
+    var request = this.buildSearchRequest("repertoire", adcRequest);
+    return HttpFacade.makeExpectJsonAsStreamRequest(request);
+  }
+
   public List<RepertoireIds> getRepertoireIds(AdcSearchRequest adcRequest) throws Exception {
     Preconditions.checkArgument(adcRequest.getFacets() == null);
     Preconditions.checkArgument(adcRequest.isJsonFormat());
 
-    final URI uri = this.getResourceServerPath("repertoire");
-    var request = new HttpRequestBuilderFacade()
-        .postJson(uri, adcRequest)
-        .build();
-
+    var request = this.buildSearchRequest("repertoire", adcRequest);
     var repertoires = HttpFacade.makeExpectJsonRequest(request, AdcIdsResponse.class)
           .getRepertoires();
 
-    Utils.assertNotNull(repertoires);
-    Utils.jaxValidateList(repertoires);
-
-    return repertoires;
-  }
-
-  private URI getResourceServerPath(String... parts) {
-    final String basePath = adcConfig.getResourceServerUrl();
-    return Utils.buildUrl(basePath, parts);
+    return listPostConditions(repertoires);
   }
 
 
@@ -75,17 +73,29 @@ public class AdcClient {
     Preconditions.checkArgument(adcRequest.getFacets() == null);
     Preconditions.checkArgument(adcRequest.isJsonFormat());
 
-    final URI uri = this.getResourceServerPath("rearrangement");
-    var request = new HttpRequestBuilderFacade()
-        .postJson(uri, adcRequest)
-        .build();
-
+    var request = this.buildSearchRequest("rearrangement", adcRequest);
     var rearrangements = HttpFacade.makeExpectJsonRequest(request, AdcIdsResponse.class)
         .getRearrangements();
 
-    Utils.assertNotNull(rearrangements);
-    Utils.jaxValidateList(rearrangements);
+    return listPostConditions(rearrangements);
+  }
 
-    return rearrangements;
+  private HttpRequest buildSearchRequest(String path, AdcSearchRequest adcSearchRequest) throws JsonProcessingException {
+    final URI uri = this.getResourceServerPath(path);
+    return new HttpRequestBuilderFacade()
+        .postJson(uri, adcSearchRequest)
+        .build();
+  }
+
+  private URI getResourceServerPath(String... parts) {
+    final String basePath = adcConfig.getResourceServerUrl();
+    return Utils.buildUrl(basePath, parts);
+  }
+
+  private static <T> List<T> listPostConditions(List<T> resources) throws Exception {
+    Utils.assertNotNull(resources);
+    Utils.jaxValidateList(resources);
+
+    return resources;
   }
 }

@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
@@ -24,6 +25,8 @@ import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -40,12 +43,12 @@ public class AdcController {
   @Autowired private UmaClient umaClient;
   @Autowired private CsvConfig csvConfig;
 
-
   private static ResponseEntity<HttpError> buildError(HttpStatus status, String msg) {
     return new ResponseEntity<>(new HttpError(status.value(), msg), status);
   }
 
-  private static ResponseEntity<HttpError> buildError(HttpStatus status, String msg, Map<String, String> headers) {
+  private static ResponseEntity<HttpError> buildError(
+      HttpStatus status, String msg, Map<String, String> headers) {
     var responseHeaders = new HttpHeaders();
     headers.forEach(responseHeaders::set);
 
@@ -57,7 +60,9 @@ public class AdcController {
     //    cacheRepository.synchronize();
   }
 
-  private static final Pattern JsonErrorPattern = Pattern.compile(".*line: (\\d+), column: (\\d+).*");
+  private static final Pattern JsonErrorPattern =
+      Pattern.compile(".*line: (\\d+), column: (\\d+).*");
+
   @ExceptionHandler(HttpMessageNotReadableException.class)
   public ResponseEntity<HttpError> badInputHandler(HttpMessageNotReadableException e) {
     Logger.info("User input JSON error: {}", e.getMessage());
@@ -66,7 +71,10 @@ public class AdcController {
     var msg = "";
     var matcher = JsonErrorPattern.matcher(e.getMessage());
     if (matcher.find()) {
-      msg = String.format(" (malformed or invalid schema) at: line %s, column %s", matcher.group(1), matcher.group(2));
+      msg =
+          String.format(
+              " (malformed or invalid schema) at: line %s, column %s",
+              matcher.group(1), matcher.group(2));
     }
 
     return AdcController.buildError(HttpStatus.BAD_REQUEST, "Invalid input JSON" + msg);
@@ -75,7 +83,8 @@ public class AdcController {
   @ExceptionHandler(TicketException.class)
   public ResponseEntity<HttpError> ticketHandler(TicketException e) {
     var headers = ImmutableMap.of(HttpHeaders.WWW_AUTHENTICATE, e.buildAuthenticateHeader());
-    return AdcController.buildError(HttpStatus.UNAUTHORIZED, "UMA permissions ticket emitted", headers);
+    return AdcController.buildError(
+        HttpStatus.UNAUTHORIZED, "UMA permissions ticket emitted", headers);
   }
 
   @ExceptionHandler(ResponseStatusException.class)
@@ -107,11 +116,7 @@ public class AdcController {
     var umaId = this.dbRepository.getRepertoireUmaId(repertoireId);
     var scopes = this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE);
 
-    exactUmaFlow(
-        request,
-        umaId,
-        "non-existing repertoire in cache " + repertoireId,
-        scopes);
+    exactUmaFlow(request, umaId, "non-existing repertoire in cache " + repertoireId, scopes);
 
     return this.adcClient.getRepertoireAsString(repertoireId);
   }
@@ -125,11 +130,7 @@ public class AdcController {
     var umaId = this.dbRepository.getRearrangementUmaId(rearrangementId);
     var scopes = this.csvConfig.getUmaScopes(FieldClass.REARRANGEMENT);
 
-    exactUmaFlow(
-        request,
-        umaId,
-        "non-existing rearrangement in cache " + rearrangementId,
-        scopes);
+    exactUmaFlow(request, umaId, "non-existing rearrangement in cache " + rearrangementId, scopes);
 
     return this.adcClient.getRearrangementAsString(rearrangementId);
   }
@@ -139,7 +140,7 @@ public class AdcController {
       method = RequestMethod.GET,
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public Object repertoire_search(
+  public ResponseEntity<StreamingResponseBody> repertoire_search(
       HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
     AdcController.validateAdcSearch(adcSearch);
 
@@ -147,8 +148,7 @@ public class AdcController {
     if (bearer == null) {
       var idsQuery = adcSearch.queryClone().addFields(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
       var umaResources =
-          this.adcClient.getRepertoireIds(idsQuery)
-              .stream()
+          this.adcClient.getRepertoireIds(idsQuery).stream()
               .map(e -> this.dbRepository.getStudyUmaId(e.getStudyId()))
               .filter(Objects::nonNull)
               .collect(Collectors.toSet())
@@ -160,20 +160,34 @@ public class AdcController {
     }
 
     var tokenResources = this.umaClient.introspectToken(bearer);
-    var query = adcSearch.addField(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+    //    adcSearch.addField(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
+    var response = this.adcClient.searchRepertoiresAsStream(adcSearch);
 
+    StreamingResponseBody streamer =
+        (OutputStream outputStream) -> {
+          while (true) {
+            var bytes = response.readNBytes(256);
+            if (bytes.length == 0) {
+              break;
+            }
 
-    return tokenResources;
+            outputStream.write(bytes);
+            outputStream.flush();
+          }
+        };
+
+    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(streamer);
   }
-
 
   private static void validateAdcSearch(AdcSearchRequest adcSearch) {
     if (adcSearch.getFields() != null && adcSearch.getFacets() != null) {
-      throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Can't use 'fields' and 'facets' at the same time in request");
+      throw new ResponseStatusException(
+          HttpStatus.UNPROCESSABLE_ENTITY,
+          "Can't use 'fields' and 'facets' at the same time in request");
     }
 
-    if (! adcSearch.isJsonFormat() || adcSearch.getFacets() != null ) {
+    if (!adcSearch.isJsonFormat() || adcSearch.getFacets() != null) {
       Logger.error("Not implemented");
       throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Not implemented yet");
     }
