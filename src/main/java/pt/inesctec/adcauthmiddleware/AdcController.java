@@ -153,7 +153,7 @@ public class AdcController {
               .filter(Objects::nonNull)
               .collect(Collectors.toSet())
               .stream()
-              .map(id -> new UmaResource(id, AdcConstants.SEQUENCE_UMA_SCOPE))
+              .map(id -> new UmaResource(id, this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE)))
               .toArray(UmaResource[]::new);
 
       this.umaFlow.noRptToken(umaResources); // will throw
@@ -195,10 +195,8 @@ public class AdcController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found");
     }
 
-    var scopes = umaScopes.toArray(new String[0]);
-
     var bearer = AdcController.getBearer(request);
-    var umaResource = new UmaResource(umaId, scopes);
+    var umaResource = new UmaResource(umaId, umaScopes);
     this.umaFlow.exactMatchFlow(bearer, umaResource);
   }
 
