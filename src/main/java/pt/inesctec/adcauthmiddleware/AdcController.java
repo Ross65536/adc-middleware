@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcUtils;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
+import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.db.DbRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
@@ -35,6 +36,8 @@ public class AdcController {
   @Autowired private DbRepository dbRepository;
   @Autowired private UmaFlow umaFlow;
   @Autowired private UmaClient umaClient;
+  @Autowired private CsvConfig csvConfig;
+
 
   private static ResponseEntity<HttpError> buildError(HttpStatus status, String msg) {
     return new ResponseEntity<>(new HttpError(status.value(), msg), status);
@@ -151,9 +154,13 @@ public class AdcController {
     }
 
     var tokenResources = this.umaClient.introspectToken(bearer);
+    var query = adcSearch.addField(AdcUtils.REPERTOIRE_STUDY_ID_FIELD);
+
+
 
     return tokenResources;
   }
+
 
   private static void validateAdcSearch(AdcSearchRequest adcSearch) {
     if (adcSearch.getFields() != null && adcSearch.getFacets() != null) {

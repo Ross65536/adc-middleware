@@ -1,15 +1,11 @@
 package pt.inesctec.adcauthmiddleware;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
+import java.net.URI;
+import java.util.stream.Collectors;
 
 public final class Utils {
 
