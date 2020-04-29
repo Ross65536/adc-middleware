@@ -1,9 +1,8 @@
 package pt.inesctec.adcauthmiddleware;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.springframework.data.util.Pair;
+
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -62,5 +61,9 @@ public final class CollectionsUtils {
     });
 
     return topMap;
+  }
+
+  public static <E> E[] popFront(E[] elems) {
+    return Arrays.copyOfRange(elems, 1, elems.length);
   }
 }

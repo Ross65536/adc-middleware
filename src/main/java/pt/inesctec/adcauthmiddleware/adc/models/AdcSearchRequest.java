@@ -70,17 +70,17 @@ public class AdcSearchRequest {
     return this;
   }
 
-  public String tryAddField(String field) {
+  public boolean tryAddField(String field) {
     if (this.fields == null) {
-      return null;
+      return false;
     }
 
     if (this.fields.contains(field)) {
-      return null;
+      return false;
     }
 
     this.fields.add(field);
-    return field;
+    return true;
   }
 
   public AdcSearchRequest addFields(String ... fields) {

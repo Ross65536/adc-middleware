@@ -145,30 +145,20 @@ public class AdcController {
       this.throwNoRptToken(umaIds, FieldClass.REPERTOIRE);
     }
 
-    var addedField = adcSearch.tryAddField(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+    var isAddedField = adcSearch.tryAddField(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+    Set<String> removeFields = isAddedField ? ImmutableSet.of(AdcConstants.REPERTOIRE_STUDY_ID_RESPONSE_FIELD) : ImmutableSet.of();
     var tokenResources = this.umaClient.introspectToken(bearer);
-    var repertoireMapper = this.buildUmaFieldMapper(tokenResources, FieldClass.REPERTOIRE, addedField).compose(this.dbRepository::getRepertoireUmaId);
+    var repertoireMapper = this.buildUmaFieldMapper(tokenResources, FieldClass.REPERTOIRE, removeFields)
+        .compose(this.dbRepository::getStudyUmaId);
 
     var response = this.adcClient.searchRepertoiresAsStream(adcSearch);
-    var mapper = new ResourceJsonMapper(response, "Repertoire", repertoireMapper, AdcConstants.REPERTOIRE_STUDY_ID_RESPONSE_FIELD); // TODO fix once backend fixed
+    var mapper = new ResourceJsonMapper(response, "Repertoire", repertoireMapper, AdcConstants.REPERTOIRE_STUDY_ID_RESPONSE_FIELD);
 
-    return AdcController.buildJsonStream(mapper::writeTo);
-  }
-
-  private static void validateAdcSearch(AdcSearchRequest adcSearch) {
-    if (adcSearch.getFields() != null && adcSearch.getFacets() != null) {
-      throw new ResponseStatusException(
-          HttpStatus.UNPROCESSABLE_ENTITY,
-          "Can't use 'fields' and 'facets' at the same time in request");
-    }
-
-    if (!adcSearch.isJsonFormat() || adcSearch.getFacets() != null) {
-      Logger.error("Not implemented");
-      throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Not implemented yet");
-    }
+    return AdcController.buildJsonStream(mapper);
   }
 
   // TODO add security
+
   @RequestMapping(value = "/synchronize", method = RequestMethod.POST)
   public void synchronize() throws Exception {
     this.dbRepository.synchronize();
@@ -187,6 +177,19 @@ public class AdcController {
     var bearer = AdcController.getBearer(request);
     var umaResource = new UmaResource(umaId, umaScopes);
     this.umaFlow.exactMatchFlow(bearer, umaResource);
+  }
+
+  private static void validateAdcSearch(AdcSearchRequest adcSearch) {
+    if (adcSearch.getFields() != null && adcSearch.getFacets() != null) {
+      throw new ResponseStatusException(
+          HttpStatus.UNPROCESSABLE_ENTITY,
+          "Can't use 'fields' and 'facets' at the same time in request");
+    }
+
+    if (!adcSearch.isJsonFormat() || adcSearch.getFacets() != null) {
+      Logger.error("Not implemented");
+      throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Not implemented yet");
+    }
   }
 
   private static String getBearer(HttpServletRequest request) {
@@ -233,7 +236,7 @@ public class AdcController {
 
   private static Set<String> EmptySet = ImmutableSet.of();
 
-  private Function<String, Set<String>> buildUmaFieldMapper(List<UmaResource> resources, FieldClass fieldClass, String ... addedFields) {
+  private Function<String, Set<String>> buildUmaFieldMapper(List<UmaResource> resources, FieldClass fieldClass, Set<String> diffFields) {
     var validUmaFields = resources.stream()
         .map(uma -> {
           var scopes = uma.getScopes()
@@ -246,7 +249,6 @@ public class AdcController {
         }).collect(Collectors.toMap(Pair::getFirst,Pair::getSecond));
 
     var publicFields = this.csvConfig.getFields(fieldClass, ImmutableSet.of(AccessScope.PUBLIC));
-    var diffSet = Arrays.stream(addedFields).collect(Collectors.toSet());
 
     return umaId -> {
       if (umaId == null) {
@@ -255,7 +257,7 @@ public class AdcController {
 
       var fields = validUmaFields.getOrDefault(umaId, EmptySet);
       fields = Sets.union(fields, publicFields);
-      return Sets.difference(fields, diffSet);
+      return Sets.difference(fields, diffFields);
     };
   }
 
