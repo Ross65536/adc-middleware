@@ -14,6 +14,7 @@ public final class AdcConstants {
   public static final List<String> AllUmaScopes = ImmutableList.of(SEQUENCE_UMA_SCOPE, REPERTOIRE_UMA_SCOPE, STATISTICS_UMA_SCOPE);
 
   public static final String REPERTOIRE_STUDY_ID_FIELD = "study_id"; // TODO update once turnkey backend bug fixed
+  public static final String REPERTOIRE_STUDY_ID_RESPONSE_FIELD = "study.study_id"; // TODO remove once turnkey backend bug fixed
   public static final String REPERTOIRE_STUDY_TITLE_FIELD = "study_title"; // TODO update once turnkey backend bug fixed
   public static final String REPERTOIRE_REPERTOIRE_ID_FIELD = "repertoire_id";
   public static final String REARRANGEMENT_REPERTOIRE_ID_FIELD = REPERTOIRE_REPERTOIRE_ID_FIELD;

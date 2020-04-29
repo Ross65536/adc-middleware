@@ -4,25 +4,23 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdcSearchRequest {
   private AdcFilter filters;
-  private List<String> fields;
+  private Set<String> fields;
   private Long from;
   private Long size;
   private String format;
   private String facets;
 
-  public List<String> getFields() {
+  public Set<String> getFields() {
     return fields;
   }
 
-  public void setFields(List<String> fields) {
+  public void setFields(Set<String> fields) {
     this.fields = fields;
   }
 
@@ -65,11 +63,24 @@ public class AdcSearchRequest {
 
   public AdcSearchRequest addField(String field) {
     if (this.fields == null) {
-      this.fields = new ArrayList<>();
+      this.fields = new HashSet<>();
     }
 
     this.fields.add(field);
     return this;
+  }
+
+  public String tryAddField(String field) {
+    if (this.fields == null) {
+      return null;
+    }
+
+    if (this.fields.contains(field)) {
+      return null;
+    }
+
+    this.fields.add(field);
+    return field;
   }
 
   public AdcSearchRequest addFields(String ... fields) {

@@ -2,8 +2,11 @@ package pt.inesctec.adcauthmiddleware;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -16,6 +19,7 @@ import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.ResourceJsonMapper;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
+import pt.inesctec.adcauthmiddleware.config.csv.AccessScope;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.db.DbRepository;
@@ -26,9 +30,8 @@ import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -89,7 +92,7 @@ public class AdcController {
     return AdcController.buildError(HttpStatus.UNAUTHORIZED, null);
   }
 
-  @ExceptionHandler(Exception.class)
+  @ExceptionHandler(Throwable.class)
   public ResponseEntity<HttpError> internalErrorHandler(Exception e) {
     Logger.error("Internal error occurred: ", e);
     return AdcController.buildError(HttpStatus.UNAUTHORIZED, null);
@@ -142,11 +145,12 @@ public class AdcController {
       this.throwNoRptToken(umaIds, FieldClass.REPERTOIRE);
     }
 
+    var addedField = adcSearch.tryAddField(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
     var tokenResources = this.umaClient.introspectToken(bearer);
-    //    adcSearch.addField(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+    var repertoireMapper = this.buildUmaFieldMapper(tokenResources, FieldClass.REPERTOIRE, addedField).compose(this.dbRepository::getRepertoireUmaId);
 
     var response = this.adcClient.searchRepertoiresAsStream(adcSearch);
-    var mapper = new ResourceJsonMapper(response, "Repertoire");
+    var mapper = new ResourceJsonMapper(response, "Repertoire", repertoireMapper, AdcConstants.REPERTOIRE_STUDY_ID_RESPONSE_FIELD); // TODO fix once backend fixed
 
     return AdcController.buildJsonStream(mapper::writeTo);
   }
@@ -225,6 +229,34 @@ public class AdcController {
         .ok()
         .contentType(MediaType.APPLICATION_JSON)
         .body(streamer);
+  }
+
+  private static Set<String> EmptySet = ImmutableSet.of();
+
+  private Function<String, Set<String>> buildUmaFieldMapper(List<UmaResource> resources, FieldClass fieldClass, String ... addedFields) {
+    var validUmaFields = resources.stream()
+        .map(uma -> {
+          var scopes = uma.getScopes()
+              .stream()
+              .map(AccessScope::fromString)
+              .collect(Collectors.toSet());
+
+          var fields = this.csvConfig.getFields(FieldClass.REPERTOIRE, scopes);
+          return Pair.of(uma.getUmaResourceId(), fields);
+        }).collect(Collectors.toMap(Pair::getFirst,Pair::getSecond));
+
+    var publicFields = this.csvConfig.getFields(fieldClass, ImmutableSet.of(AccessScope.PUBLIC));
+    var diffSet = Arrays.stream(addedFields).collect(Collectors.toSet());
+
+    return umaId -> {
+      if (umaId == null) {
+        return EmptySet;
+      }
+
+      var fields = validUmaFields.getOrDefault(umaId, EmptySet);
+      fields = Sets.union(fields, publicFields);
+      return Sets.difference(fields, diffSet);
+    };
   }
 
 }

@@ -12,25 +12,43 @@ import pt.inesctec.adcauthmiddleware.config.AppConfig;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 public class CsvConfig {
 
-    private final Map<FieldClass, Map<AccessScope, Map<String, CsvField>>> fieldsMapping;
+  private final Map<FieldClass, Map<AccessScope, Map<String, CsvField>>> fieldsMapping;
 
-    public CsvConfig(AppConfig config) throws Exception {
+  public CsvConfig(AppConfig config) throws Exception {
     var csvPath = config.getAdcCsvConfigPath();
 
     var fieldMappings = parseCsv(csvPath);
     Utils.jaxValidateList(fieldMappings);
-    this.fieldsMapping = CollectionsUtils.buildMap(fieldMappings, CsvField::getFieldClass, CsvField::getAccessScope, CsvField::getField);
+    this.fieldsMapping =
+        CollectionsUtils.buildMap(
+            fieldMappings, CsvField::getFieldClass, CsvField::getAccessScope, CsvField::getField);
 
-    CollectionsUtils.assertListContains(this.fieldsMapping.keySet(), FieldClass.REPERTOIRE, FieldClass.REARRANGEMENT);
+    CollectionsUtils.assertListContains(
+        this.fieldsMapping.keySet(), FieldClass.REPERTOIRE, FieldClass.REARRANGEMENT);
+  }
+
+  public Set<String> getUmaScopes(FieldClass fieldClass) {
+    var scopes = this.fieldsMapping.get(fieldClass).keySet();
+    return Sets.difference(scopes, FilterScopes).stream()
+        .map(Objects::toString)
+        .collect(Collectors.toSet());
+  }
+
+  public Set<String> getFields(FieldClass fieldClass, Set<AccessScope> scopes) {
+    var classFields = this.fieldsMapping.get(fieldClass);
+
+    var set = scopes.stream()
+        .filter(classFields::containsKey)
+        .map(scope -> classFields.get(scope).keySet())
+        .reduce(new HashSet<>(), Sets::union);
+
+    return set; // make modifiable
   }
 
   private List<CsvField> parseCsv(String csvPath) throws IOException {
@@ -50,15 +68,4 @@ public class CsvConfig {
   }
 
   private static Set<AccessScope> FilterScopes = ImmutableSet.of(AccessScope.PUBLIC);
-
-  public Set<String> getUmaScopes(FieldClass fieldClass) {
-    var scopes = this.fieldsMapping.get(fieldClass).keySet();
-    return Sets.difference(scopes, FilterScopes)
-        .stream()
-        .map(Objects::toString)
-        .collect(Collectors.toSet());
-
-
-  }
-
 }

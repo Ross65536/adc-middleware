@@ -16,7 +16,7 @@ public class UmaResource {
   private String umaResourceId;
 
   @JsonProperty("resource_scopes")
-  private List<String> scopes;
+  private Set<String> scopes;
 
   public UmaResource() { }
 
@@ -26,14 +26,14 @@ public class UmaResource {
 
   public UmaResource(String umaId, Set<String> umaScopes) {
     this.umaResourceId = umaId;
-    this.scopes = new ArrayList<>(umaScopes);
+    this.scopes = umaScopes;
   }
 
   public String getUmaResourceId() {
     return umaResourceId;
   }
 
-  public List<String> getScopes() {
+  public Set<String> getScopes() {
     return scopes;
   }
 }
