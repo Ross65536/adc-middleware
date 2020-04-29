@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+import pt.inesctec.adcauthmiddleware.adc.ResourceJsonMapper;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
@@ -25,13 +26,12 @@ import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 public class AdcController {
@@ -42,18 +42,6 @@ public class AdcController {
   @Autowired private UmaFlow umaFlow;
   @Autowired private UmaClient umaClient;
   @Autowired private CsvConfig csvConfig;
-
-  private static ResponseEntity<HttpError> buildError(HttpStatus status, String msg) {
-    return new ResponseEntity<>(new HttpError(status.value(), msg), status);
-  }
-
-  private static ResponseEntity<HttpError> buildError(
-      HttpStatus status, String msg, Map<String, String> headers) {
-    var responseHeaders = new HttpHeaders();
-    headers.forEach(responseHeaders::set);
-
-    return new ResponseEntity<>(new HttpError(status.value(), msg), responseHeaders, status);
-  }
 
   @Autowired
   public AdcController(DbRepository dbRepository) throws Exception {
@@ -147,37 +135,20 @@ public class AdcController {
     var bearer = AdcController.getBearer(request);
     if (bearer == null) {
       var idsQuery = adcSearch.queryClone().addFields(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
-      var umaResources =
-          this.adcClient.getRepertoireIds(idsQuery).stream()
-              .map(e -> this.dbRepository.getStudyUmaId(e.getStudyId()))
-              .filter(Objects::nonNull)
-              .collect(Collectors.toSet())
+      var umaIds =
+          this.adcClient.getRepertoireIds(idsQuery)
               .stream()
-              .map(id -> new UmaResource(id, this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE)))
-              .toArray(UmaResource[]::new);
-
-      this.umaFlow.noRptToken(umaResources); // will throw
+              .map(e -> this.dbRepository.getStudyUmaId(e.getStudyId()));
+      this.throwNoRptToken(umaIds, FieldClass.REPERTOIRE);
     }
 
     var tokenResources = this.umaClient.introspectToken(bearer);
     //    adcSearch.addField(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
     var response = this.adcClient.searchRepertoiresAsStream(adcSearch);
+    var mapper = new ResourceJsonMapper(response, "Repertoire");
 
-    StreamingResponseBody streamer =
-        (OutputStream outputStream) -> {
-          while (true) {
-            var bytes = response.readNBytes(256);
-            if (bytes.length == 0) {
-              break;
-            }
-
-            outputStream.write(bytes);
-            outputStream.flush();
-          }
-        };
-
-    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(streamer);
+    return AdcController.buildJsonStream(mapper::writeTo);
   }
 
   private static void validateAdcSearch(AdcSearchRequest adcSearch) {
@@ -226,4 +197,34 @@ public class AdcController {
 
     return auth.replace("Bearer ", "");
   }
+
+  private void throwNoRptToken(Stream<String> umaIds, FieldClass umaFieldsClass) throws Exception {
+    var umaResources = umaIds.filter(Objects::nonNull)
+        .collect(Collectors.toSet())
+        .stream()
+        .map(id -> new UmaResource(id, this.csvConfig.getUmaScopes(umaFieldsClass)))
+        .toArray(UmaResource[]::new);
+
+    this.umaFlow.noRptToken(umaResources); // will throw
+  }
+
+  private static ResponseEntity<HttpError> buildError(HttpStatus status, String msg) {
+    return new ResponseEntity<>(new HttpError(status.value(), msg), status);
+  }
+
+  private static ResponseEntity<HttpError> buildError(
+      HttpStatus status, String msg, Map<String, String> headers) {
+    var responseHeaders = new HttpHeaders();
+    headers.forEach(responseHeaders::set);
+
+    return new ResponseEntity<>(new HttpError(status.value(), msg), responseHeaders, status);
+  }
+
+  private static ResponseEntity<StreamingResponseBody> buildJsonStream(StreamingResponseBody streamer) {
+    return ResponseEntity
+        .ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(streamer);
+  }
+
 }

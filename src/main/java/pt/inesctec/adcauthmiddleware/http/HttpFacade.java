@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 
 public class HttpFacade {
   public static final HttpClient Client = HttpClient.newBuilder().build();
-  static ObjectMapper JsonObjectMapper = new ObjectMapper();
+  public static ObjectMapper JsonObjectMapper = new ObjectMapper();
 
   public static String toJson(Object body) throws JsonProcessingException {
     return JsonObjectMapper.writeValueAsString(body);
