@@ -6,7 +6,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.springframework.stereotype.Component;
-import pt.inesctec.adcauthmiddleware.CollectionsUtils;
+import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Utils;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 

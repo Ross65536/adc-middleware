@@ -3,7 +3,7 @@ package pt.inesctec.adcauthmiddleware.uma.models;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import pt.inesctec.adcauthmiddleware.CollectionsUtils;
+import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
 import java.util.List;
 

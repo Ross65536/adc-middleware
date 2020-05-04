@@ -8,7 +8,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import pt.inesctec.adcauthmiddleware.CollectionsUtils;
+import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.http.Json;
 
 import java.io.IOException;
