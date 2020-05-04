@@ -99,7 +99,8 @@ public class AdcController {
 
   @ExceptionHandler(Throwable.class)
   public ResponseEntity<HttpError> internalErrorHandler(Exception e) {
-    Logger.error("Internal error occurred: ", e);
+    Logger.error("Internal error occurred: {}", e.getMessage());
+    Logger.info("Stacktrace: ", e);
     return AdcController.buildError(HttpStatus.UNAUTHORIZED, null);
   }
 
@@ -171,22 +172,6 @@ public class AdcController {
   @RequestMapping(value = "/synchronize", method = RequestMethod.POST) // TODO add security
   public void synchronize() throws Exception {
     this.dbRepository.synchronize();
-  }
-
-  private ResponseEntity<StreamingResponseBody> adcSearchRequest(
-      AdcSearchRequest adcSearch,
-      List<UmaResource> umaResources,
-      String idField,
-      FieldClass fieldClass)
-      throws Exception {
-    var isAddedField = adcSearch.tryAddField(idField);
-    Set<String> removeFields = isAddedField ? ImmutableSet.of(idField) : EmptySet;
-    var repertoireMapper =
-        this.buildUmaFieldMapper(umaResources, fieldClass, removeFields)
-            .compose(this.dbRepository::getStudyUmaId);
-
-    var response = this.adcClient.searchRepertoiresAsStream(adcSearch);
-    return buildRepertoireMappedJsonStream(repertoireMapper, response);
   }
 
   private Function<String, Set<String>> adcSearchFieldMapperFlow(
