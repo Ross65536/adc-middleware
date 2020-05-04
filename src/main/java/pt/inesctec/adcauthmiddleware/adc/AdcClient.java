@@ -57,6 +57,14 @@ public class AdcClient {
     return HttpFacade.makeExpectJsonAsStreamRequest(request);
   }
 
+  public InputStream searchRearrangementsAsStream(AdcSearchRequest adcRequest) throws Exception {
+    Preconditions.checkArgument(adcRequest.getFacets() == null);
+    Preconditions.checkArgument(adcRequest.isJsonFormat());
+
+    var request = this.buildSearchRequest("rearrangement", adcRequest);
+    return HttpFacade.makeExpectJsonAsStreamRequest(request);
+  }
+
   public List<RepertoireIds> getRepertoireIds(AdcSearchRequest adcRequest) throws Exception {
     Preconditions.checkArgument(adcRequest.getFacets() == null);
     Preconditions.checkArgument(adcRequest.isJsonFormat());
