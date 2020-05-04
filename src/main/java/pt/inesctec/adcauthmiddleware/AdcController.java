@@ -146,13 +146,13 @@ public class AdcController {
     }
 
     var isAddedField = adcSearch.tryAddField(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
-    Set<String> removeFields = isAddedField ? ImmutableSet.of(AdcConstants.REPERTOIRE_STUDY_ID_RESPONSE_FIELD) : ImmutableSet.of();
+    Set<String> removeFields = isAddedField ? ImmutableSet.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD) : ImmutableSet.of();
     var tokenResources = this.umaClient.introspectToken(bearer);
     var repertoireMapper = this.buildUmaFieldMapper(tokenResources, FieldClass.REPERTOIRE, removeFields)
         .compose(this.dbRepository::getStudyUmaId);
 
     var response = this.adcClient.searchRepertoiresAsStream(adcSearch);
-    var mapper = new ResourceJsonMapper(response, "Repertoire", repertoireMapper, AdcConstants.REPERTOIRE_STUDY_ID_RESPONSE_FIELD);
+    var mapper = new ResourceJsonMapper(response, "Repertoire", repertoireMapper, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
     return AdcController.buildJsonStream(mapper);
   }
@@ -241,7 +241,7 @@ public class AdcController {
         .map(uma -> {
           var scopes = uma.getScopes()
               .stream()
-              .map(AccessScope::fromString)
+              .map(AccessScope::fromString) // can throw
               .collect(Collectors.toSet());
 
           var fields = this.csvConfig.getFields(FieldClass.REPERTOIRE, scopes);
