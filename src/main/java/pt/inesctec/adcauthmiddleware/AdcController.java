@@ -78,7 +78,7 @@ public class AdcController {
   }
 
   @ExceptionHandler(HttpException.class)
-  public ResponseEntity<String> httpException(HttpException e) {
+  public ResponseEntity<String> httpExceptionForward(HttpException e) {
     Logger.debug("Stacktrace: ", e);
     return SpringUtils.buildResponse(e.statusCode, e.errorMsg, e.contentType.orElse(null));
   }

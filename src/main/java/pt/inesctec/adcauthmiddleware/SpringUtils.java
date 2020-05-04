@@ -13,6 +13,7 @@ import pt.inesctec.adcauthmiddleware.utils.ThrowingProducer;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -72,10 +73,12 @@ public final class SpringUtils {
   }
 
   private static String errorToJson(int statusCode, String msg) {
-    Map<String, Object> error = ImmutableMap.of(
-        "status", statusCode,
-        "message", msg
-    );
+    Map<String, Object> error = new HashMap<>();
+    error.put("status", statusCode);
+    if (msg != null) {
+      error.put("message", msg);
+    }
+
     try {
       return Json.toJson(error);
     } catch (JsonProcessingException e) {
