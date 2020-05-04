@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware;
+package pt.inesctec.adcauthmiddleware.utils;
 
 import org.springframework.web.util.UriComponentsBuilder;
 

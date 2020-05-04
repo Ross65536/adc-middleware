@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import pt.inesctec.adcauthmiddleware.Utils;
+import pt.inesctec.adcauthmiddleware.utils.Utils;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RearrangementIds;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireIds;

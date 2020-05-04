@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import jdk.jshell.spi.ExecutionControl;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
@@ -14,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
@@ -33,7 +31,10 @@ import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -60,7 +61,7 @@ public class AdcController {
       Pattern.compile(".*line: (\\d+), column: (\\d+).*");
 
   @ExceptionHandler(HttpMessageNotReadableException.class)
-  public ResponseEntity<HttpError> badInputHandler(HttpMessageNotReadableException e) {
+  public ResponseEntity<String> badInputHandler(HttpMessageNotReadableException e) {
     Logger.info("User input JSON error: {}", e.getMessage());
 
     // TODO improve returned error MSG
@@ -73,35 +74,35 @@ public class AdcController {
               matcher.group(1), matcher.group(2));
     }
 
-    return AdcController.buildError(HttpStatus.BAD_REQUEST, "Invalid input JSON" + msg);
+    return SpringUtils.buildJsonErrorResponse(HttpStatus.BAD_REQUEST, "Invalid input JSON" + msg);
+  }
+
+  @ExceptionHandler(HttpException.class)
+  public ResponseEntity<String> httpException(HttpException e) {
+    Logger.debug("Stacktrace: ", e);
+    return SpringUtils.buildResponse(e.statusCode, e.errorMsg, e.contentType.orElse(null));
   }
 
   @ExceptionHandler(TicketException.class)
-  public ResponseEntity<HttpError> ticketHandler(TicketException e) {
+  public ResponseEntity<String> ticketHandler(TicketException e) {
     var headers = ImmutableMap.of(HttpHeaders.WWW_AUTHENTICATE, e.buildAuthenticateHeader());
-    return AdcController.buildError(
+    return SpringUtils.buildJsonErrorResponse(
         HttpStatus.UNAUTHORIZED, "UMA permissions ticket emitted", headers);
   }
 
-  @ExceptionHandler(ResponseStatusException.class)
-  public ResponseEntity<HttpError> statusException(ResponseStatusException e) {
-    Logger.debug("Stacktrace: ", e);
-    return AdcController.buildError(e.getStatus(), e.getReason());
-  }
-
   @ExceptionHandler(UmaFlowException.class)
-  public ResponseEntity<HttpError> umaFlowHandler(Exception e) {
+  public ResponseEntity<String> umaFlowHandler(Exception e) {
     Logger.info("Uma flow access error {}", e.getMessage());
     Logger.debug("Stacktrace: ", e);
 
-    return AdcController.buildError(HttpStatus.UNAUTHORIZED, null);
+    return SpringUtils.buildJsonErrorResponse(HttpStatus.UNAUTHORIZED, null);
   }
 
   @ExceptionHandler(Throwable.class)
-  public ResponseEntity<HttpError> internalErrorHandler(Exception e) {
+  public ResponseEntity<String> internalErrorHandler(Exception e) {
     Logger.error("Internal error occurred: {}", e.getMessage());
     Logger.info("Stacktrace: ", e);
-    return AdcController.buildError(HttpStatus.UNAUTHORIZED, null);
+    return SpringUtils.buildJsonErrorResponse(HttpStatus.UNAUTHORIZED, null);
   }
 
   @RequestMapping(
@@ -113,13 +114,13 @@ public class AdcController {
     var umaId = this.dbRepository.getRepertoireUmaId(repertoireId);
     if (umaId == null) {
       Logger.info("User tried accessing non-existing repertoire with ID {}", repertoireId);
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found");
+      throw SpringUtils.buildHttpException(HttpStatus.NOT_FOUND, "Not found");
     }
 
     var repertoireMapper =
         this.singleRequestFieldMapperFlow(
             request, umaId, FieldClass.REPERTOIRE, this.dbRepository::getStudyUmaId); // can throw
-    var response = this.adcClient.getRepertoireAsStream(repertoireId);
+    var response = SpringUtils.catchForwardingError(() -> this.adcClient.getRepertoireAsStream(repertoireId));
     return buildRepertoireMappedJsonStream(repertoireMapper, response);
   }
 
@@ -132,7 +133,7 @@ public class AdcController {
     var umaId = this.dbRepository.getRearrangementUmaId(rearrangementId);
     if (umaId == null) {
       Logger.info("User tried accessing non-existing rearrangement with ID {}", rearrangementId);
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found");
+      throw SpringUtils.buildHttpException(HttpStatus.NOT_FOUND, "Not found");
     }
 
     var fieldMapper =
@@ -141,7 +142,7 @@ public class AdcController {
             umaId,
             FieldClass.REARRANGEMENT,
             this.dbRepository::getRepertoireUmaId); // can throw
-    var response = this.adcClient.getRearrangementAsStream(rearrangementId);
+    var response = SpringUtils.catchForwardingError(() -> this.adcClient.getRearrangementAsStream(rearrangementId));
     return buildRearrangementMappedJsonStream(fieldMapper, response);
   }
 
@@ -183,7 +184,7 @@ public class AdcController {
       throws Exception {
     List<UmaResource> umaResources = null;
 
-    var bearer = AdcController.getBearer(request);
+    var bearer = SpringUtils.getBearer(request);
     if (bearer != null) {
       umaResources = this.umaClient.introspectToken(bearer);
     } else {
@@ -224,7 +225,7 @@ public class AdcController {
                 lazyUmaIds)
             .compose(this.dbRepository::getStudyUmaId);
 
-    var response = this.adcClient.searchRepertoiresAsStream(adcSearch);
+    var response = SpringUtils.catchForwardingError(() -> this.adcClient.searchRepertoiresAsStream(adcSearch));
     return buildRepertoireMappedJsonStream(fieldMapper, response);
   }
 
@@ -245,7 +246,7 @@ public class AdcController {
                 lazyUmaIds)
             .compose(this.dbRepository::getRepertoireUmaId);
 
-    var response = this.adcClient.searchRearrangementsAsStream(adcSearch);
+    var response = SpringUtils.catchForwardingError(() -> this.adcClient.searchRearrangementsAsStream(adcSearch));
     return buildRearrangementMappedJsonStream(fieldMapper, response);
   }
 
@@ -255,7 +256,7 @@ public class AdcController {
       FieldClass fieldClass,
       Function<String, String> adcIdToUmaMapper)
       throws Exception {
-    var bearer = AdcController.getBearer(request);
+    var bearer = SpringUtils.getBearer(request);
     if (bearer == null) {
       var umaScopes = this.csvConfig.getUmaScopes(fieldClass);
       this.throwNoRptToken(ImmutableList.of(umaId), umaScopes);
@@ -265,41 +266,28 @@ public class AdcController {
     return this.buildUmaFieldMapper(tokenResources, fieldClass, EmptySet).compose(adcIdToUmaMapper);
   }
 
-  private void validateAdcSearch(AdcSearchRequest adcSearch, FieldClass fieldClass) {
+  private void validateAdcSearch(AdcSearchRequest adcSearch, FieldClass fieldClass) throws HttpException {
     var fields = adcSearch.getFields();
     if (fields != null && adcSearch.getFacets() != null) {
-      throw new ResponseStatusException(
+      throw SpringUtils.buildHttpException(
           HttpStatus.UNPROCESSABLE_ENTITY,
           "Can't use 'fields' and 'facets' at the same time in request");
     }
 
     if (!adcSearch.isJsonFormat() || adcSearch.getFacets() != null) {
       Logger.error("Not implemented");
-      throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Not implemented yet");
+      throw SpringUtils.buildHttpException(HttpStatus.UNPROCESSABLE_ENTITY, "Not implemented yet");
     }
 
     if (fields != null && !fields.isEmpty()) {
       var validFields = this.csvConfig.getFields(fieldClass);
       for (var field : fields) {
         if (!validFields.contains(field)) {
-          throw new ResponseStatusException(
+          throw SpringUtils.buildHttpException(
               HttpStatus.UNPROCESSABLE_ENTITY, "'fields' '" + field + "' value is not valid");
         }
       }
     }
-  }
-
-  private static String getBearer(HttpServletRequest request) {
-    var auth = request.getHeader(HttpHeaders.AUTHORIZATION);
-    if (auth == null) {
-      return null;
-    }
-
-    if (!auth.startsWith("Bearer ")) {
-      return null;
-    }
-
-    return auth.replace("Bearer ", "");
   }
 
   private void throwNoRptToken(Collection<String> umaIds, Set<String> umaScopes) throws Exception {
@@ -312,18 +300,6 @@ public class AdcController {
             .toArray(UmaResource[]::new);
 
     this.umaFlow.noRptToken(umaResources); // will throw
-  }
-
-  private static ResponseEntity<HttpError> buildError(HttpStatus status, String msg) {
-    return new ResponseEntity<>(new HttpError(status.value(), msg), status);
-  }
-
-  private static ResponseEntity<HttpError> buildError(
-      HttpStatus status, String msg, Map<String, String> headers) {
-    var responseHeaders = new HttpHeaders();
-    headers.forEach(responseHeaders::set);
-
-    return new ResponseEntity<>(new HttpError(status.value(), msg), responseHeaders, status);
   }
 
   private Function<String, Set<String>> buildUmaFieldMapper(
@@ -357,18 +333,13 @@ public class AdcController {
     };
   }
 
-  private static ResponseEntity<StreamingResponseBody> buildJsonStream(
-      StreamingResponseBody streamer) {
-    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(streamer);
-  }
-
   private static ResponseEntity<StreamingResponseBody> buildRepertoireMappedJsonStream(
       Function<String, Set<String>> fieldMapper, InputStream response) {
     var mapper =
         new ResourceJsonMapper(
             response, "Repertoire", fieldMapper, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
-    return AdcController.buildJsonStream(mapper);
+    return SpringUtils.buildJsonStream(mapper);
   }
 
   private static ResponseEntity<StreamingResponseBody> buildRearrangementMappedJsonStream(
@@ -377,6 +348,6 @@ public class AdcController {
         new ResourceJsonMapper(
             response, "Rearrangement", fieldMapper, AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
 
-    return AdcController.buildJsonStream(mapper);
+    return SpringUtils.buildJsonStream(mapper);
   }
 }

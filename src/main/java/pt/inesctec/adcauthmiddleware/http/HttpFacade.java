@@ -1,38 +1,28 @@
 package pt.inesctec.adcauthmiddleware.http;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Charsets;
+import com.google.common.io.CharStreams;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.List;
-import java.util.function.Supplier;
 
 public class HttpFacade {
   public static final HttpClient Client = HttpClient.newBuilder().build();
-  public static ObjectMapper JsonObjectMapper = new ObjectMapper();
-
-  public static String toJson(Object body) throws JsonProcessingException {
-    return JsonObjectMapper.writeValueAsString(body);
-  }
 
   public static void makeRequest(HttpRequest request) throws IOException, InterruptedException {
     var response = HttpFacade.Client.send(request, HttpResponse.BodyHandlers.discarding());
-    HttpFacade.validateOkResponse(response);
+    HttpFacade.validateOkResponseDiscarding(response);
   }
 
   public static <T> T makeExpectJsonRequest(HttpRequest request, Class<T> respClass) throws IOException, InterruptedException {
-    HttpResponse<Supplier<T>> response = HttpFacade.Client.send(request, new JsonBodyHandler<>(respClass));
-
-    HttpFacade.validateOkResponse(response);
-    HttpFacade.validateJsonResponseHeader(response);
-
-    // TODO figure out how to check malformed JSON errors
-    return response.body().get();
+    var inputStream = HttpFacade.makeExpectJsonAsStreamRequest(request);
+    return Json.parseJson(respClass, inputStream);
   }
 
   public static InputStream makeExpectJsonAsStreamRequest(HttpRequest request) throws IOException, InterruptedException {
@@ -44,16 +34,7 @@ public class HttpFacade {
     return response.body();
   }
 
-  public static String makeExpectJsonStringRequest(HttpRequest request) throws IOException, InterruptedException {
-    var response =  HttpFacade.Client.send(request, HttpResponse.BodyHandlers.ofString());
-
-    HttpFacade.validateOkResponse(response);
-    HttpFacade.validateJsonResponseHeader(response);
-
-    return response.body();
-  }
-
-  private static void validateOkResponse(HttpResponse response) throws IOException {
+  private static void validateOkResponseDiscarding(HttpResponse response) throws IOException {
     int statusCode = response.statusCode();
     int respFamily = statusCode / 100;
     if (respFamily != 2) {
@@ -61,8 +42,19 @@ public class HttpFacade {
     }
   }
 
+  private static void validateOkResponse(HttpResponse<InputStream> response) throws IOException {
+    int statusCode = response.statusCode();
+    int respFamily = statusCode / 100;
+    if (respFamily != 2) {
+      var is = response.body();
+      var contentType = response.headers().firstValue(HttpHeaders.CONTENT_TYPE);
+      var stringBody = CharStreams.toString(new InputStreamReader(is, Charsets.UTF_8));
+      throw new ClientError(statusCode, stringBody, contentType);
+    }
+  }
+
   private static void validateJsonResponseHeader(HttpResponse response) throws IOException {
-    var values = response.headers().allValues("Content-Type");
+    var values = response.headers().allValues(HttpHeaders.CONTENT_TYPE);
     if (values.size() == 0) {
       throw new IOException("Response contains no content-type header");
     }

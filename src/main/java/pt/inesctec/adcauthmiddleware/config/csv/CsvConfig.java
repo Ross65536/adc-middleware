@@ -7,7 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.CollectionsUtils;
-import pt.inesctec.adcauthmiddleware.Utils;
+import pt.inesctec.adcauthmiddleware.utils.Utils;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 
 import java.io.File;

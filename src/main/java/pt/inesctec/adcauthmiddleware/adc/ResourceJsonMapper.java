@@ -9,7 +9,7 @@ import com.google.common.collect.ImmutableSet;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.CollectionsUtils;
-import pt.inesctec.adcauthmiddleware.http.HttpFacade;
+import pt.inesctec.adcauthmiddleware.http.Json;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,7 +21,7 @@ public class ResourceJsonMapper implements StreamingResponseBody {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(ResourceJsonMapper.class);
   private static JsonFactory JsonFactory = new JsonFactory();
   static {
-    JsonFactory.setCodec(HttpFacade.JsonObjectMapper);
+    JsonFactory.setCodec(Json.JsonObjectMapper);
   }
 
   private final InputStream response;

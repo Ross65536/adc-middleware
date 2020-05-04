@@ -8,7 +8,6 @@ import org.springframework.http.MediaType;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpRequest;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -46,7 +45,7 @@ public class HttpRequestBuilderFacade {
   }
 
   public HttpRequestBuilderFacade postJson(URI uri, Object body) throws JsonProcessingException {
-    var postBody = HttpFacade.toJson(body);
+    var postBody = Json.toJson(body);
 
     this.builder = this.builder.uri(uri)
         .POST(HttpRequest.BodyPublishers.ofString(postBody))
