@@ -215,7 +215,7 @@ public class AdcController {
       umaResources = EmptyResources; // fall through
     }
 
-    var isAddedField = adcSearch.tryAddField(resourceId);
+    var isAddedField = adcSearch.tryAddField(resourceId); // modifies function argument
     Set<String> removeFields = isAddedField ? ImmutableSet.of(resourceId) : EmptySet;
 
     return this.buildUmaFieldMapper(umaResources, fieldClass, removeFields);
