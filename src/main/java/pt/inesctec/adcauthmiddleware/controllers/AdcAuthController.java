@@ -42,11 +42,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @RestController
-public class AdcController {
+public class AdcAuthController {
   private static Set<String> EmptySet = ImmutableSet.of();
   private static List<UmaResource> EmptyResources = ImmutableList.of();
 
-  private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcController.class);
+  private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcAuthController.class);
 
   @Autowired private AdcClient adcClient;
   @Autowired private DbRepository dbRepository;
@@ -55,7 +55,7 @@ public class AdcController {
   @Autowired private CsvConfig csvConfig;
 
   @Autowired
-  public AdcController(DbRepository dbRepository) throws Exception {
+  public AdcAuthController(DbRepository dbRepository) throws Exception {
     //    cacheRepository.synchronize();
   }
 
