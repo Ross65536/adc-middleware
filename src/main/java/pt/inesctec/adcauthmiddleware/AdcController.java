@@ -1,6 +1,7 @@
 package pt.inesctec.adcauthmiddleware;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -38,6 +39,9 @@ import java.util.stream.Stream;
 
 @RestController
 public class AdcController {
+  private static Set<String> EmptySet = ImmutableSet.of();
+  private static List<UmaResource> EmptyResources = ImmutableList.of();
+
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcController.class);
 
   @Autowired private AdcClient adcClient;
@@ -135,39 +139,50 @@ public class AdcController {
       HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
     this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE);
 
+    return searchRepertoiresEndpoint(request, adcSearch);
+  }
+
+  private ResponseEntity<StreamingResponseBody> searchRepertoiresEndpoint(
+      HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
     var bearer = AdcController.getBearer(request);
     if (bearer == null) {
       var idsQuery = adcSearch.queryClone().addFields(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
       var umaIds =
-          this.adcClient.getRepertoireIds(idsQuery)
-              .stream()
+          this.adcClient.getRepertoireIds(idsQuery).stream()
               .map(e -> this.dbRepository.getStudyUmaId(e.getStudyId()));
-      var umaScopes = adcSearch.isFieldsEmpty() ? this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE) :this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE, adcSearch.getFields());
-      if (umaScopes.isEmpty()) // means only public access fields are requested with the 'fields'
-        return this.searchRepertoires(adcSearch, List.of());
-      else
+      var umaScopes =
+          adcSearch.isFieldsEmpty()
+              ? this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE)
+              : this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE, adcSearch.getFields());
+      if (umaScopes.isEmpty()) { // means only public access fields are requested with the 'fields'
+        return this.searchRepertoires(adcSearch, EmptyResources);
+      } else {
         this.throwNoRptToken(umaIds, umaScopes);
-
+      }
     }
 
     var tokenResources = this.umaClient.introspectToken(bearer);
     return this.searchRepertoires(adcSearch, tokenResources);
   }
 
-
   @RequestMapping(value = "/synchronize", method = RequestMethod.POST) // TODO add security
   public void synchronize() throws Exception {
     this.dbRepository.synchronize();
   }
 
-  private ResponseEntity<StreamingResponseBody> searchRepertoires(AdcSearchRequest adcSearch, List<UmaResource> umaResources) throws Exception {
+  private ResponseEntity<StreamingResponseBody> searchRepertoires(
+      AdcSearchRequest adcSearch, List<UmaResource> umaResources) throws Exception {
     var isAddedField = adcSearch.tryAddField(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
-    Set<String> removeFields = isAddedField ? ImmutableSet.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD) : EmptySet;
-    var repertoireMapper = this.buildUmaFieldMapper(umaResources, FieldClass.REPERTOIRE, removeFields)
-        .compose(this.dbRepository::getStudyUmaId);
+    Set<String> removeFields =
+        isAddedField ? ImmutableSet.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD) : EmptySet;
+    var repertoireMapper =
+        this.buildUmaFieldMapper(umaResources, FieldClass.REPERTOIRE, removeFields)
+            .compose(this.dbRepository::getStudyUmaId);
 
     var response = this.adcClient.searchRepertoiresAsStream(adcSearch);
-    var mapper = new ResourceJsonMapper(response, "Repertoire", repertoireMapper, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+    var mapper =
+        new ResourceJsonMapper(
+            response, "Repertoire", repertoireMapper, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
     return AdcController.buildJsonStream(mapper);
   }
@@ -203,10 +218,9 @@ public class AdcController {
     if (fields != null && !fields.isEmpty()) {
       var validFields = this.csvConfig.getFields(fieldClass);
       for (var field : fields) {
-        if (! validFields.contains(field)) {
+        if (!validFields.contains(field)) {
           throw new ResponseStatusException(
-              HttpStatus.UNPROCESSABLE_ENTITY,
-              "'fields' '" + field + "' value is not valid");
+              HttpStatus.UNPROCESSABLE_ENTITY, "'fields' '" + field + "' value is not valid");
         }
       }
     }
@@ -226,11 +240,10 @@ public class AdcController {
   }
 
   private void throwNoRptToken(Stream<String> umaIds, Set<String> umaScopes) throws Exception {
-    var umaResources = umaIds.filter(Objects::nonNull)
-        .collect(Collectors.toSet())
-        .stream()
-        .map(id -> new UmaResource(id, umaScopes))
-        .toArray(UmaResource[]::new);
+    var umaResources =
+        umaIds.filter(Objects::nonNull).collect(Collectors.toSet()).stream()
+            .map(id -> new UmaResource(id, umaScopes))
+            .toArray(UmaResource[]::new);
 
     this.umaFlow.noRptToken(umaResources); // will throw
   }
@@ -247,26 +260,27 @@ public class AdcController {
     return new ResponseEntity<>(new HttpError(status.value(), msg), responseHeaders, status);
   }
 
-  private static ResponseEntity<StreamingResponseBody> buildJsonStream(StreamingResponseBody streamer) {
-    return ResponseEntity
-        .ok()
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(streamer);
+  private static ResponseEntity<StreamingResponseBody> buildJsonStream(
+      StreamingResponseBody streamer) {
+    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(streamer);
   }
 
-  private static Set<String> EmptySet = ImmutableSet.of();
 
-  private Function<String, Set<String>> buildUmaFieldMapper(List<UmaResource> resources, FieldClass fieldClass, Set<String> diffFields) {
-    var validUmaFields = resources.stream()
-        .map(uma -> {
-          var scopes = uma.getScopes()
-              .stream()
-              .map(AccessScope::fromString) // can throw
-              .collect(Collectors.toSet());
+  private Function<String, Set<String>> buildUmaFieldMapper(
+      List<UmaResource> resources, FieldClass fieldClass, Set<String> diffFields) {
+    var validUmaFields =
+        resources.stream()
+            .map(
+                uma -> {
+                  var scopes =
+                      uma.getScopes().stream()
+                          .map(AccessScope::fromString) // can throw
+                          .collect(Collectors.toSet());
 
-          var fields = this.csvConfig.getFields(FieldClass.REPERTOIRE, scopes);
-          return Pair.of(uma.getUmaResourceId(), fields);
-        }).collect(Collectors.toMap(Pair::getFirst,Pair::getSecond));
+                  var fields = this.csvConfig.getFields(FieldClass.REPERTOIRE, scopes);
+                  return Pair.of(uma.getUmaResourceId(), fields);
+                })
+            .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
 
     var publicFields = this.csvConfig.getFields(fieldClass, ImmutableSet.of(AccessScope.PUBLIC));
 
@@ -280,5 +294,4 @@ public class AdcController {
       return Sets.difference(fields, diffFields);
     };
   }
-
 }
