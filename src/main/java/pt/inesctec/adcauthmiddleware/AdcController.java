@@ -31,6 +31,7 @@ import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.InputStream;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -114,37 +115,26 @@ public class AdcController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found");
     }
 
-    var bearer = AdcController.getBearer(request);
-    if (bearer == null) {
-      var umaScopes = this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE);
-      this.throwNoRptToken(umaId, umaScopes);
-    }
-
-    var tokenResources = this.umaClient.introspectToken(bearer);
-    var repertoireMapper =
-        this.buildUmaFieldMapper(tokenResources, FieldClass.REPERTOIRE, EmptySet)
-            .compose(this.dbRepository::getStudyUmaId);
-
+    var repertoireMapper = this.umaSingleTokenFlow(request, umaId, FieldClass.REPERTOIRE, this.dbRepository::getStudyUmaId); // can throw
     var response = this.adcClient.getRepertoireAsStream(repertoireId);
-    var mapper =
-        new ResourceJsonMapper(
-            response, "Repertoire", repertoireMapper, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
-
-    return AdcController.buildJsonStream(mapper);
+    return buildRepertoireMappedJsonStream(repertoireMapper, response);
   }
 
   @RequestMapping(
       value = "/rearrangement/{rearrangementId}",
       method = RequestMethod.GET,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public String rearrangement(HttpServletRequest request, @PathVariable String rearrangementId)
+  public ResponseEntity<StreamingResponseBody> rearrangement(HttpServletRequest request, @PathVariable String rearrangementId)
       throws Exception {
     var umaId = this.dbRepository.getRearrangementUmaId(rearrangementId);
-    var scopes = this.csvConfig.getUmaScopes(FieldClass.REARRANGEMENT);
+    if (umaId == null) {
+      Logger.info("User tried accessing non-existing rearrangement with ID {}", rearrangementId);
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found");
+    }
 
-    exactUmaFlow(request, umaId, "non-existing rearrangement in cache " + rearrangementId, scopes);
-
-    return this.adcClient.getRearrangementAsString(rearrangementId);
+    var fieldMapper = this.umaSingleTokenFlow(request, umaId, FieldClass.REARRANGEMENT, this.dbRepository::getRepertoireUmaId); // can throw
+    var response = this.adcClient.getRearrangementAsStream(rearrangementId);
+    return buildRearrangementMappedJsonStream(fieldMapper, response);
   }
 
   @RequestMapping(
@@ -187,7 +177,17 @@ public class AdcController {
     return this.searchRepertoires(adcSearch, tokenResources);
   }
 
+  private Function<String, Set<String>> umaSingleTokenFlow(HttpServletRequest request, String umaId, FieldClass fieldClass, Function<String, String> adcIdToUmaMapper) throws Exception {
+    var bearer = AdcController.getBearer(request);
+    if (bearer == null) {
+      var umaScopes = this.csvConfig.getUmaScopes(fieldClass);
+      this.throwNoRptToken(umaId, umaScopes);
+    }
 
+    var tokenResources = this.umaClient.introspectToken(bearer);
+    return this.buildUmaFieldMapper(tokenResources, fieldClass, EmptySet)
+        .compose(adcIdToUmaMapper);
+  }
 
   private ResponseEntity<StreamingResponseBody> searchRepertoires(
       AdcSearchRequest adcSearch, List<UmaResource> umaResources) throws Exception {
@@ -199,26 +199,7 @@ public class AdcController {
             .compose(this.dbRepository::getStudyUmaId);
 
     var response = this.adcClient.searchRepertoiresAsStream(adcSearch);
-    var mapper =
-        new ResourceJsonMapper(
-            response, "Repertoire", repertoireMapper, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
-
-    return AdcController.buildJsonStream(mapper);
-  }
-
-  private void exactUmaFlow(
-      HttpServletRequest request, String umaId, String errorMsg, Set<String> umaScopes)
-      throws Exception {
-    Preconditions.checkArgument(umaScopes.size() > 0);
-
-    if (umaId == null) {
-      Logger.info("User tried accessing non-existing resource {}", errorMsg);
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found");
-    }
-
-    var bearer = AdcController.getBearer(request);
-    var umaResource = new UmaResource(umaId, umaScopes);
-    this.umaFlow.exactMatchFlow(bearer, umaResource);
+    return buildRepertoireMappedJsonStream(repertoireMapper, response);
   }
 
   private void validateAdcSearch(AdcSearchRequest adcSearch, FieldClass fieldClass) {
@@ -284,10 +265,6 @@ public class AdcController {
     return new ResponseEntity<>(new HttpError(status.value(), msg), responseHeaders, status);
   }
 
-  private static ResponseEntity<StreamingResponseBody> buildJsonStream(
-      StreamingResponseBody streamer) {
-    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(streamer);
-  }
 
 
   private Function<String, Set<String>> buildUmaFieldMapper(
@@ -301,7 +278,7 @@ public class AdcController {
                           .map(AccessScope::fromString) // can throw
                           .collect(Collectors.toSet());
 
-                  var fields = this.csvConfig.getFields(FieldClass.REPERTOIRE, scopes);
+                  var fields = this.csvConfig.getFields(fieldClass, scopes);
                   return Pair.of(uma.getUmaResourceId(), fields);
                 })
             .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
@@ -317,5 +294,26 @@ public class AdcController {
       fields = Sets.union(fields, publicFields);
       return Sets.difference(fields, diffFields);
     };
+  }
+
+  private static ResponseEntity<StreamingResponseBody> buildJsonStream(
+      StreamingResponseBody streamer) {
+    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(streamer);
+  }
+
+  private ResponseEntity<StreamingResponseBody> buildRepertoireMappedJsonStream(Function<String, Set<String>> fieldMapper, InputStream response) {
+    var mapper =
+        new ResourceJsonMapper(
+            response, "Repertoire", fieldMapper, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+
+    return AdcController.buildJsonStream(mapper);
+  }
+
+  private ResponseEntity<StreamingResponseBody> buildRearrangementMappedJsonStream(Function<String, Set<String>> fieldMapper, InputStream response) {
+    var mapper =
+        new ResourceJsonMapper(
+            response, "Rearrangement", fieldMapper, AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
+
+    return AdcController.buildJsonStream(mapper);
   }
 }

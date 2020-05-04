@@ -39,14 +39,14 @@ public class AdcClient {
     return HttpFacade.makeExpectJsonAsStreamRequest(request);
   }
 
-  public String getRearrangementAsString(String rearrangementId) throws IOException, InterruptedException {
+  public InputStream getRearrangementAsStream(String rearrangementId) throws IOException, InterruptedException {
     final URI uri = this.getResourceServerPath("rearrangement", rearrangementId);
 
     var request = new HttpRequestBuilderFacade()
         .getJson(uri)
         .build();
 
-    return HttpFacade.makeExpectJsonStringRequest(request);
+    return HttpFacade.makeExpectJsonAsStreamRequest(request);
   }
 
   public InputStream searchRepertoiresAsStream(AdcSearchRequest adcRequest) throws Exception {
