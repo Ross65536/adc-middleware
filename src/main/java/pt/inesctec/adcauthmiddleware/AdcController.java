@@ -106,14 +106,31 @@ public class AdcController {
       value = "/repertoire/{repertoireId}",
       method = RequestMethod.GET,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public String repertoire(HttpServletRequest request, @PathVariable String repertoireId)
+  public ResponseEntity<StreamingResponseBody> repertoire(HttpServletRequest request, @PathVariable String repertoireId)
       throws Exception {
     var umaId = this.dbRepository.getRepertoireUmaId(repertoireId);
-    var scopes = this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE);
+    if (umaId == null) {
+      Logger.info("User tried accessing non-existing repertoire with ID {}", repertoireId);
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found");
+    }
 
-    exactUmaFlow(request, umaId, "non-existing repertoire in cache " + repertoireId, scopes);
+    var bearer = AdcController.getBearer(request);
+    if (bearer == null) {
+      var umaScopes = this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE);
+      this.throwNoRptToken(umaId, umaScopes);
+    }
 
-    return this.adcClient.getRepertoireAsString(repertoireId);
+    var tokenResources = this.umaClient.introspectToken(bearer);
+    var repertoireMapper =
+        this.buildUmaFieldMapper(tokenResources, FieldClass.REPERTOIRE, EmptySet)
+            .compose(this.dbRepository::getStudyUmaId);
+
+    var response = this.adcClient.getRepertoireAsStream(repertoireId);
+    var mapper =
+        new ResourceJsonMapper(
+            response, "Repertoire", repertoireMapper, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+
+    return AdcController.buildJsonStream(mapper);
   }
 
   @RequestMapping(
@@ -142,6 +159,11 @@ public class AdcController {
     return searchRepertoiresEndpoint(request, adcSearch);
   }
 
+  @RequestMapping(value = "/synchronize", method = RequestMethod.POST) // TODO add security
+  public void synchronize() throws Exception {
+    this.dbRepository.synchronize();
+  }
+
   private ResponseEntity<StreamingResponseBody> searchRepertoiresEndpoint(
       HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
     var bearer = AdcController.getBearer(request);
@@ -165,10 +187,7 @@ public class AdcController {
     return this.searchRepertoires(adcSearch, tokenResources);
   }
 
-  @RequestMapping(value = "/synchronize", method = RequestMethod.POST) // TODO add security
-  public void synchronize() throws Exception {
-    this.dbRepository.synchronize();
-  }
+
 
   private ResponseEntity<StreamingResponseBody> searchRepertoires(
       AdcSearchRequest adcSearch, List<UmaResource> umaResources) throws Exception {
@@ -246,6 +265,11 @@ public class AdcController {
             .toArray(UmaResource[]::new);
 
     this.umaFlow.noRptToken(umaResources); // will throw
+  }
+
+  private void throwNoRptToken(String umaId, Set<String> umaScopes) throws Exception {
+    var stream = ImmutableList.of(umaId).stream();
+    this.throwNoRptToken(stream, umaScopes);
   }
 
   private static ResponseEntity<HttpError> buildError(HttpStatus status, String msg) {

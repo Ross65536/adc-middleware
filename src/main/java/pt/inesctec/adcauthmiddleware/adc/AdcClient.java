@@ -29,14 +29,14 @@ public class AdcClient {
     this.adcConfig = adcConfig;
   }
 
-  public String getRepertoireAsString(String repertoireId) throws IOException, InterruptedException {
+  public InputStream getRepertoireAsStream(String repertoireId) throws IOException, InterruptedException {
     final URI uri = this.getResourceServerPath("repertoire", repertoireId);
 
     var request = new HttpRequestBuilderFacade()
         .getJson(uri)
         .build();
 
-    return HttpFacade.makeExpectJsonStringRequest(request);
+    return HttpFacade.makeExpectJsonAsStreamRequest(request);
   }
 
   public String getRearrangementAsString(String rearrangementId) throws IOException, InterruptedException {
