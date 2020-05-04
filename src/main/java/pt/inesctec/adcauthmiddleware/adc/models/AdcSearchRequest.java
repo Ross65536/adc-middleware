@@ -70,8 +70,13 @@ public class AdcSearchRequest {
     return this;
   }
 
+  @JsonIgnore
+  public boolean isFieldsEmpty() {
+    return this.fields == null || this.fields.isEmpty();
+  }
+
   public boolean tryAddField(String field) {
-    if (this.fields == null) {
+    if (this.isFieldsEmpty()) {
       return false;
     }
 

@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class CsvConfig {
+  private static Set<AccessScope> FilterScopes = ImmutableSet.of(AccessScope.PUBLIC);
 
   private final Map<FieldClass, Map<AccessScope, Map<String, CsvField>>> fieldsMapping;
 
@@ -40,15 +41,39 @@ public class CsvConfig {
         .collect(Collectors.toSet());
   }
 
+  public Set<String> getUmaScopes(FieldClass fieldClass, Collection<String> fieldsFilter) {
+    var fields = new HashSet<>(fieldsFilter);
+    var classScopes = this.fieldsMapping.get(fieldClass);
+    var scopes = classScopes.keySet();
+
+    return Sets.difference(scopes, FilterScopes).stream()
+        .filter(scope -> {
+          Set<String> actualFields = classScopes.get(scope).keySet();
+          var diff = Sets.difference(actualFields, fields);
+          Sets.SetView<String> intersection = Sets.intersection(actualFields, fields);
+          return !intersection
+                .isEmpty();
+                }
+        ).map(Objects::toString)
+        .collect(Collectors.toSet());
+  }
+
+  public Set<String> getFields(FieldClass fieldClass) {
+    return this.fieldsMapping.get(fieldClass).values().stream()
+        .map(Map::keySet)
+        .reduce(new HashSet<>(), Sets::union);
+  }
+
   public Set<String> getFields(FieldClass fieldClass, Set<AccessScope> scopes) {
     var classFields = this.fieldsMapping.get(fieldClass);
 
-    var set = scopes.stream()
-        .filter(classFields::containsKey)
-        .map(scope -> classFields.get(scope).keySet())
-        .reduce(new HashSet<>(), Sets::union);
+    var set =
+        scopes.stream()
+            .filter(classFields::containsKey)
+            .map(scope -> classFields.get(scope).keySet())
+            .reduce(new HashSet<>(), Sets::union);
 
-    return set; // make modifiable
+    return set;
   }
 
   private List<CsvField> parseCsv(String csvPath) throws IOException {
@@ -66,6 +91,4 @@ public class CsvConfig {
                 .readValues(file)
                 .readAll();
   }
-
-  private static Set<AccessScope> FilterScopes = ImmutableSet.of(AccessScope.PUBLIC);
 }

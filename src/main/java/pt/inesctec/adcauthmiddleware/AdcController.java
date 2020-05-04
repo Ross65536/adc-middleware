@@ -133,7 +133,7 @@ public class AdcController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<StreamingResponseBody> repertoire_search(
       HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
-    AdcController.validateAdcSearch(adcSearch);
+    this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE);
 
     var bearer = AdcController.getBearer(request);
     if (bearer == null) {
@@ -142,26 +142,34 @@ public class AdcController {
           this.adcClient.getRepertoireIds(idsQuery)
               .stream()
               .map(e -> this.dbRepository.getStudyUmaId(e.getStudyId()));
-      this.throwNoRptToken(umaIds, FieldClass.REPERTOIRE);
+      var umaScopes = adcSearch.isFieldsEmpty() ? this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE) :this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE, adcSearch.getFields());
+      if (umaScopes.isEmpty()) // means only public access fields are requested with the 'fields'
+        return this.searchRepertoires(adcSearch, List.of());
+      else
+        this.throwNoRptToken(umaIds, umaScopes);
+
     }
 
-    var isAddedField = adcSearch.tryAddField(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
-    Set<String> removeFields = isAddedField ? ImmutableSet.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD) : ImmutableSet.of();
     var tokenResources = this.umaClient.introspectToken(bearer);
-    var repertoireMapper = this.buildUmaFieldMapper(tokenResources, FieldClass.REPERTOIRE, removeFields)
+    return this.searchRepertoires(adcSearch, tokenResources);
+  }
+
+
+  @RequestMapping(value = "/synchronize", method = RequestMethod.POST) // TODO add security
+  public void synchronize() throws Exception {
+    this.dbRepository.synchronize();
+  }
+
+  private ResponseEntity<StreamingResponseBody> searchRepertoires(AdcSearchRequest adcSearch, List<UmaResource> umaResources) throws Exception {
+    var isAddedField = adcSearch.tryAddField(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+    Set<String> removeFields = isAddedField ? ImmutableSet.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD) : EmptySet;
+    var repertoireMapper = this.buildUmaFieldMapper(umaResources, FieldClass.REPERTOIRE, removeFields)
         .compose(this.dbRepository::getStudyUmaId);
 
     var response = this.adcClient.searchRepertoiresAsStream(adcSearch);
     var mapper = new ResourceJsonMapper(response, "Repertoire", repertoireMapper, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
     return AdcController.buildJsonStream(mapper);
-  }
-
-  // TODO add security
-
-  @RequestMapping(value = "/synchronize", method = RequestMethod.POST)
-  public void synchronize() throws Exception {
-    this.dbRepository.synchronize();
   }
 
   private void exactUmaFlow(
@@ -179,8 +187,9 @@ public class AdcController {
     this.umaFlow.exactMatchFlow(bearer, umaResource);
   }
 
-  private static void validateAdcSearch(AdcSearchRequest adcSearch) {
-    if (adcSearch.getFields() != null && adcSearch.getFacets() != null) {
+  private void validateAdcSearch(AdcSearchRequest adcSearch, FieldClass fieldClass) {
+    var fields = adcSearch.getFields();
+    if (fields != null && adcSearch.getFacets() != null) {
       throw new ResponseStatusException(
           HttpStatus.UNPROCESSABLE_ENTITY,
           "Can't use 'fields' and 'facets' at the same time in request");
@@ -189,6 +198,17 @@ public class AdcController {
     if (!adcSearch.isJsonFormat() || adcSearch.getFacets() != null) {
       Logger.error("Not implemented");
       throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Not implemented yet");
+    }
+
+    if (fields != null && !fields.isEmpty()) {
+      var validFields = this.csvConfig.getFields(fieldClass);
+      for (var field : fields) {
+        if (! validFields.contains(field)) {
+          throw new ResponseStatusException(
+              HttpStatus.UNPROCESSABLE_ENTITY,
+              "'fields' '" + field + "' value is not valid");
+        }
+      }
     }
   }
 
@@ -205,11 +225,11 @@ public class AdcController {
     return auth.replace("Bearer ", "");
   }
 
-  private void throwNoRptToken(Stream<String> umaIds, FieldClass umaFieldsClass) throws Exception {
+  private void throwNoRptToken(Stream<String> umaIds, Set<String> umaScopes) throws Exception {
     var umaResources = umaIds.filter(Objects::nonNull)
         .collect(Collectors.toSet())
         .stream()
-        .map(id -> new UmaResource(id, this.csvConfig.getUmaScopes(umaFieldsClass)))
+        .map(id -> new UmaResource(id, umaScopes))
         .toArray(UmaResource[]::new);
 
     this.umaFlow.noRptToken(umaResources); // will throw
