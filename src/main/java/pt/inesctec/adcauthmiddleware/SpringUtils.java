@@ -19,7 +19,7 @@ import java.util.Optional;
 
 public final class SpringUtils {
 
-  static String getBearer(HttpServletRequest request) {
+  public static String getBearer(HttpServletRequest request) {
     var auth = request.getHeader(HttpHeaders.AUTHORIZATION);
     if (auth == null) {
       return null;
@@ -32,7 +32,7 @@ public final class SpringUtils {
     return auth.replace("Bearer ", "");
   }
 
-  static InputStream catchForwardingError(ThrowingProducer<InputStream, Exception> httpRequest) throws Exception {
+  public static InputStream catchForwardingError(ThrowingProducer<InputStream, Exception> httpRequest) throws Exception {
     try {
       return httpRequest.get();
     } catch (ClientError e) {
@@ -40,12 +40,12 @@ public final class SpringUtils {
     }
   }
 
-  static HttpException buildHttpException(HttpStatus status, String msg) {
+  public static HttpException buildHttpException(HttpStatus status, String msg) {
     var json = errorToJson(status.value(), msg);
     return new HttpException(status.value(), json, Optional.of(MediaType.APPLICATION_JSON_VALUE));
   }
 
-  static ResponseEntity<String> buildResponse(int status, String msg, String contentType) {
+  public static ResponseEntity<String> buildResponse(int status, String msg, String contentType) {
     var headers = new HttpHeaders();
     headers.set(HttpHeaders.CONTENT_TYPE, contentType);
     var httpStatus = HttpStatus.valueOf(status);
@@ -53,11 +53,11 @@ public final class SpringUtils {
     return new ResponseEntity<>(msg, headers, httpStatus);
   }
 
-  static ResponseEntity<String> buildJsonErrorResponse(HttpStatus status, String msg) {
+  public static ResponseEntity<String> buildJsonErrorResponse(HttpStatus status, String msg) {
     return buildJsonErrorResponse(status, msg, ImmutableMap.of());
   }
 
-  static ResponseEntity<String> buildJsonErrorResponse(
+  public static ResponseEntity<String> buildJsonErrorResponse(
       HttpStatus status, String msg, Map<String, String> headers) {
     var responseHeaders = new HttpHeaders();
     responseHeaders.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
@@ -67,7 +67,7 @@ public final class SpringUtils {
     return new ResponseEntity<>(json, responseHeaders, status);
   }
 
-  static ResponseEntity<StreamingResponseBody> buildJsonStream(
+  public static ResponseEntity<StreamingResponseBody> buildJsonStream(
       StreamingResponseBody streamer) {
     return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(streamer);
   }
