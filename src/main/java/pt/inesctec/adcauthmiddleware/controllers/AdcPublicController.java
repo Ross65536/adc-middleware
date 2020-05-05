@@ -12,10 +12,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.HttpException;
-import pt.inesctec.adcauthmiddleware.SpringUtils;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.OutputStream;
 
 @RestController

@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware;
+package pt.inesctec.adcauthmiddleware.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.http.ClientError;
 import pt.inesctec.adcauthmiddleware.http.Json;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingProducer;
