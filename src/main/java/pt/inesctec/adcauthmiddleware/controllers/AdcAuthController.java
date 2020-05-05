@@ -285,27 +285,16 @@ public class AdcAuthController {
   }
 
   private void validateAdcSearch(AdcSearchRequest adcSearch, FieldClass fieldClass) throws HttpException {
-    var fields = adcSearch.getFields();
-    if (fields != null && adcSearch.getFacets() != null) {
-      throw SpringUtils.buildHttpException(
-          HttpStatus.UNPROCESSABLE_ENTITY,
-          "Can't use 'fields' and 'facets' at the same time in request");
+    var fieldTypes = this.csvConfig.getFields(fieldClass);
+    try {
+      AdcSearchRequest.validate(adcSearch, fieldTypes);
+    } catch (AdcException e) {
+      throw SpringUtils.buildHttpException(HttpStatus.UNPROCESSABLE_ENTITY, "Invalid input JSON: " + e.getMessage());
     }
 
     if (!adcSearch.isJsonFormat() || adcSearch.getFacets() != null) {
       Logger.error("Not implemented");
       throw SpringUtils.buildHttpException(HttpStatus.UNPROCESSABLE_ENTITY, "Not implemented yet");
-    }
-
-    if (fields != null && !fields.isEmpty()) {
-      var fieldTypes = this.csvConfig.getFields(fieldClass);
-      var validFields = fieldTypes.keySet();
-      for (var field : fields) {
-        if (!validFields.contains(field)) {
-          throw SpringUtils.buildHttpException(
-              HttpStatus.UNPROCESSABLE_ENTITY, "'fields' '" + field + "' value is not valid");
-        }
-      }
     }
   }
 

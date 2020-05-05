@@ -1,15 +1,14 @@
 package pt.inesctec.adcauthmiddleware.adc.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.springframework.http.HttpStatus;
-import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.AdcFilter;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.controllers.SpringUtils;
+import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdcSearchRequest {
@@ -116,4 +115,24 @@ public class AdcSearchRequest {
     this.filters = filters;
   }
 
+  public static void validate(AdcSearchRequest adcSearch, Map<String, FieldType> validFieldTypes) throws AdcException {
+    var fields = adcSearch.getFields();
+    if (fields != null && adcSearch.getFacets() != null) {
+      throw new AdcException("Can't use 'fields' and 'facets' at the same time in request");
+    }
+
+    if (fields != null && !fields.isEmpty()) {
+      var validFields = validFieldTypes.keySet();
+      for (var field : fields) {
+        if (!validFields.contains(field)) {
+          throw new AdcException("'fields' '" + field + "' value is not valid");
+        }
+      }
+    }
+
+    if (adcSearch.filters != null) {
+      adcSearch.filters.validate("filters", validFieldTypes);
+    }
+
+  }
 }

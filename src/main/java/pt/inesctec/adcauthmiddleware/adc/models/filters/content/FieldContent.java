@@ -1,9 +1,13 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters.content;
 
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
+import pt.inesctec.adcauthmiddleware.adc.models.filters.FiltersUtils;
+import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
+
+import java.util.Map;
 
 public class FieldContent {
-  protected String field;
+  private String field;
 
   public String getField() {
     return field;
@@ -13,9 +17,11 @@ public class FieldContent {
     this.field = field;
   }
 
-  static void assertPrimitiveType(String field, Object value) throws AdcException {
-    if (!(value instanceof Integer || value instanceof Double || value instanceof Boolean || value instanceof String)) {
-      throw new AdcException("'" + field + "' must be a JSON number, boolean or string");
+  public void validate(String errorField, Map<String, FieldType> validFieldTypes) throws AdcException {
+    String fieldName = errorField + ".field";
+    FiltersUtils.assertNonNull(fieldName, field);
+    if (! validFieldTypes.containsKey(field)) {
+      throw new AdcException(String.format("'%s' value '%s' is not valid", fieldName, field));
     }
   }
 }

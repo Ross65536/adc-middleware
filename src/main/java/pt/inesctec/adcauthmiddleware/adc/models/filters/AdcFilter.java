@@ -2,7 +2,11 @@ package pt.inesctec.adcauthmiddleware.adc.models.filters;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.*;
+import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
+
+import java.util.Map;
 
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
@@ -36,6 +40,10 @@ public abstract class AdcFilter {
 
   public void setOp(String op) {
     this.op = op;
+  }
+
+  public void validate(String field, Map<String, FieldType> validFieldTypes) throws AdcException {
+    FiltersUtils.assertNonNull(field + ".op", op);
   }
 }
 
