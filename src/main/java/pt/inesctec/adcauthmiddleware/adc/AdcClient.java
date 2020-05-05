@@ -29,6 +29,16 @@ public class AdcClient {
     this.adcConfig = adcConfig;
   }
 
+  public InputStream getResource(String path) throws IOException, InterruptedException {
+    final URI uri = this.getResourceServerPath(path);
+
+    var request = new HttpRequestBuilderFacade()
+        .getJson(uri)
+        .build();
+
+    return HttpFacade.makeExpectJsonAsStreamRequest(request);
+  }
+
   public InputStream getRepertoireAsStream(String repertoireId) throws IOException, InterruptedException {
     final URI uri = this.getResourceServerPath("repertoire", repertoireId);
 

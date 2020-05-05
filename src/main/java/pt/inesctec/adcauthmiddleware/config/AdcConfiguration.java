@@ -1,11 +1,12 @@
 package pt.inesctec.adcauthmiddleware.config;
 
-import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.validation.annotation.Validated;
+
+import javax.validation.constraints.NotNull;
 
 @Primary
 @Validated
