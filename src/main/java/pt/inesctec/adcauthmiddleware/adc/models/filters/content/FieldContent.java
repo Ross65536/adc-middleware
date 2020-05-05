@@ -1,5 +1,7 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters.content;
 
+import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
+
 public class FieldContent {
   protected String field;
 
@@ -11,9 +13,9 @@ public class FieldContent {
     this.field = field;
   }
 
-  static void assertPrimitiveType(Object value) {
+  static void assertPrimitiveType(String field, Object value) throws AdcException {
     if (!(value instanceof Integer || value instanceof Double || value instanceof Boolean || value instanceof String)) {
-      throw new IllegalArgumentException("JSON Value must be a JSON primitive (number, boolean or string)");
+      throw new AdcException("'" + field + "' must be a JSON number, boolean or string");
     }
   }
 }

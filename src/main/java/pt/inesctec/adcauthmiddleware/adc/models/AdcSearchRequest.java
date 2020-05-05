@@ -111,4 +111,5 @@ public class AdcSearchRequest {
   public void setFilters(AdcFilter filters) {
     this.filters = filters;
   }
+
 }

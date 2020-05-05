@@ -18,6 +18,7 @@ import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.ResourceJsonMapper;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.csv.AccessScope;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
@@ -71,8 +72,13 @@ public class AdcAuthController {
     if (matcher.find()) {
       msg =
           String.format(
-              " (malformed or invalid schema) at: line %s, column %s",
+              " (malformed or invalid ADC schema) at line %s, column %s",
               matcher.group(1), matcher.group(2));
+    }
+
+    var cause = e.getRootCause();
+    if (cause instanceof AdcException) {
+      msg += ": " + cause.getMessage();
     }
 
     return SpringUtils.buildJsonErrorResponse(HttpStatus.BAD_REQUEST, "Invalid input JSON" + msg);

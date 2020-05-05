@@ -1,5 +1,7 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters.content;
 
+import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
+
 import java.util.List;
 
 public class PrimitiveListContent extends FieldContent {
@@ -9,10 +11,11 @@ public class PrimitiveListContent extends FieldContent {
     return value;
   }
 
-  public void setValue(List<Object> value) {
+  public void setValue(List<Object> value) throws AdcException {
     if (! value.isEmpty()) {
-      for (var val: value) {
-        FieldContent.assertPrimitiveType(val);
+      for (int i = 0; i < value.size(); i++) {
+        var val = value.get(i);
+        FieldContent.assertPrimitiveType("value." + i, val);
       }
     }
 
