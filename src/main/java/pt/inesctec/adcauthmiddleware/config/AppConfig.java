@@ -12,8 +12,6 @@ import javax.validation.constraints.NotBlank;
 @ConfigurationProperties(prefix = "app")
 public class AppConfig {
 
-    @NonNull
-    @NotBlank
     private String adcCsvConfigPath;
 
     public String getAdcCsvConfigPath() {

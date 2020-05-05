@@ -5,26 +5,31 @@ import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Utils;
-import pt.inesctec.adcauthmiddleware.config.AppConfig;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 public class CsvConfig {
+  private static org.slf4j.Logger Logger = LoggerFactory.getLogger(CsvConfig.class);
   private static Set<AccessScope> FilterScopes = ImmutableSet.of(AccessScope.PUBLIC);
 
   private final Map<FieldClass, Map<AccessScope, Map<String, CsvField>>> fieldsMapping;
 
   public CsvConfig(AppConfig config) throws Exception {
     var csvPath = config.getAdcCsvConfigPath();
+    var file = loadCsvFile(csvPath);
 
-    var fieldMappings = parseCsv(csvPath);
+
+    var fieldMappings = parseCsv(file);
     Utils.jaxValidateList(fieldMappings);
     this.fieldsMapping =
         CollectionsUtils.buildMap(
@@ -76,8 +81,7 @@ public class CsvConfig {
     return set;
   }
 
-  private List<CsvField> parseCsv(String csvPath) throws IOException {
-    var file = new File(csvPath);
+  private List<CsvField> parseCsv(File file) throws IOException {
 
     var schema = CsvSchema.emptySchema().withHeader();
     return (List<CsvField>)
@@ -90,5 +94,33 @@ public class CsvConfig {
                 .with(schema)
                 .readValues(file)
                 .readAll();
+  }
+
+  private File loadCsvFile(String userCsvPath) {
+    if (userCsvPath == null) {
+      Logger.info("Loading default field mapping csv file from resources folder");
+
+      URL resource = this.getClass().getClassLoader().getResource("field-mapping.csv");
+      if (resource == null) {
+        throw new IllegalStateException("Invalid resources configuration, missing field-mapping.csv file");
+      }
+      return new File(resource.getFile());
+    }
+
+    Logger.info("Loading field mapping csv file from path: " + userCsvPath);
+    var file = new File(userCsvPath);
+
+    if (! file.exists()) {
+      Logger.error("Field mapping csv file doesn't exist: " + userCsvPath);
+      throw new IllegalArgumentException(userCsvPath + " doesn't exist");
+    }
+
+    if (file.isDirectory()) {
+      Logger.error("Field mapping csv file must be file: " + userCsvPath);
+      throw new IllegalArgumentException(userCsvPath + " is not file");
+
+    }
+
+    return file;
   }
 }
