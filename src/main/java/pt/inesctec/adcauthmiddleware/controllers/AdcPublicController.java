@@ -59,7 +59,7 @@ public class AdcPublicController {
       method = RequestMethod.GET,
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<StreamingResponseBody> swagger() throws Exception {
-    return forward("swagger");
+    return forward("swagger"); // TODO does this endpoint return JSON?
   }
 
   private ResponseEntity<StreamingResponseBody> forward(String path) throws Exception {
