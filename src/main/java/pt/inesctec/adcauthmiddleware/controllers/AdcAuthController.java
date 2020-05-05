@@ -188,7 +188,7 @@ public class AdcAuthController {
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   public AdcSearchRequest echo(@RequestBody AdcSearchRequest adcSearch) throws Exception {
-    this.validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT);
+    this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE);
 
     return adcSearch;
   }
@@ -298,7 +298,8 @@ public class AdcAuthController {
     }
 
     if (fields != null && !fields.isEmpty()) {
-      var validFields = this.csvConfig.getFields(fieldClass);
+      var fieldTypes = this.csvConfig.getFields(fieldClass);
+      var validFields = fieldTypes.keySet();
       for (var field : fields) {
         if (!validFields.contains(field)) {
           throw SpringUtils.buildHttpException(

@@ -30,7 +30,7 @@ public class CsvConfig {
 
 
     var fieldMappings = parseCsv(file);
-    Utils.jaxValidateList(fieldMappings);
+    validateCsvFields(fieldMappings);
     this.fieldsMapping =
         CollectionsUtils.buildMap(
             fieldMappings, CsvField::getFieldClass, CsvField::getAccessScope, CsvField::getField);
@@ -63,10 +63,14 @@ public class CsvConfig {
         .collect(Collectors.toSet());
   }
 
-  public Set<String> getFields(FieldClass fieldClass) {
-    return this.fieldsMapping.get(fieldClass).values().stream()
-        .map(Map::keySet)
-        .reduce(new HashSet<>(), Sets::union);
+  public Map<String, FieldType> getFields(FieldClass fieldClass) {
+    Map<AccessScope, Map<String, CsvField>> classScopes = this.fieldsMapping.get(fieldClass);
+    return this.fieldsMapping.get(fieldClass)
+        .values()
+        .stream()
+        .map(Map::values)
+        .flatMap(Collection::stream)
+        .collect(Collectors.toMap(CsvField::getField, CsvField::getFieldType));
   }
 
   public Set<String> getFields(FieldClass fieldClass, Set<AccessScope> scopes) {
@@ -122,5 +126,26 @@ public class CsvConfig {
     }
 
     return file;
+  }
+
+  private static void validateCsvFields(List<CsvField> fields) throws Exception {
+    Utils.jaxValidateList(fields);
+    Map<FieldClass, Set<String>> uniqueFields = new HashMap<>();
+    uniqueFields.put(FieldClass.REARRANGEMENT, new HashSet<>());
+    uniqueFields.put(FieldClass.REPERTOIRE, new HashSet<>());
+
+    for (var field: fields) {
+      var fieldClass = field.getFieldClass();
+      var fieldPath = field.getField();
+
+      Set<String> set = uniqueFields.get(fieldClass);
+      if (set.contains(fieldPath)) {
+        Logger.error("csv field mapping config file must not have duplicate field values for the same class");
+        throw new IllegalArgumentException("csv field mapping config file must not have duplicate field values for the same class");
+      }
+
+      set.add(fieldPath);
+    }
+
   }
 }

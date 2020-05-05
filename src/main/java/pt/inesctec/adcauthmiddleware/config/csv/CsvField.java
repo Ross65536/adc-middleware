@@ -19,6 +19,10 @@ public class CsvField {
   @JsonProperty("access_scope")
   private AccessScope accessScope;
 
+  @NotNull
+  @JsonProperty("field_type")
+  private FieldType fieldType;
+
   public void setAccessScope(AccessScope accessScope) {
     this.accessScope = accessScope;
   }
@@ -41,5 +45,13 @@ public class CsvField {
 
   public void setField(String field) {
     this.field = field;
+  }
+
+  public FieldType getFieldType() {
+    return fieldType;
+  }
+
+  public void setFieldType(FieldType fieldType) {
+    this.fieldType = fieldType;
   }
 }

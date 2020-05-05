@@ -3,7 +3,11 @@ package pt.inesctec.adcauthmiddleware.adc.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.springframework.http.HttpStatus;
+import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.AdcFilter;
+import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
+import pt.inesctec.adcauthmiddleware.controllers.SpringUtils;
 
 import java.util.*;
 
