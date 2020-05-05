@@ -20,6 +20,8 @@ import java.io.OutputStream;
 public class AdcPublicController {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcPublicController.class);
 
+  @Autowired private AdcClient adcClient;
+
   @ExceptionHandler(HttpException.class)
   public ResponseEntity<String> httpExceptionForward(HttpException e) {
     Logger.debug("Stacktrace: ", e);
@@ -32,9 +34,6 @@ public class AdcPublicController {
     Logger.info("Stacktrace: ", e);
     return SpringUtils.buildJsonErrorResponse(HttpStatus.BAD_GATEWAY, null);
   }
-
-  @Autowired
-  private AdcClient adcClient;
 
   @RequestMapping(
       value = "/",
@@ -64,6 +63,4 @@ public class AdcPublicController {
     var is = SpringUtils.catchForwardingError(() -> this.adcClient.getResource(path));
     return SpringUtils.buildJsonStream((OutputStream os) -> IOUtils.copy(is, os));
   }
-
-
 }

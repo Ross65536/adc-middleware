@@ -45,7 +45,6 @@ import java.util.stream.Collectors;
 public class AdcAuthController {
   private static Set<String> EmptySet = ImmutableSet.of();
   private static List<UmaResource> EmptyResources = ImmutableList.of();
-
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcAuthController.class);
 
   @Autowired private AdcClient adcClient;
