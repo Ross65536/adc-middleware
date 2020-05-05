@@ -1,11 +1,11 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters;
 
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.FieldContent;
-import pt.inesctec.adcauthmiddleware.adc.models.filters.content.ValueContent;
+import pt.inesctec.adcauthmiddleware.adc.models.filters.content.PrimitiveValueContent;
 
 public class ContentFilterBase<T extends FieldContent> extends AdcFilter {
 
-  public class ValueContentFilter extends ContentFilterBase<ValueContent> {
+  public class ValueContentFilter extends ContentFilterBase<PrimitiveValueContent> {
   }
 
   private T content;

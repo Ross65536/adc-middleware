@@ -176,6 +176,17 @@ public class AdcAuthController {
     this.dbRepository.synchronize();
   }
 
+  @RequestMapping(
+      value = "/echo",
+      method = RequestMethod.GET,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public AdcSearchRequest echo(@RequestBody AdcSearchRequest adcSearch) throws Exception {
+    this.validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT);
+
+    return adcSearch;
+  }
+
   private Function<String, Set<String>> adcSearchFieldMapperFlow(
       HttpServletRequest request,
       AdcSearchRequest adcSearch, // will be modified

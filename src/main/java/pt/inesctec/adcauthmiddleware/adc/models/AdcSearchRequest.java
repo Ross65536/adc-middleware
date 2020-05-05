@@ -7,7 +7,6 @@ import pt.inesctec.adcauthmiddleware.adc.models.filters.AdcFilter;
 
 import java.util.*;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdcSearchRequest {
   private AdcFilter filters;
