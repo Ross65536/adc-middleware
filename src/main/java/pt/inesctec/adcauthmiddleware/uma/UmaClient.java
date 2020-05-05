@@ -30,7 +30,7 @@ public class UmaClient {
     this.umaConfig = config;
     this.wellKnown = UmaClient.getWellKnown(config.getWellKnownUrl());
 
-    this.updateAccessToken();
+//    this.updateAccessToken();
   }
 
   public String requestPermissionsTicket(UmaResource ... resources) throws Exception {

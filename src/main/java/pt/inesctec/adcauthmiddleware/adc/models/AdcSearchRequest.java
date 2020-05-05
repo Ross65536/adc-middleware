@@ -3,6 +3,7 @@ package pt.inesctec.adcauthmiddleware.adc.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import pt.inesctec.adcauthmiddleware.adc.models.filters.AdcFilter;
 
 import java.util.*;
 
