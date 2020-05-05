@@ -67,11 +67,12 @@ Required:
 - `uma.clientId`: Client ID for this middleware in keycloak
 - `uma.clientSecret`: Client Secret for the client ID
 - `uma.resourceOwner`: The Keycloak username who will be the owner of the created resources.
-- `app.adcCsvConfigPath`: The path for the CSV config file containing the fields configuration. You can use `./field-mapping.csv` for a default with the file provided in the repository.
+
 
 Optional:
 - `server.servlet.context-path`: The base path of the middleware API, used to forward requests. Defaults to: `/airr/v1`
 - `server.port`: The middleware server port, defaults to `8080`
+- `app.adcCsvConfigPath`: The path for the CSV config file containing the fields configuration. Example `./field-mapping.csv`. Defaults to the file `src/main/resources/field-mapping.csv`.
 
 Optional Dev:
 - `spring.h2.console.enabled`: Will enable H2 web console on `http://localhost:8080/airr/v1/h2-console` (default with url `jdbc:h2:file:./data/db` account `sa:password`). Defaults to false.
