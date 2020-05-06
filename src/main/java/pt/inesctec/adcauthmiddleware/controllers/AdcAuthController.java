@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import jdk.jshell.spi.ExecutionControl;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
@@ -21,7 +20,6 @@ import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.ResourceJsonMapper;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
-import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
 import pt.inesctec.adcauthmiddleware.config.csv.AccessScope;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
@@ -173,7 +171,15 @@ public class AdcAuthController {
           (umaId) -> Set.of(this.dbRepository.getUmaStudyId(umaId)),
           this.adcClient::searchRepertoiresAsStream);
     } else {
-      return searchRepertoiresEndpoint(request, adcSearch);
+      return this.adcSearchUmaFlow(
+          request,
+          adcSearch,
+          FieldClass.REPERTOIRE,
+          AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+          "Repertoire",
+          this::getRepertoireStudyIds,
+          this.adcClient::searchRepertoiresAsStream,
+          this.dbRepository::getStudyUmaId);
     }
   }
 
@@ -196,7 +202,15 @@ public class AdcAuthController {
           this.dbRepository::getUmaRepertoireIds,
           this.adcClient::searchRearrangementsAsStream);
     } else {
-      return searchRearrangementsEndpoint(request, adcSearch);
+      return this.adcSearchUmaFlow(
+          request,
+          adcSearch,
+          FieldClass.REARRANGEMENT,
+          AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+          "Rearrangement,",
+          this::getRearrangementsRepertoireIds,
+          this.adcClient::searchRearrangementsAsStream,
+          this.dbRepository::getRepertoireUmaId);
     }
   }
 
@@ -217,6 +231,40 @@ public class AdcAuthController {
         AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
         List.of(
             "5e57da9c517fd62586a48529", "5e68d4c206e94e498f47a732", "5e53de7f9463684866be6092"));
+  }
+
+  private List<String> getRearrangementsRepertoireIds(AdcSearchRequest idsQuery) throws Exception {
+    return this.adcClient.getRearrangementIds(idsQuery).stream()
+        .map(e -> this.dbRepository.getRepertoireUmaId(e.getRepertoireId()))
+        .collect(Collectors.toList());
+  }
+
+  private List<String> getRepertoireStudyIds(AdcSearchRequest idsQuery) throws Exception {
+    return this.adcClient.getRepertoireIds(idsQuery).stream()
+        .map(e -> this.dbRepository.getStudyUmaId(e.getStudyId()))
+        .collect(Collectors.toList());
+  }
+
+  private List<UmaResource> adcQueryUmaFlow(
+      HttpServletRequest request,
+      AdcSearchRequest adcSearch,
+      String resourceId,
+      Set<String> umaScopes,
+      ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> umaIdsProducer)
+      throws Exception {
+
+    var bearer = SpringUtils.getBearer(request);
+    if (bearer != null) {
+      return this.umaClient.introspectToken(bearer);
+    }
+
+    if (umaScopes.isEmpty()) { // means only public access fields are requested
+      return EmptyResources;
+    }
+
+    var idsQuery = adcSearch.queryClone().addFields(resourceId);
+    Collection<String> umaIds = umaIdsProducer.apply(idsQuery);
+    throw this.buildNoRptToken(umaIds, umaScopes);
   }
 
   private ResponseEntity<StreamingResponseBody> facetsRequest(
@@ -246,81 +294,15 @@ public class AdcAuthController {
     return SpringUtils.buildJsonStream(is);
   }
 
-  private List<String> getRearrangementsRepertoireIds(AdcSearchRequest idsQuery) throws Exception {
-    return this.adcClient.getRearrangementIds(idsQuery).stream()
-        .map(e -> this.dbRepository.getRepertoireUmaId(e.getRepertoireId()))
-        .collect(Collectors.toList());
-  }
-
-  private List<String> getRepertoireStudyIds(AdcSearchRequest idsQuery) throws Exception {
-    return this.adcClient.getRepertoireIds(idsQuery).stream()
-        .map(e -> this.dbRepository.getStudyUmaId(e.getStudyId()))
-        .collect(Collectors.toList());
-  }
-
-  private ResponseEntity<StreamingResponseBody> searchRepertoiresEndpoint(
-      HttpServletRequest request, AdcSearchRequest adcSearch) throws Exception {
-
-    var fieldMapper =
-        this.adcSearchUmaFlow(
-                request,
-                adcSearch,
-                FieldClass.REPERTOIRE,
-                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-                this::getRepertoireStudyIds)
-            .compose(this.dbRepository::getStudyUmaId);
-
-    var response =
-        SpringUtils.catchForwardingError(() -> this.adcClient.searchRepertoiresAsStream(adcSearch));
-    return buildRepertoireMappedJsonStream(fieldMapper, response);
-  }
-
-  private ResponseEntity<StreamingResponseBody> searchRearrangementsEndpoint(
-      HttpServletRequest request, AdcSearchRequest adcSearch) throws Exception {
-
-    var fieldMapper =
-        this.adcSearchUmaFlow(
-                request,
-                adcSearch,
-                FieldClass.REARRANGEMENT,
-                AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-                this::getRearrangementsRepertoireIds)
-            .compose(this.dbRepository::getRepertoireUmaId);
-
-    var response =
-        SpringUtils.catchForwardingError(
-            () -> this.adcClient.searchRearrangementsAsStream(adcSearch));
-    return buildRearrangementMappedJsonStream(fieldMapper, response);
-  }
-
-  private List<UmaResource> adcQueryUmaFlow(
-      HttpServletRequest request,
-      AdcSearchRequest adcSearch,
-      String resourceId,
-      Set<String> umaScopes,
-      ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> umaIdsProducer)
-      throws Exception {
-
-    var bearer = SpringUtils.getBearer(request);
-    if (bearer != null) {
-      return this.umaClient.introspectToken(bearer);
-    }
-
-    if (umaScopes.isEmpty()) { // means only public access fields are requested
-      return EmptyResources;
-    }
-
-    var idsQuery = adcSearch.queryClone().addFields(resourceId);
-    Collection<String> umaIds = umaIdsProducer.apply(idsQuery);
-    throw this.buildNoRptToken(umaIds, umaScopes);
-  }
-
-  private Function<String, Set<String>> adcSearchUmaFlow(
+  private ResponseEntity<StreamingResponseBody> adcSearchUmaFlow(
       HttpServletRequest request,
       AdcSearchRequest adcSearch, // will be modified
       FieldClass fieldClass,
       String resourceId,
-      ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> umaIdsProducer)
+      String responseFilterField,
+      ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> umaIdsProducer,
+      ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest,
+      Function<String, String> mapperComposition)
       throws Exception {
     var umaScopes =
         adcSearch.isFieldsEmpty()
@@ -333,7 +315,12 @@ public class AdcAuthController {
     var isAddedField = adcSearch.tryAddField(resourceId); // modifies function argument
     Set<String> removeFields = isAddedField ? ImmutableSet.of(resourceId) : EmptySet;
 
-    return this.buildUmaFieldMapper(umaResources, fieldClass, removeFields);
+    var fieldMapper =
+        this.buildUmaFieldMapper(umaResources, fieldClass, removeFields).compose(mapperComposition);
+    var response = SpringUtils.catchForwardingError(() -> adcRequest.apply(adcSearch));
+    var mapper = new ResourceJsonMapper(response, responseFilterField, fieldMapper, resourceId);
+
+    return SpringUtils.buildJsonStream(mapper);
   }
 
   private Function<String, Set<String>> singleRequestUmaFlow(
