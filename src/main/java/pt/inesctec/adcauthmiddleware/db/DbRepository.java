@@ -97,6 +97,22 @@ public class DbRepository {
     return study == null ? null :  study.getStudyId();
   }
 
+  public Set<String> getUmaRepertoireIds(String umaId) {
+    var study = this.studyRepository.findByUmaId(umaId);
+    if (study == null) {
+      return null;
+    }
+
+    var repertoires = this.repertoireRepository.findByStudy(study);
+    if (repertoires == null) {
+      return null;
+    }
+
+    return repertoires.stream()
+        .map(Repertoire::getRepertoireId)
+        .collect(Collectors.toSet());
+  }
+
   private void synchronizeGuts() throws Exception {
     Logger.info("Synchronizing DB and cache");
 

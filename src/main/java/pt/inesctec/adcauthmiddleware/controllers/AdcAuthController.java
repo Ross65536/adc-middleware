@@ -160,9 +160,15 @@ public class AdcAuthController {
       HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
     this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE);
 
-    if (adcSearch.isFacetsSearch())
-      return facetsRequest(request, adcSearch, FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, this::getRepertoireStudyIds, this.dbRepository::getUmaStudyId);
-    else {
+    if (adcSearch.isFacetsSearch()) {
+      return facetsRequest(
+          request,
+          adcSearch,
+          FieldClass.REPERTOIRE,
+          AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+          this::getRepertoireStudyIds,
+          (umaId) -> Set.of(this.dbRepository.getUmaStudyId(umaId)));
+    } else {
       return searchRepertoiresEndpoint(request, adcSearch);
     }
   }
@@ -176,7 +182,17 @@ public class AdcAuthController {
       HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
     this.validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT);
 
-    return searchRearrangementsEndpoint(request, adcSearch);
+    if (adcSearch.isFacetsSearch()) {
+      return facetsRequest(
+          request,
+          adcSearch,
+          FieldClass.REARRANGEMENT,
+          AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+          this::getRearrangementsRepertoireIds,
+          this.dbRepository::getUmaRepertoireIds);
+    } else {
+      return searchRearrangementsEndpoint(request, adcSearch);
+    }
   }
 
   @RequestMapping(value = "/synchronize", method = RequestMethod.POST) // TODO add security
@@ -195,13 +211,14 @@ public class AdcAuthController {
     return adcSearch.withFieldIn(AdcConstants.REPERTOIRE_STUDY_ID_FIELD, List.of("123", "234234er"));
   }
 
-  private ResponseEntity<StreamingResponseBody> facetsRequest(HttpServletRequest request, AdcSearchRequest adcSearch, FieldClass fieldClass, String resourceId, ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> resourceIdSearch, Function<String, String> umaIdGetter) throws Exception {
+  private ResponseEntity<StreamingResponseBody> facetsRequest(HttpServletRequest request, AdcSearchRequest adcSearch, FieldClass fieldClass, String resourceId, ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> resourceIdSearch, Function<String, Set<String>> umaIdGetter) throws Exception {
     var umaScopes = this.csvConfig.getUmaScopes(fieldClass, List.of(adcSearch.getFacets()));
     if (! umaScopes.isEmpty()) { // non public facets field
       var studyIds = this.adcQueryUmaFlow(request, adcSearch, resourceId, umaScopes, resourceIdSearch)
           .stream()
           .filter(resource -> !Sets.intersection(umaScopes, resource.getScopes()).isEmpty())
           .map(resource -> umaIdGetter.apply(resource.getUmaResourceId()))
+          .flatMap(Collection::stream)
           .distinct()
           .collect(Collectors.toList());
 
