@@ -161,7 +161,7 @@ public class AdcAuthController {
     this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE);
 
     if (adcSearch.isFacetsSearch())
-      return facetsRepertoiresEndpoint(request, adcSearch);
+      return facetsRequest(request, adcSearch, FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, this::getRepertoireStudyIds, this.dbRepository::getUmaStudyId);
     else {
       return searchRepertoiresEndpoint(request, adcSearch);
     }
@@ -195,20 +195,17 @@ public class AdcAuthController {
     return adcSearch.withFieldIn(AdcConstants.REPERTOIRE_STUDY_ID_FIELD, List.of("123", "234234er"));
   }
 
-  private ResponseEntity<StreamingResponseBody> facetsRepertoiresEndpoint(
-      HttpServletRequest request, AdcSearchRequest adcSearch) throws Exception {
-
-    var umaScopes = this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE, List.of(adcSearch.getFacets()));
-
+  private ResponseEntity<StreamingResponseBody> facetsRequest(HttpServletRequest request, AdcSearchRequest adcSearch, FieldClass fieldClass, String resourceId, ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> resourceIdSearch, Function<String, String> umaIdGetter) throws Exception {
+    var umaScopes = this.csvConfig.getUmaScopes(fieldClass, List.of(adcSearch.getFacets()));
     if (! umaScopes.isEmpty()) { // non public facets field
-      var studyIds = this.adcQueryUmaFlow(request, adcSearch, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, umaScopes, this::getRepertoireStudyIds)
+      var studyIds = this.adcQueryUmaFlow(request, adcSearch, resourceId, umaScopes, resourceIdSearch)
           .stream()
           .filter(resource -> !Sets.intersection(umaScopes, resource.getScopes()).isEmpty())
-          .map(resource -> this.dbRepository.getUmaStudyId(resource.getUmaResourceId()))
+          .map(resource -> umaIdGetter.apply(resource.getUmaResourceId()))
           .distinct()
           .collect(Collectors.toList());
 
-      adcSearch.withFieldIn(AdcConstants.REPERTOIRE_STUDY_ID_FIELD, studyIds);
+      adcSearch.withFieldIn(resourceId, studyIds);
     }
 
     var is = SpringUtils.catchForwardingError(() -> this.adcClient.searchRepertoiresAsStream(adcSearch));
