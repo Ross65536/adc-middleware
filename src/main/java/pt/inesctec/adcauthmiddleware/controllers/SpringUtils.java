@@ -2,6 +2,7 @@ package pt.inesctec.adcauthmiddleware.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,6 +15,7 @@ import pt.inesctec.adcauthmiddleware.utils.ThrowingProducer;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -71,6 +73,11 @@ public final class SpringUtils {
   public static ResponseEntity<StreamingResponseBody> buildJsonStream(
       StreamingResponseBody streamer) {
     return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(streamer);
+  }
+
+  public static ResponseEntity<StreamingResponseBody> buildJsonStream(
+      InputStream is) {
+    return SpringUtils.buildJsonStream((OutputStream os) -> IOUtils.copy(is, os));
   }
 
   private static String errorToJson(int statusCode, String msg) {

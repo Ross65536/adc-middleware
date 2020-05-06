@@ -61,6 +61,6 @@ public class AdcPublicController {
 
   private ResponseEntity<StreamingResponseBody> forward(String path) throws Exception {
     var is = SpringUtils.catchForwardingError(() -> this.adcClient.getResource(path));
-    return SpringUtils.buildJsonStream((OutputStream os) -> IOUtils.copy(is, os));
+    return SpringUtils.buildJsonStream(is);
   }
 }

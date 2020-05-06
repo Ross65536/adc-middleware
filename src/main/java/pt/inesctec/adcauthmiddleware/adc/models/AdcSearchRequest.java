@@ -64,6 +64,11 @@ public class AdcSearchRequest {
     return format == null || format.equals("json");
   }
 
+  @JsonIgnore
+  public boolean isFacetsSearch() {
+    return facets != null;
+  }
+
   public AdcSearchRequest addField(String field) {
     if (this.fields == null) {
       this.fields = new HashSet<>();
@@ -122,17 +127,19 @@ public class AdcSearchRequest {
     }
 
     if (fields != null && !fields.isEmpty()) {
-      var validFields = validFieldTypes.keySet();
       for (var field : fields) {
-        if (!validFields.contains(field)) {
-          throw new AdcException("'fields' '" + field + "' value is not valid");
+        if (!validFieldTypes.containsKey(field)) {
+          throw new AdcException(String.format("'fields' '%s' value is not valid", field));
         }
       }
+    }
+
+    if (adcSearch.facets != null && !validFieldTypes.containsKey(adcSearch.facets)) {
+      throw new AdcException(String.format("'facets' '%s' value is not valid", adcSearch.facets));
     }
 
     if (adcSearch.filters != null) {
       adcSearch.filters.validate("filters", validFieldTypes);
     }
-
   }
 }

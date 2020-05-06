@@ -60,7 +60,6 @@ public class AdcClient {
   }
 
   public InputStream searchRepertoiresAsStream(AdcSearchRequest adcRequest) throws Exception {
-    Preconditions.checkArgument(adcRequest.getFacets() == null);
     Preconditions.checkArgument(adcRequest.isJsonFormat());
 
     var request = this.buildSearchRequest("repertoire", adcRequest);
@@ -68,7 +67,6 @@ public class AdcClient {
   }
 
   public InputStream searchRearrangementsAsStream(AdcSearchRequest adcRequest) throws Exception {
-    Preconditions.checkArgument(adcRequest.getFacets() == null);
     Preconditions.checkArgument(adcRequest.isJsonFormat());
 
     var request = this.buildSearchRequest("rearrangement", adcRequest);

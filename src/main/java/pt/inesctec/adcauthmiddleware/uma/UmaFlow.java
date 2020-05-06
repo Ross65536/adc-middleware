@@ -20,15 +20,15 @@ public class UmaFlow {
 
   public void exactMatchFlow(String bearerToken, UmaResource ... resources) throws Exception {
     if (bearerToken == null) {
-      this.noRptToken(resources);
+      throw this.noRptToken(resources);
     } else {
       this.exactMatch(bearerToken, resources);
     }
   }
 
-  public void noRptToken(UmaResource[] resources) throws Exception {
+  public TicketException noRptToken(UmaResource[] resources) throws Exception {
     var ticket = this.umaClient.requestPermissionsTicket(resources);
-    throw new TicketException(ticket, this.umaClient.getIssuer());
+    return new TicketException(ticket, this.umaClient.getIssuer());
   }
 
   private void exactMatch(String bearerToken, UmaResource[] actualResources) throws Exception {
