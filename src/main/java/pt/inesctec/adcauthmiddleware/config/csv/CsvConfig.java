@@ -52,13 +52,8 @@ public class CsvConfig {
     var scopes = classScopes.keySet();
 
     return Sets.difference(scopes, FilterScopes).stream()
-        .filter(scope -> {
-          Set<String> actualFields = classScopes.get(scope).keySet();
-          var diff = Sets.difference(actualFields, fields);
-          Sets.SetView<String> intersection = Sets.intersection(actualFields, fields);
-          return !intersection
-                .isEmpty();
-                }
+        .filter(scope ->
+            ! Sets.intersection(classScopes.get(scope).keySet(), fields).isEmpty()
         ).map(Objects::toString)
         .collect(Collectors.toSet());
   }

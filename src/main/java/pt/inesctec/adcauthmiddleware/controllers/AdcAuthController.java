@@ -35,10 +35,7 @@ import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -195,7 +192,7 @@ public class AdcAuthController {
   public AdcSearchRequest echo(@RequestBody AdcSearchRequest adcSearch) throws Exception {
     this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE);
 
-    return adcSearch;
+    return adcSearch.withFieldIn(AdcConstants.REPERTOIRE_STUDY_ID_FIELD, List.of("123", "234234er"));
   }
 
   private ResponseEntity<StreamingResponseBody> facetsRepertoiresEndpoint(
@@ -203,7 +200,16 @@ public class AdcAuthController {
 
     var umaScopes = this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE, List.of(adcSearch.getFacets()));
 
-    var umaResources = this.adcQueryUmaFlow(request, adcSearch, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, umaScopes, this::getRepertoireStudyIds);
+    if (! umaScopes.isEmpty()) { // non public facets field
+      var studyIds = this.adcQueryUmaFlow(request, adcSearch, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, umaScopes, this::getRepertoireStudyIds)
+          .stream()
+          .filter(resource -> !Sets.intersection(umaScopes, resource.getScopes()).isEmpty())
+          .map(resource -> this.dbRepository.getUmaStudyId(resource.getUmaResourceId()))
+          .distinct()
+          .collect(Collectors.toList());
+
+      adcSearch.withFieldIn(AdcConstants.REPERTOIRE_STUDY_ID_FIELD, studyIds);
+    }
 
     var is = SpringUtils.catchForwardingError(() -> this.adcClient.searchRepertoiresAsStream(adcSearch));
     return SpringUtils.buildJsonStream(is);

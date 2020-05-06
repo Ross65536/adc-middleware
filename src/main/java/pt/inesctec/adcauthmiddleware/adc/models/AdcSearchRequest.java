@@ -3,12 +3,13 @@ package pt.inesctec.adcauthmiddleware.adc.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.AdcFilter;
+import pt.inesctec.adcauthmiddleware.adc.models.filters.LogicalFilter;
+import pt.inesctec.adcauthmiddleware.adc.models.filters.content.PrimitiveListContent;
+import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.PrimitiveListContentFilter;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Supplier;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdcSearchRequest {
@@ -47,7 +48,13 @@ public class AdcSearchRequest {
     return format;
   }
 
-  public void setFormat(String format) {
+  private static final Set<String> SupportedFormats = Set.of("json", "tsv");
+
+  public void setFormat(String format) throws AdcException {
+    if (! SupportedFormats.contains(format)) {
+      throw new AdcException(String.format("'format' value '%s' not supported, use 'json' or 'tsv'", format));
+    }
+
     this.format = format;
   }
 
@@ -141,5 +148,31 @@ public class AdcSearchRequest {
     if (adcSearch.filters != null) {
       adcSearch.filters.validate("filters", validFieldTypes);
     }
+  }
+
+  public AdcSearchRequest withFieldIn(String field, List<String> values) {
+    var inContent = new PrimitiveListContent();
+    inContent.setField(field);
+    try {
+      inContent.setValue( (List) values);
+    } catch (AdcException e) {
+      throw new IllegalArgumentException(e);
+    }
+
+    var inFilter = new PrimitiveListContentFilter();
+    inFilter.setOp("in");
+    inFilter.setContent(inContent);
+
+    if (this.filters == null) {
+      this.filters = inFilter;
+      return this;
+    }
+
+    var andFilter = new LogicalFilter();
+    andFilter.setContent(List.of(inFilter, this.filters));
+    andFilter.setOp("and");
+    this.filters = andFilter;
+
+    return this;
   }
 }

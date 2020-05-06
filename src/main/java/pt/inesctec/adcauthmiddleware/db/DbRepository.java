@@ -25,6 +25,7 @@ import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -89,6 +90,11 @@ public class DbRepository {
     }
 
     return rearrangement.getRepertoire().getStudy().getUmaId();
+  }
+
+  public String getUmaStudyId(String umaId) {
+    var study = this.studyRepository.findByUmaId(umaId);
+    return study == null ? null :  study.getStudyId();
   }
 
   private void synchronizeGuts() throws Exception {
