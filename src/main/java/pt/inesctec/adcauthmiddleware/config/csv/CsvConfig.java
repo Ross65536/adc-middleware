@@ -28,7 +28,6 @@ public class CsvConfig {
     var csvPath = config.getAdcCsvConfigPath();
     var file = loadCsvFile(csvPath);
 
-
     var fieldMappings = parseCsv(file);
     validateCsvFields(fieldMappings);
     this.fieldsMapping =
@@ -52,17 +51,13 @@ public class CsvConfig {
     var scopes = classScopes.keySet();
 
     return Sets.difference(scopes, FilterScopes).stream()
-        .filter(scope ->
-            ! Sets.intersection(classScopes.get(scope).keySet(), fields).isEmpty()
-        ).map(Objects::toString)
+        .filter(scope -> !Sets.intersection(classScopes.get(scope).keySet(), fields).isEmpty())
+        .map(Objects::toString)
         .collect(Collectors.toSet());
   }
 
   public Map<String, FieldType> getFields(FieldClass fieldClass) {
-    Map<AccessScope, Map<String, CsvField>> classScopes = this.fieldsMapping.get(fieldClass);
-    return this.fieldsMapping.get(fieldClass)
-        .values()
-        .stream()
+    return this.fieldsMapping.get(fieldClass).values().stream()
         .map(Map::values)
         .flatMap(Collection::stream)
         .collect(Collectors.toMap(CsvField::getField, CsvField::getFieldType));
@@ -71,16 +66,63 @@ public class CsvConfig {
   public Set<String> getFields(FieldClass fieldClass, Set<AccessScope> scopes) {
     var classFields = this.fieldsMapping.get(fieldClass);
 
-    var set =
-        scopes.stream()
-            .filter(classFields::containsKey)
-            .map(scope -> classFields.get(scope).keySet())
-            .reduce(new HashSet<>(), Sets::union);
-
-    return set;
+    return scopes.stream()
+        .filter(classFields::containsKey)
+        .map(scope -> classFields.get(scope).keySet())
+        .reduce(new HashSet<>(), Sets::union);
   }
 
-  private List<CsvField> parseCsv(File file) throws IOException {
+  private File loadCsvFile(String userCsvPath) {
+    if (userCsvPath == null) {
+      Logger.info("Loading default field mapping csv file from resources folder");
+
+      URL resource = this.getClass().getClassLoader().getResource("field-mapping.csv");
+      if (resource == null) {
+        throw new IllegalStateException(
+            "Invalid resources configuration, missing field-mapping.csv file");
+      }
+      return new File(resource.getFile());
+    }
+
+    Logger.info("Loading field mapping csv file from path: " + userCsvPath);
+    var file = new File(userCsvPath);
+
+    if (!file.exists()) {
+      Logger.error("Field mapping csv file doesn't exist: " + userCsvPath);
+      throw new IllegalArgumentException(userCsvPath + " doesn't exist");
+    }
+
+    if (file.isDirectory()) {
+      Logger.error("Field mapping csv file must be file: " + userCsvPath);
+      throw new IllegalArgumentException(userCsvPath + " is not file");
+    }
+
+    return file;
+  }
+
+  private static void validateCsvFields(List<CsvField> fields) throws Exception {
+    Utils.jaxValidateList(fields);
+    Map<FieldClass, Set<String>> uniqueFields = new HashMap<>();
+    uniqueFields.put(FieldClass.REARRANGEMENT, new HashSet<>());
+    uniqueFields.put(FieldClass.REPERTOIRE, new HashSet<>());
+
+    for (var field : fields) {
+      var fieldClass = field.getFieldClass();
+      var fieldPath = field.getField();
+
+      Set<String> set = uniqueFields.get(fieldClass);
+      if (set.contains(fieldPath)) {
+        Logger.error(
+            "csv field mapping config file must not have duplicate field values for the same class");
+        throw new IllegalArgumentException(
+            "csv field mapping config file must not have duplicate field values for the same class");
+      }
+
+      set.add(fieldPath);
+    }
+  }
+
+  private static List<CsvField> parseCsv(File file) throws IOException {
 
     var schema = CsvSchema.emptySchema().withHeader();
     return (List<CsvField>)
@@ -93,54 +135,5 @@ public class CsvConfig {
                 .with(schema)
                 .readValues(file)
                 .readAll();
-  }
-
-  private File loadCsvFile(String userCsvPath) {
-    if (userCsvPath == null) {
-      Logger.info("Loading default field mapping csv file from resources folder");
-
-      URL resource = this.getClass().getClassLoader().getResource("field-mapping.csv");
-      if (resource == null) {
-        throw new IllegalStateException("Invalid resources configuration, missing field-mapping.csv file");
-      }
-      return new File(resource.getFile());
-    }
-
-    Logger.info("Loading field mapping csv file from path: " + userCsvPath);
-    var file = new File(userCsvPath);
-
-    if (! file.exists()) {
-      Logger.error("Field mapping csv file doesn't exist: " + userCsvPath);
-      throw new IllegalArgumentException(userCsvPath + " doesn't exist");
-    }
-
-    if (file.isDirectory()) {
-      Logger.error("Field mapping csv file must be file: " + userCsvPath);
-      throw new IllegalArgumentException(userCsvPath + " is not file");
-
-    }
-
-    return file;
-  }
-
-  private static void validateCsvFields(List<CsvField> fields) throws Exception {
-    Utils.jaxValidateList(fields);
-    Map<FieldClass, Set<String>> uniqueFields = new HashMap<>();
-    uniqueFields.put(FieldClass.REARRANGEMENT, new HashSet<>());
-    uniqueFields.put(FieldClass.REPERTOIRE, new HashSet<>());
-
-    for (var field: fields) {
-      var fieldClass = field.getFieldClass();
-      var fieldPath = field.getField();
-
-      Set<String> set = uniqueFields.get(fieldClass);
-      if (set.contains(fieldPath)) {
-        Logger.error("csv field mapping config file must not have duplicate field values for the same class");
-        throw new IllegalArgumentException("csv field mapping config file must not have duplicate field values for the same class");
-      }
-
-      set.add(fieldPath);
-    }
-
   }
 }
