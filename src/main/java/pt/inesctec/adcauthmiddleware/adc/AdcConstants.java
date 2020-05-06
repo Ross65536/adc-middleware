@@ -19,4 +19,8 @@ public final class AdcConstants {
   public static final String REARRANGEMENT_REPERTOIRE_ID_FIELD = REPERTOIRE_REPERTOIRE_ID_FIELD;
   public static final String REARRANGEMENT_REARRANGEMENT_ID_FIELD = "rearrangement_id";
 
+
+  public static final String REPERTOIRE_RESPONSE_FILTER_FIELD = "Repertoire";
+  public static final String REARRANGEMENT_RESPONSE_FILTER_FIELD = "Rearrangement";
+
 }

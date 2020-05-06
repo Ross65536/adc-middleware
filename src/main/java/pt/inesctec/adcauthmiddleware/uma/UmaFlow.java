@@ -5,9 +5,7 @@ import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -29,6 +27,18 @@ public class UmaFlow {
   public TicketException noRptToken(UmaResource[] resources) throws Exception {
     var ticket = this.umaClient.requestPermissionsTicket(resources);
     return new TicketException(ticket, this.umaClient.getIssuer());
+  }
+
+  public TicketException noRptToken(Collection<String> umaIds, Set<String> umaScopes)
+      throws Exception {
+    var umaResources =
+        umaIds.stream()
+            .filter(Objects::nonNull)
+            .distinct()
+            .map(id -> new UmaResource(id, umaScopes))
+            .toArray(UmaResource[]::new);
+
+    return this.noRptToken(umaResources); // will throw
   }
 
   private void exactMatch(String bearerToken, UmaResource[] actualResources) throws Exception {
