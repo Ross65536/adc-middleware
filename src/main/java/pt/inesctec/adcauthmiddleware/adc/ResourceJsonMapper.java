@@ -185,6 +185,10 @@ public class ResourceJsonMapper implements StreamingResponseBody {
 
     ResourceJsonMapper.unsetObjectFieldsRecursive(resource, fields);
 
+    if (resource.isEmpty()) {
+      return Optional.empty();
+    }
+
     return Optional.of(resource);
   }
 
