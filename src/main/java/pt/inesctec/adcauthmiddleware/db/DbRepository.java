@@ -2,6 +2,7 @@ package pt.inesctec.adcauthmiddleware.db;
 
 import com.google.common.collect.Sets;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.repository.CrudRepository;
@@ -22,6 +23,8 @@ import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.List;
@@ -117,7 +120,7 @@ public class DbRepository {
         .collect(Collectors.toSet());
   }
 
-  private void synchronizeGuts() throws Exception {
+  protected void synchronizeGuts() throws Exception {
     Logger.info("Synchronizing DB and cache");
 
     var repertoireSearch =
@@ -194,26 +197,27 @@ public class DbRepository {
     var umaResources = List.of(this.umaClient.listUmaResources());
     var dbStudies = this.studyRepository.findAll();
 
-    var umaIdSet = new HashSet<>(umaResources);
+    var allUmaScopes = this.csvConfig.getAllUmaScopes();
+    var serverUmaIds = new HashSet<>(umaResources);
     var dbUmaIds =
-        StreamSupport.stream(dbStudies.spliterator(), false)
+        dbStudies.stream()
             .map(Study::getUmaId)
             .collect(Collectors.toSet());
 
     // delete dangling UMA resources
-    Sets.difference(umaIdSet, dbUmaIds)
+    Sets.difference(serverUmaIds, dbUmaIds)
         .forEach(
             danglingUma -> {
               try {
                 this.umaClient.deleteUmaResource(danglingUma);
               } catch (Exception e) {
-                Logger.error("Failed to delete UMA resource {}, because: {}", danglingUma, e);
+                Logger.error("Failed to delete UMA resource {}, because: {}", danglingUma, e.getMessage());
                 Logger.debug("Stacktrace: ", e);
               }
             });
 
     // delete dangling DB resources
-    Sets.difference(dbUmaIds, umaIdSet)
+    Sets.difference(dbUmaIds, serverUmaIds)
         .forEach(
             danglingDbUmaId -> {
               Logger.info("Deleting DB study with uma ID: {}", danglingDbUmaId);
@@ -221,16 +225,16 @@ public class DbRepository {
                 this.studyRepository.deleteByUmaId(danglingDbUmaId);
               } catch (RuntimeException e) {
                 Logger.error(
-                    "Failed to delete DB study with UMA ID {}, because: {}", danglingDbUmaId, e);
+                    "Failed to delete DB study with UMA ID {}, because: {}", danglingDbUmaId, e.getMessage());
                 Logger.debug("Stacktrace: ", e);
               }
             });
 
     // add new resources
-    var allUmaScopes = this.csvConfig.getAllUmaScopes();
+    dbStudies = this.studyRepository.findAll();
     var backendStudySet = backendStudyMap.keySet();
     var dbStudyIds =
-        StreamSupport.stream(dbStudies.spliterator(), false)
+        dbStudies.stream()
             .map(Study::getStudyId)
             .collect(Collectors.toSet());
     Sets.difference(backendStudySet, dbStudyIds)
@@ -254,12 +258,39 @@ public class DbRepository {
               var study = new Study(newStudyId, createdUmaId);
               Logger.info("Creating DB study {}", study);
               try {
-                this.studyRepository.save(study);
+                this.studyRepository.saveAndFlush(study);
               } catch (RuntimeException e) {
-                Logger.error("Failed to create DB study {} because: {}", study, e);
+                Logger.error("Failed to create DB study {} because: {}", study, e.getMessage());
                 Logger.debug("Stacktrace: ", e);
               }
             });
+
+    // validate common resources
+    Sets.intersection(serverUmaIds, dbUmaIds)
+        .forEach(umaId -> {
+          try {
+            var resource = this.umaClient.getResource(umaId);
+            Set<String> actualResources = resource.getResourceScopes();
+            if (actualResources.containsAll(allUmaScopes)) {
+              return;
+            }
+
+            // update resource if scopes are not matching
+
+            var updateResources = Sets.union(actualResources, allUmaScopes);
+            var updateResource = new UmaRegistrationResource();
+            updateResource.setName(resource.getName()); // mandatory by keycloak
+            updateResource.setResourceScopes(updateResources);
+            updateResource.setType(AdcConstants.UMA_STUDY_TYPE); // keycloak will delete type if not present here
+
+            Logger.info("Updating resource {}:{} with {}", umaId, resource, updateResource);
+
+            this.umaClient.updateUmaResource(umaId, updateResource);
+          } catch (Exception e) {
+            Logger.error("Failed to check UMA resource {}, because: {}", umaId, e.getMessage());
+            Logger.debug("Stacktrace: ", e);
+          }
+        });
   }
 
   public static <T> void saveResource(CrudRepository<T, ?> repository, T resource) {
@@ -268,7 +299,7 @@ public class DbRepository {
     try {
       repository.save(resource);
     } catch (RuntimeException e) {
-      Logger.error("Failed to save cache resource {}, because: {}", resource, e);
+      Logger.error("Failed to save cache resource {}, because: {}", resource, e.getMessage());
       Logger.debug("Stacktrace: ", e);
     }
   }

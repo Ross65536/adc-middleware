@@ -1,11 +1,15 @@
 package pt.inesctec.adcauthmiddleware.uma.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -15,14 +19,11 @@ public class UmaRegistrationResource {
 
   private String name;
   private String type;
-
-  @JsonProperty("resource_scopes")
-  private Set<String> resourceScopes;
+  @JsonIgnore private Set<String> resourceScopes;
 
   // keycloak specific
-  // should probably be set differently
-  private String owner;
-  private Boolean ownerManagedAccess = true;
+  @JsonIgnore private String owner;
+  private Boolean ownerManagedAccess;
 
   public UmaRegistrationResource() {}
 
@@ -48,12 +49,33 @@ public class UmaRegistrationResource {
     this.type = type;
   }
 
+  @JsonProperty("resource_scopes")
   public Set<String> getResourceScopes() {
     return resourceScopes;
   }
 
+  @JsonIgnore
   public void setResourceScopes(Set<String> resourceScopes) {
     this.resourceScopes = resourceScopes;
+  }
+
+
+  @JsonProperty("resource_scopes") // Keycloak specific, keycloak doesn't follow spec
+  public void setResourceScopes(List<Map<String, String>> resourceScopes) {
+    var scopes =
+        resourceScopes.stream()
+            .map(
+                map -> {
+                  if (!map.containsKey("name")) {
+                    throw new IllegalArgumentException(
+                        "Expected Keycloak response 'resource_scopes' objects to contain 'name' field");
+                  }
+
+                  return map.get("name");
+                })
+            .collect(Collectors.toSet());
+
+    this.resourceScopes = scopes;
   }
 
   public String getId() {
@@ -64,12 +86,24 @@ public class UmaRegistrationResource {
     this.id = id;
   }
 
+  @JsonProperty("owner") // Keycloak specific
   public String getOwner() {
     return owner;
   }
 
+  @JsonIgnore
   public void setOwner(String owner) {
     this.owner = owner;
+  }
+
+  @JsonProperty
+  public void setOwner(Map<String, String> owner) {
+    if (!owner.containsKey("id")) {
+      throw new IllegalArgumentException(
+          "Expected Keycloak response 'owner' to object containing 'id' field");
+    }
+
+    this.owner = owner.get("id");
   }
 
   public Boolean getOwnerManagedAccess() {

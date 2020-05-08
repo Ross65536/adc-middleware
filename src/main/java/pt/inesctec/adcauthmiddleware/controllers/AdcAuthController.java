@@ -27,6 +27,7 @@ import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
+import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingProducer;
@@ -219,6 +220,14 @@ public class AdcAuthController {
   @RequestMapping(value = "/synchronize", method = RequestMethod.POST) // TODO add security
   public void synchronize() throws Exception {
     this.dbRepository.synchronize();
+  }
+
+  @RequestMapping(
+      value = "/echo",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public UmaRegistrationResource rearrangement_search() throws Exception {
+    return this.umaClient.getResource("4edb7f1a-1556-4eb1-af4c-a8f09b77e14e");
   }
 
   private List<String> getRearrangementsRepertoireIds(AdcSearchRequest idsQuery) throws Exception {

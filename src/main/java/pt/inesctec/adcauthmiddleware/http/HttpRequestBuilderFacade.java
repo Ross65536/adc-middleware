@@ -54,6 +54,16 @@ public class HttpRequestBuilderFacade {
     return this;
   }
 
+  public HttpRequestBuilderFacade putJson(URI uri, Object body) throws JsonProcessingException {
+    var putBody = Json.toJson(body);
+
+    this.builder = this.builder.uri(uri)
+        .PUT(HttpRequest.BodyPublishers.ofString(putBody))
+        .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+
+    return this;
+  }
+
   public HttpRequestBuilderFacade expectJson() {
     this.builder = this.builder.setHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
 

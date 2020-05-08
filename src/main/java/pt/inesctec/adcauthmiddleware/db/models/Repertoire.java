@@ -1,7 +1,12 @@
 package pt.inesctec.adcauthmiddleware.db.models;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Repertoire {
@@ -13,8 +18,12 @@ public class Repertoire {
   private String repertoireId;
 
   @ManyToOne
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @NotNull
   private Study study;
+
+  @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.REMOVE)
+  private List<Rearrangement> rearrangements = new ArrayList<>();
 
   public Repertoire() {}
 
@@ -34,5 +43,9 @@ public class Repertoire {
   @Override
   public String toString() {
     return String.format("{repertoireId: %s}", repertoireId);
+  }
+
+  public List<Rearrangement> getRearrangements() {
+    return rearrangements;
   }
 }

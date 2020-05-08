@@ -1,5 +1,8 @@
 package pt.inesctec.adcauthmiddleware.db.models;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
@@ -13,6 +16,7 @@ public class Rearrangement {
   private String rearrangementId;
 
   @ManyToOne
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @NotNull
   private Repertoire repertoire;
 

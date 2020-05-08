@@ -194,4 +194,50 @@ public class UmaClient {
     return createdId;
   }
 
+  public void updateUmaResource(String umaId, UmaRegistrationResource resource) throws Exception {
+    this.updateAccessToken();
+
+    Logger.info("Updating UMA 2 resource: {} to {}", umaId, resource);
+
+    var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint(), umaId);
+    var request = new HttpRequestBuilderFacade()
+        .putJson(uri, resource)
+        .expectJson()
+        .withBearer(this.accessToken.getAccessToken())
+        .build();
+
+    try {
+      HttpFacade.makeRequest(request);
+    } catch (Exception e) {
+      Logger.error("Failed to update UMA resource {} because: {}", umaId, e.getMessage());
+      throw e;
+    }
+  }
+
+  public UmaRegistrationResource getResource(String umaId) throws Exception {
+    this.updateAccessToken();
+
+    Logger.info("Getting UMA 2 resource: {}", umaId);
+
+    var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint(), umaId);
+    var request = new HttpRequestBuilderFacade()
+        .getJson(uri)
+        .expectJson()
+        .withBearer(this.accessToken.getAccessToken())
+        .build();
+
+    UmaRegistrationResource resource = null;
+    try {
+      resource = HttpFacade.makeExpectJsonRequest(request, UmaRegistrationResource.class);
+    } catch (Exception e) {
+      Logger.error("Failed to get UMA resource {} because: {}", umaId, e.getMessage());
+      throw e;
+    }
+
+    Utils.assertNotNull(resource);
+
+    return resource;
+
+  }
+
 }
