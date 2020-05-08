@@ -120,6 +120,7 @@ public class DbRepository {
         .collect(Collectors.toSet());
   }
 
+  @Transactional
   protected void synchronizeGuts() throws Exception {
     Logger.info("Synchronizing DB and cache");
 
@@ -154,7 +155,6 @@ public class DbRepository {
     Logger.info("Finished DB and cache synchronization");
   }
 
-  @Transactional
   protected void synchronizeRepertoires(List<RepertoireIds> backendRepertoires) {
     backendRepertoires.forEach(
         repertoireIds -> {
@@ -170,7 +170,6 @@ public class DbRepository {
         });
   }
 
-  @Transactional
   protected void synchronizeRearrangements(List<RearrangementIds> backendRepertoires) {
     backendRepertoires.forEach(
         repertoireIds -> {
@@ -186,13 +185,11 @@ public class DbRepository {
         });
   }
 
-  @Transactional
   protected void deleteCache() {
     this.rearrangementRepository.deleteAll();
     this.repertoireRepository.deleteAll();
   }
 
-  @Transactional
   protected void synchronizeStudies(Map<String, String> backendStudyMap) throws Exception {
     var umaResources = List.of(this.umaClient.listUmaResources());
     var dbStudies = this.studyRepository.findAll();
