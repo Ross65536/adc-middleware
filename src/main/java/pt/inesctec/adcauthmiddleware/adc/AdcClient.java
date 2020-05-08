@@ -100,6 +100,7 @@ public class AdcClient {
     final URI uri = this.getResourceServerPath(path);
     return new HttpRequestBuilderFacade()
         .postJson(uri, adcSearchRequest)
+        .expectJson()
         .build();
   }
 

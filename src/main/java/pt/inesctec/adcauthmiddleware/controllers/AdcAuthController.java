@@ -156,7 +156,7 @@ public class AdcAuthController {
 
   @RequestMapping(
       value = "/repertoire",
-      method = RequestMethod.GET,
+      method = RequestMethod.POST,
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<StreamingResponseBody> repertoire_search(
@@ -187,7 +187,7 @@ public class AdcAuthController {
 
   @RequestMapping(
       value = "/rearrangement",
-      method = RequestMethod.GET,
+      method = RequestMethod.POST,
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<StreamingResponseBody> rearrangement_search(
@@ -219,20 +219,6 @@ public class AdcAuthController {
   @RequestMapping(value = "/synchronize", method = RequestMethod.POST) // TODO add security
   public void synchronize() throws Exception {
     this.dbRepository.synchronize();
-  }
-
-  @RequestMapping(
-      value = "/echo",
-      method = RequestMethod.GET,
-      consumes = MediaType.APPLICATION_JSON_VALUE,
-      produces = MediaType.APPLICATION_JSON_VALUE)
-  public AdcSearchRequest echo(@RequestBody AdcSearchRequest adcSearch) throws Exception {
-    this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE);
-
-    return adcSearch.withFieldIn(
-        AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-        List.of(
-            "5e57da9c517fd62586a48529", "5e68d4c206e94e498f47a732", "5e53de7f9463684866be6092"));
   }
 
   private List<String> getRearrangementsRepertoireIds(AdcSearchRequest idsQuery) throws Exception {
