@@ -72,7 +72,7 @@ Required:
 Optional:
 - `server.servlet.context-path`: The base path of the middleware API, used to forward requests. Defaults to: `/airr/v1`
 - `server.port`: The middleware server port, defaults to `8080`
-- `app.adcCsvConfigPath`: The path for the CSV config file containing the fields configuration. Example `./field-mapping.csv`. Defaults to the file `src/main/resources/field-mapping.csv`.
+- `app.adcCsvConfigPath`: The path for the CSV config file containing the custom fields configuration. Example `./field-mapping.csv`. Defaults to the file `src/main/resources/field-mapping.csv`. See below for structure of file.
 
 Optional Dev:
 - `spring.h2.console.enabled`: Will enable H2 web console on `http://localhost:8080/airr/v1/h2-console` (default with url `jdbc:h2:file:./data/db` account `sa:password`). Defaults to false.
@@ -90,11 +90,26 @@ java -jar ./build/libs/adc-auth-middleware-0.0.1-SNAPSHOT.jar \
 
 Value for the `app.adcCsvConfigPath` config param. You can use the default provided `./field-mapping.csv` or extend it.
 The CSV must have header:
-- `class`: Specifies wheter the field is a `Repertoire` or `Rearrangement`
+- `class`: Specifies whether the field is a `Repertoire` or `Rearrangement`
 - `field`: The field. For nested objects demark with `.`. Example `subject.age_unit.value` or `repertoire_id`.
-- `access_scope`: The UMA scope required to be able to access the field or if the field is public. Values can be `public`, `statistics`, `repertoire` or `rearrangement`.
+- `protection`: Whether the field is publicly access or protected. Public means any user can access this information, protected means only users that were given access to with the specific scope can access the field information. Valid values are `public` and `protected`. 
+- `access_scope`: The UMA scope required to be able to access the field. Must be blank if `protection` is `public`, cannot be blank if it is not. Values can be any user defined string of pattern `[\w_]+`. 
+**IMPORTANT**: make sure that you make no typos here, the values used here are the UMA scopes stored in keycloak and used for access control.
+- `field_type`: The type of the field. User for input validation. Valid values are `string`, `boolean`, `number`, `integer`, `array_string`.
 
-The CSV can include other columns which are ignored.
+The CSV is comma separated.
+Example:
+
+```csv
+class,field,protection,access_scope,field_type,description
+Repertoire,repertoire_id,public,,string,"Identifier for the ..."
+Repertoire,repertoire_name,public,,string,Short generic display name for the repertoire
+Repertoire,repertoire_description,public,,string,Generic repertoire description
+...
+Repertoire,study.study_type.value,protected,statistics,string,Type of study design
+```
+
+The CSV can include other columns after these which are ignored.
 
 ## Profilling
 
