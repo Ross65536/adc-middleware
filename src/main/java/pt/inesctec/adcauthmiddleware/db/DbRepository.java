@@ -6,6 +6,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
+import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
@@ -39,18 +40,21 @@ public class DbRepository {
   private final StudyRepository studyRepository;
   private final RepertoireRepository repertoireRepository;
   private final RearrangementRepository rearrangementRepository;
+  private final CsvConfig csvConfig;
 
   public DbRepository(
       AdcClient adcClient,
       UmaClient umaClient,
       StudyRepository studyRepository,
       RepertoireRepository repertoireRepository,
-      RearrangementRepository rearrangementRepository) {
+      RearrangementRepository rearrangementRepository,
+      CsvConfig csvConfig) {
     this.adcClient = adcClient;
     this.umaClient = umaClient;
     this.studyRepository = studyRepository;
     this.repertoireRepository = repertoireRepository;
     this.rearrangementRepository = rearrangementRepository;
+    this.csvConfig = csvConfig;
   }
 
   @CacheEvict(
@@ -223,6 +227,7 @@ public class DbRepository {
             });
 
     // add new resources
+    var allUmaScopes = this.csvConfig.getAllUmaScopes();
     var backendStudySet = backendStudyMap.keySet();
     var dbStudyIds =
         StreamSupport.stream(dbStudies.spliterator(), false)
@@ -235,7 +240,7 @@ public class DbRepository {
               var umaName = String.format("study ID: %s; title: %s", newStudyId, studyTitle);
               var newUmaResource =
                   new UmaRegistrationResource(
-                      umaName, AdcConstants.UMA_STUDY_TYPE, AdcConstants.AllUmaScopes);
+                      umaName, AdcConstants.UMA_STUDY_TYPE, allUmaScopes);
 
               String createdUmaId = null;
               try {

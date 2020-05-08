@@ -16,7 +16,7 @@ public final class CollectionsUtils {
     return map;
   }
 
-  public static <T> String toString(List<T> list) {
+  public static <T> String toString(Collection<T> list) {
     return "["
         + list.stream().map(e -> String.format("'%s'", e)).collect(Collectors.joining(", "))
         + "]";
@@ -65,5 +65,12 @@ public final class CollectionsUtils {
 
   public static <E> E[] popFront(E[] elems) {
     return Arrays.copyOfRange(elems, 1, elems.length);
+  }
+
+  public static <T> Set<T> immutableSetWithNull() {
+    var set = new HashSet<T>();
+    set.add(null);
+
+    return Collections.unmodifiableSet(set);
   }
 }

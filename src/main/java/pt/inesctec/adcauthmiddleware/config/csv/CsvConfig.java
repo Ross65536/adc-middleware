@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Utils;
@@ -19,10 +20,10 @@ import java.util.stream.Collectors;
 
 @Component
 public class CsvConfig {
-  private static org.slf4j.Logger Logger = LoggerFactory.getLogger(CsvConfig.class);
-  private static Set<AccessScope> FilterScopes = ImmutableSet.of(AccessScope.PUBLIC);
+  private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(CsvConfig.class);
+  private static final Set<String> FilterPublicScopes = CollectionsUtils.immutableSetWithNull();
 
-  private final Map<FieldClass, Map<AccessScope, Map<String, CsvField>>> fieldsMapping;
+  private final Map<FieldClass, Map<String, Map<String, CsvField>>> fieldsMapping;
 
   public CsvConfig(AppConfig config) throws Exception {
     var csvPath = config.getAdcCsvConfigPath();
@@ -38,38 +39,106 @@ public class CsvConfig {
         this.fieldsMapping.keySet(), FieldClass.REPERTOIRE, FieldClass.REARRANGEMENT);
   }
 
+  public Set<String> getAllUmaScopes() {
+    return this.fieldsMapping.values()
+        .stream()
+        .map(Map::keySet)
+        .flatMap(Collection::stream)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+  }
+
   public Set<String> getUmaScopes(FieldClass fieldClass) {
-    var scopes = this.fieldsMapping.get(fieldClass).keySet();
-    return Sets.difference(scopes, FilterScopes).stream()
-        .map(Objects::toString)
+
+    return this.fieldsMapping.get(fieldClass)
+        .keySet()
+        .stream()
+        .filter(Objects::nonNull) // filter out public
         .collect(Collectors.toSet());
   }
 
   public Set<String> getUmaScopes(FieldClass fieldClass, Collection<String> fieldsFilter) {
     var fields = new HashSet<>(fieldsFilter);
     var classScopes = this.fieldsMapping.get(fieldClass);
-    var scopes = classScopes.keySet();
 
-    return Sets.difference(scopes, FilterScopes).stream()
+    return this.fieldsMapping.get(fieldClass)
+        .keySet()
+        .stream()
+        .filter(Objects::nonNull) // filter out public
         .filter(scope -> !Sets.intersection(classScopes.get(scope).keySet(), fields).isEmpty())
         .map(Objects::toString)
         .collect(Collectors.toSet());
   }
 
   public Map<String, FieldType> getFields(FieldClass fieldClass) {
-    return this.fieldsMapping.get(fieldClass).values().stream()
+    return this.fieldsMapping.get(fieldClass)
+        .values()
+        .stream()
         .map(Map::values)
         .flatMap(Collection::stream)
         .collect(Collectors.toMap(CsvField::getField, CsvField::getFieldType));
   }
 
-  public Set<String> getFields(FieldClass fieldClass, Set<AccessScope> scopes) {
+  public Set<String> getPublicFields(FieldClass fieldClass) {
+    return this.getFields(fieldClass, FilterPublicScopes);
+  }
+
+  /**
+   *
+   * @param fieldClass
+   * @param scopes a null scope element value will return public fields
+   * @return
+   */
+  public Set<String> getFields(FieldClass fieldClass, Set<String> scopes) {
     var classFields = this.fieldsMapping.get(fieldClass);
 
     return scopes.stream()
         .filter(classFields::containsKey)
         .map(scope -> classFields.get(scope).keySet())
         .reduce(new HashSet<>(), Sets::union);
+  }
+
+  private static void validateCsvFields(List<CsvField> fields) throws Exception {
+    Utils.jaxValidateList(fields);
+    Map<FieldClass, Set<String>> uniqueFields = new HashMap<>();
+    uniqueFields.put(FieldClass.REARRANGEMENT, new HashSet<>());
+    uniqueFields.put(FieldClass.REPERTOIRE, new HashSet<>());
+
+    for (var field : fields) {
+      var fieldClass = field.getFieldClass();
+      var fieldPath = field.getField();
+      String errorMsg = String.format("csv field mapping config: row %s:%s", fieldClass, fieldPath);
+
+      if (!field.isPublic() && field.isEmptyScope()) {
+        String msg = errorMsg + " can't be protected and have no access scope";
+        Logger.error(msg);
+        throw new IllegalArgumentException(msg);
+      } else if (field.isPublic() && !field.isEmptyScope()) {
+        String msg = errorMsg + " can't be public and have a access scope";
+        Logger.error(msg);
+        throw new IllegalArgumentException(msg);
+      }
+
+      Set<String> set = uniqueFields.get(fieldClass);
+      if (set.contains(fieldPath)) {
+        String msg = errorMsg + " must not be duplicate by field for the same class " + fieldClass;
+        Logger.error(msg);
+        throw new IllegalArgumentException(msg);
+      }
+
+      set.add(fieldPath);
+    }
+
+    var requiredFieldsPresent = uniqueFields.values()
+        .stream()
+        .flatMap(Collection::stream)
+        .collect(Collectors.toSet())
+        .containsAll(AdcConstants.AllUsedFields);
+    if (! requiredFieldsPresent) {
+      String msg = "All required fields: " + CollectionsUtils.toString(AdcConstants.AllUsedFields)  + " must be present in field mappings csv";
+      Logger.error(msg);
+      throw new IllegalArgumentException(msg);
+    }
   }
 
   private File loadCsvFile(String userCsvPath) {
@@ -98,28 +167,6 @@ public class CsvConfig {
     }
 
     return file;
-  }
-
-  private static void validateCsvFields(List<CsvField> fields) throws Exception {
-    Utils.jaxValidateList(fields);
-    Map<FieldClass, Set<String>> uniqueFields = new HashMap<>();
-    uniqueFields.put(FieldClass.REARRANGEMENT, new HashSet<>());
-    uniqueFields.put(FieldClass.REPERTOIRE, new HashSet<>());
-
-    for (var field : fields) {
-      var fieldClass = field.getFieldClass();
-      var fieldPath = field.getField();
-
-      Set<String> set = uniqueFields.get(fieldClass);
-      if (set.contains(fieldPath)) {
-        Logger.error(
-            "csv field mapping config file must not have duplicate field values for the same class");
-        throw new IllegalArgumentException(
-            "csv field mapping config file must not have duplicate field values for the same class");
-      }
-
-      set.add(fieldPath);
-    }
   }
 
   private static List<CsvField> parseCsv(File file) throws IOException {

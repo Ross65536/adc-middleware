@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.validation.constraints.NotNull;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CsvField {
@@ -15,19 +17,39 @@ public class CsvField {
   @NotNull
   private String field;
 
-  @NotNull
   @JsonProperty("access_scope")
-  private AccessScope accessScope;
+  private String accessScope;
 
   @NotNull
   @JsonProperty("field_type")
   private FieldType fieldType;
 
-  public void setAccessScope(AccessScope accessScope) {
+  @NotNull
+  private boolean isPublic;
+
+  private static final String ValidScopePattern = "^[\\w_]*$";
+
+  public void setAccessScope(String accessScope) {
+    if (accessScope != null) {
+      accessScope = accessScope.trim();
+
+      if (! accessScope.matches(ValidScopePattern)) {
+        throw new IllegalArgumentException("Invalid field mapping CSV access scope: " + accessScope + " must match pattern: " + ValidScopePattern);
+      }
+
+      if (accessScope.length() == 0) {
+        accessScope = null;
+      }
+    }
+
     this.accessScope = accessScope;
   }
 
-  public AccessScope getAccessScope() {
+  public boolean isEmptyScope() {
+    return this.accessScope == null;
+  }
+
+  public String getAccessScope() {
     return accessScope;
   }
 
@@ -53,5 +75,23 @@ public class CsvField {
 
   public void setFieldType(FieldType fieldType) {
     this.fieldType = fieldType;
+  }
+
+  public boolean isPublic() {
+    return isPublic;
+  }
+
+  @JsonProperty("protection")
+  public void setPublic(String protectionString) {
+    switch (protectionString) {
+      case "public":
+        this.isPublic = true;
+        return;
+      case "protected":
+        this.isPublic = false;
+        return;
+      default:
+        throw new IllegalArgumentException("Invalid field mapping CSV protection value: " + protectionString);
+    }
   }
 }

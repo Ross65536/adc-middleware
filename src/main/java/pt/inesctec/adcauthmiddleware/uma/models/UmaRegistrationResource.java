@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -17,7 +19,7 @@ public class UmaRegistrationResource {
   private String type;
 
   @JsonProperty("resource_scopes")
-  private List<String> resourceScopes;
+  private Set<String> resourceScopes;
 
   // keycloak specific
   // should probably be set differently
@@ -26,7 +28,7 @@ public class UmaRegistrationResource {
 
   public UmaRegistrationResource() {}
 
-  public UmaRegistrationResource(String name, String type, List<String> resourceScopes) {
+  public UmaRegistrationResource(String name, String type, Set<String> resourceScopes) {
     this.name = name;
     this.type = type;
     this.resourceScopes = resourceScopes;
@@ -48,11 +50,11 @@ public class UmaRegistrationResource {
     this.type = type;
   }
 
-  public List<String> getResourceScopes() {
+  public Set<String> getResourceScopes() {
     return resourceScopes;
   }
 
-  public void setResourceScopes(List<String> resourceScopes) {
+  public void setResourceScopes(Set<String> resourceScopes) {
     this.resourceScopes = resourceScopes;
   }
 

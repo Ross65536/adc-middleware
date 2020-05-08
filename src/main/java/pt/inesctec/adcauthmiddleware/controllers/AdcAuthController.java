@@ -20,7 +20,6 @@ import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.ResourceJsonMapper;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
-import pt.inesctec.adcauthmiddleware.config.csv.AccessScope;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.db.DbRepository;
@@ -34,10 +33,7 @@ import pt.inesctec.adcauthmiddleware.utils.ThrowingProducer;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -364,17 +360,14 @@ public class AdcAuthController {
         resources.stream()
             .map(
                 uma -> {
-                  var scopes =
-                      uma.getScopes().stream()
-                          .map(AccessScope::fromString) // can throw
-                          .collect(Collectors.toSet());
+                  var scopes = new HashSet<>(uma.getScopes());
 
                   var fields = this.csvConfig.getFields(fieldClass, scopes);
                   return Pair.of(uma.getUmaResourceId(), fields);
                 })
             .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
 
-    var publicFields = this.csvConfig.getFields(fieldClass, ImmutableSet.of(AccessScope.PUBLIC));
+    var publicFields = this.csvConfig.getPublicFields(fieldClass);
 
     return umaId -> {
       if (umaId == null) {
