@@ -12,20 +12,20 @@ Project runs on java 11, with (modified) google java style guide.
 
     - Start turnkey backend, based [on](https://github.com/sfu-ireceptor/turnkey-service-php):
     
-    ```shell script
-    # folder name should be 'turnkey-service-php', important for finding correct network. 
-    git clone https://github.com/sfu-ireceptor/turnkey-service-php.git  
-    cd turnkey-service-php
-    echo "API_TAG=master" > .env # this should load the latest api
-    scripts/install_turnkey.sh
-    ```
-    
-    > If you use a different folder or network for the backend you need to update the file's `./data/config/docker-compose.example.yml` value `turnkey-service_default` and the `middleware` service's `RESOURCE_SERVER_BASE_URL` with the backend URL.
+        ```shell script
+        # folder name should be 'turnkey-service-php', important for finding correct network. 
+        git clone https://github.com/sfu-ireceptor/turnkey-service-php.git  
+        cd turnkey-service-php
+        echo "API_TAG=master" > .env # this should load the latest api
+        scripts/install_turnkey.sh
+        ```
+        
+        > If you use a different folder or network for the backend you need to update the file's `./data/config/docker-compose.example.yml` value `turnkey-service_default` and the `middleware` service's `RESOURCE_SERVER_BASE_URL` with the backend URL.
     
     - Load some data, based [on](https://github.com/sfu-ireceptor/dataloading-curation):
     
-    follow the instructions to load some data.
-    > TODO add specific instructions
+        follow the instructions to load some data.
+        > TODO add specific instructions
 
 2. Setup and configure keycloak server:
 
@@ -48,6 +48,7 @@ Project runs on java 11, with (modified) google java style guide.
 4. Synchronize middleware cache:
 
     ```shell script
+    # '12345abcd' is the password
     curl --location --request POST 'localhost:8080/airr/v1/synchronize' --header 'Authorization: Bearer 12345abcd'
     ```
     
@@ -221,11 +222,11 @@ PASSWORD=$(xxd -l 32 -c 100000 -p /dev/urandom) # or use a different password
 echo -n $PASSWORD | sha256sum
 ```
 
-> TODO add more details
-
 ## Profilling
 
 ### Flamegraphs
 
 1. Install JavaFX
 2. Follow https://blog.codecentric.de/en/2017/09/jvm-fire-using-flame-graphs-analyse-performance/
+
+> TODO add profiling instructions
