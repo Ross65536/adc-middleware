@@ -1,22 +1,23 @@
 package pt.inesctec.adcauthmiddleware.uma;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import pt.inesctec.adcauthmiddleware.utils.Utils;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.http.HttpFacade;
 import pt.inesctec.adcauthmiddleware.http.HttpRequestBuilderFacade;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
-import pt.inesctec.adcauthmiddleware.uma.models.internal.*;
-
-import java.util.List;
-import java.util.Map;
-
-import static pt.inesctec.adcauthmiddleware.http.HttpFacade.makeExpectJsonRequest;
+import pt.inesctec.adcauthmiddleware.uma.models.internal.AccessToken;
+import pt.inesctec.adcauthmiddleware.uma.models.internal.Ticket;
+import pt.inesctec.adcauthmiddleware.uma.models.internal.TokenIntrospection;
+import pt.inesctec.adcauthmiddleware.uma.models.internal.UmaResourceCreate;
+import pt.inesctec.adcauthmiddleware.uma.models.internal.UmaWellKnown;
+import pt.inesctec.adcauthmiddleware.utils.Utils;
 
 @Component
 public class UmaClient {
@@ -30,21 +31,21 @@ public class UmaClient {
     this.umaConfig = config;
     this.wellKnown = UmaClient.getWellKnown(config.getWellKnownUrl());
 
-//    this.updateAccessToken();
+    //    this.updateAccessToken();
   }
 
-  public String requestPermissionsTicket(UmaResource ... resources) throws Exception {
+  public String requestPermissionsTicket(UmaResource... resources) throws Exception {
     this.updateAccessToken();
     var uri = Utils.buildUrl(wellKnown.getPermissionEndpoint());
-    var request = new HttpRequestBuilderFacade()
-        .postJson(uri, resources)
-        .expectJson()
-        .withBearer(this.accessToken.getAccessToken())
-        .build();
+    var request =
+        new HttpRequestBuilderFacade()
+            .postJson(uri, resources)
+            .expectJson()
+            .withBearer(this.accessToken.getAccessToken())
+            .build();
 
     try {
-      return makeExpectJsonRequest(request, Ticket.class)
-          .getTicket();
+      return HttpFacade.makeExpectJsonRequest(request, Ticket.class).getTicket();
     } catch (Exception e) {
       Logger.info("Failed to get permissions ticket because: " + e.getMessage());
       throw e;
@@ -59,13 +60,15 @@ public class UmaClient {
     this.updateAccessToken();
     var uri = Utils.buildUrl(wellKnown.getIntrospectionEndpoint());
     var form = ImmutableMap.of("token", rptToken, "token_type_hint", "requesting_party_token");
-    var request = new HttpRequestBuilderFacade()
-        .postForm(uri, form)
-        .expectJson()
-        // TODO update to bearer once keycloak follows spec
-        // Keycloak doesn't follow UMA spec in allowing UMA access tokens to be used here (Bearer).
-        .withBasicAuth(this.umaConfig.getClientId(), this.umaConfig.getClientSecret())
-        .build();
+    var request =
+        new HttpRequestBuilderFacade()
+            .postForm(uri, form)
+            .expectJson()
+            // TODO update to bearer once keycloak follows spec
+            // Keycloak doesn't follow UMA spec in allowing UMA access tokens to be used here
+            // (Bearer).
+            .withBasicAuth(this.umaConfig.getClientId(), this.umaConfig.getClientSecret())
+            .build();
 
     TokenIntrospection introspection = null;
     try {
@@ -75,7 +78,7 @@ public class UmaClient {
       throw e;
     }
 
-    if (! introspection.isActive()) {
+    if (!introspection.isActive()) {
       throw new UmaFlowException("RPT token is invalid (not active)");
     }
 
@@ -86,21 +89,18 @@ public class UmaClient {
     // TODO only update token if necessary, use refresh token
 
     Logger.info("Getting new UMA access token");
-    var body = Map.of(
-        "grant_type", "client_credentials",
-        "client_id", this.umaConfig.getClientId(),
-        "client_secret", this.umaConfig.getClientSecret()
-    );
+    var body =
+        Map.of(
+            "grant_type", "client_credentials",
+            "client_id", this.umaConfig.getClientId(),
+            "client_secret", this.umaConfig.getClientSecret());
 
     var uri = Utils.buildUrl(wellKnown.getTokenEndpoint());
     AccessToken accessToken = null;
-    var request = new HttpRequestBuilderFacade()
-        .postForm(uri, body)
-        .expectJson()
-        .build();
+    var request = new HttpRequestBuilderFacade().postForm(uri, body).expectJson().build();
 
     try {
-      accessToken = makeExpectJsonRequest(request, AccessToken.class);
+      accessToken = HttpFacade.makeExpectJsonRequest(request, AccessToken.class);
       Utils.jaxValidate(accessToken);
     } catch (Exception e) {
       Logger.error("Failed to get UMA access token because: {}", e.getMessage());
@@ -113,15 +113,16 @@ public class UmaClient {
   private static UmaWellKnown getWellKnown(String wellKnownUrl) throws Exception {
     Logger.info("Requesting UMA 2 well known doc at: {}", wellKnownUrl);
     var uri = Utils.buildUrl(wellKnownUrl);
-    var request = new HttpRequestBuilderFacade()
-        .getJson(uri)
-        .build();
+    var request = new HttpRequestBuilderFacade().getJson(uri).build();
     try {
-      var obj = makeExpectJsonRequest(request, UmaWellKnown.class);
+      var obj = HttpFacade.makeExpectJsonRequest(request, UmaWellKnown.class);
       Utils.jaxValidate(obj);
       return obj;
     } catch (Exception e) {
-      Logger.error("Failed to fetch UMA 2 well known document at: {} because: {}", wellKnownUrl, e.getMessage());
+      Logger.error(
+          "Failed to fetch UMA 2 well known document at: {} because: {}",
+          wellKnownUrl,
+          e.getMessage());
       throw e;
     }
   }
@@ -132,13 +133,14 @@ public class UmaClient {
     Logger.info("Requesting UMA 2 resource list");
 
     var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint());
-    var request = new HttpRequestBuilderFacade()
-        .getJson(uri)
-        .withBearer(this.accessToken.getAccessToken())
-        .build();
+    var request =
+        new HttpRequestBuilderFacade()
+            .getJson(uri)
+            .withBearer(this.accessToken.getAccessToken())
+            .build();
 
     try {
-      return makeExpectJsonRequest(request, String[].class);
+      return HttpFacade.makeExpectJsonRequest(request, String[].class);
     } catch (Exception e) {
       Logger.error("Failed to get UMA resource list: {}", e.getMessage());
       throw e;
@@ -151,10 +153,11 @@ public class UmaClient {
     Logger.info("Deleting UMA 2 resource: {}", umaId);
 
     var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint(), umaId);
-    var request = new HttpRequestBuilderFacade()
-        .delete(uri)
-        .withBearer(this.accessToken.getAccessToken())
-        .build();
+    var request =
+        new HttpRequestBuilderFacade()
+            .delete(uri)
+            .withBearer(this.accessToken.getAccessToken())
+            .build();
 
     try {
       HttpFacade.makeRequest(request);
@@ -174,16 +177,16 @@ public class UmaClient {
     Logger.info("Creating UMA 2 resource: {}", resource);
 
     var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint());
-    var request = new HttpRequestBuilderFacade()
-        .postJson(uri, resource)
-        .expectJson()
-        .withBearer(this.accessToken.getAccessToken())
-        .build();
+    var request =
+        new HttpRequestBuilderFacade()
+            .postJson(uri, resource)
+            .expectJson()
+            .withBearer(this.accessToken.getAccessToken())
+            .build();
 
     String createdId = null;
     try {
-      createdId = HttpFacade.makeExpectJsonRequest(request, UmaResourceCreate.class)
-          .getId();
+      createdId = HttpFacade.makeExpectJsonRequest(request, UmaResourceCreate.class).getId();
     } catch (Exception e) {
       Logger.error("Failed to create UMA resource {} because: {}", resource, e.getMessage());
       throw e;
@@ -200,11 +203,12 @@ public class UmaClient {
     Logger.info("Updating UMA 2 resource: {} to {}", umaId, resource);
 
     var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint(), umaId);
-    var request = new HttpRequestBuilderFacade()
-        .putJson(uri, resource)
-        .expectJson()
-        .withBearer(this.accessToken.getAccessToken())
-        .build();
+    var request =
+        new HttpRequestBuilderFacade()
+            .putJson(uri, resource)
+            .expectJson()
+            .withBearer(this.accessToken.getAccessToken())
+            .build();
 
     try {
       HttpFacade.makeRequest(request);
@@ -220,11 +224,12 @@ public class UmaClient {
     Logger.info("Getting UMA 2 resource: {}", umaId);
 
     var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint(), umaId);
-    var request = new HttpRequestBuilderFacade()
-        .getJson(uri)
-        .expectJson()
-        .withBearer(this.accessToken.getAccessToken())
-        .build();
+    var request =
+        new HttpRequestBuilderFacade()
+            .getJson(uri)
+            .expectJson()
+            .withBearer(this.accessToken.getAccessToken())
+            .build();
 
     UmaRegistrationResource resource = null;
     try {
@@ -237,7 +242,5 @@ public class UmaClient {
     Utils.assertNotNull(resource);
 
     return resource;
-
   }
-
 }

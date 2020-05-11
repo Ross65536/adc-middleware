@@ -4,12 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -59,23 +58,21 @@ public class UmaRegistrationResource {
     this.resourceScopes = resourceScopes;
   }
 
-
   @JsonProperty("resource_scopes") // Keycloak specific, keycloak doesn't follow spec
   public void setResourceScopes(List<Map<String, String>> resourceScopes) {
-    var scopes =
-        resourceScopes.stream()
-            .map(
-                map -> {
-                  if (!map.containsKey("name")) {
-                    throw new IllegalArgumentException(
-                        "Expected Keycloak response 'resource_scopes' objects to contain 'name' field");
-                  }
+    String errorMsg =
+        "Expected Keycloak response 'resource_scopes' objects to contain 'name' field";
 
-                  return map.get("name");
-                })
-            .collect(Collectors.toSet());
+    this.resourceScopes = resourceScopes.stream()
+        .map(
+            map -> {
+              if (!map.containsKey("name")) {
+                throw new IllegalArgumentException(errorMsg);
+              }
 
-    this.resourceScopes = scopes;
+              return map.get("name");
+            })
+        .collect(Collectors.toSet());
   }
 
   public String getId() {

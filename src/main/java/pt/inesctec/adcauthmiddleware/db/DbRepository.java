@@ -1,19 +1,23 @@
 package pt.inesctec.adcauthmiddleware.db;
 
 import com.google.common.collect.Sets;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.transaction.Transactional;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
-import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RearrangementIds;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireIds;
+import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.db.models.Rearrangement;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
@@ -22,16 +26,7 @@ import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.transaction.Transactional;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
 @Component
 public class DbRepository {
@@ -101,7 +96,7 @@ public class DbRepository {
 
   public String getUmaStudyId(String umaId) {
     var study = this.studyRepository.findByUmaId(umaId);
-    return study == null ? null :  study.getStudyId();
+    return study == null ? null : study.getStudyId();
   }
 
   public Set<String> getUmaRepertoireIds(String umaId) {
@@ -115,9 +110,7 @@ public class DbRepository {
       return null;
     }
 
-    return repertoires.stream()
-        .map(Repertoire::getRepertoireId)
-        .collect(Collectors.toSet());
+    return repertoires.stream().map(Repertoire::getRepertoireId).collect(Collectors.toSet());
   }
 
   @Transactional
@@ -131,7 +124,10 @@ public class DbRepository {
                 AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
                 AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD);
     var backendRepertoires = this.adcClient.getRepertoireIds(repertoireSearch);
-    CollectionsUtils.assertList(backendRepertoires, e -> e.getRepertoireId() != null, "Repertoires response must have repertoire_id");
+    CollectionsUtils.assertList(
+        backendRepertoires,
+        e -> e.getRepertoireId() != null,
+        "Repertoires response must have repertoire_id");
 
     var rearrangementSearch =
         new AdcSearchRequest()
@@ -139,7 +135,10 @@ public class DbRepository {
                 AdcConstants.REARRANGEMENT_REARRANGEMENT_ID_FIELD,
                 AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
     var backendRearrangements = this.adcClient.getRearrangementIds(rearrangementSearch);
-    CollectionsUtils.assertList(backendRearrangements, e -> e.getRearrangementId() != null, "Rearrangements response must have rearrangement_id");
+    CollectionsUtils.assertList(
+        backendRearrangements,
+        e -> e.getRearrangementId() != null,
+        "Rearrangements response must have rearrangement_id");
 
     // sync studies
     var backendStudyMap =
@@ -194,12 +193,8 @@ public class DbRepository {
     var umaResources = List.of(this.umaClient.listUmaResources());
     var dbStudies = this.studyRepository.findAll();
 
-    var allUmaScopes = this.csvConfig.getAllUmaScopes();
     var serverUmaIds = new HashSet<>(umaResources);
-    var dbUmaIds =
-        dbStudies.stream()
-            .map(Study::getUmaId)
-            .collect(Collectors.toSet());
+    var dbUmaIds = dbStudies.stream().map(Study::getUmaId).collect(Collectors.toSet());
 
     // delete dangling UMA resources
     Sets.difference(serverUmaIds, dbUmaIds)
@@ -208,7 +203,8 @@ public class DbRepository {
               try {
                 this.umaClient.deleteUmaResource(danglingUma);
               } catch (Exception e) {
-                Logger.error("Failed to delete UMA resource {}, because: {}", danglingUma, e.getMessage());
+                Logger.error(
+                    "Failed to delete UMA resource {}, because: {}", danglingUma, e.getMessage());
                 Logger.debug("Stacktrace: ", e);
               }
             });
@@ -222,26 +218,25 @@ public class DbRepository {
                 this.studyRepository.deleteByUmaId(danglingDbUmaId);
               } catch (RuntimeException e) {
                 Logger.error(
-                    "Failed to delete DB study with UMA ID {}, because: {}", danglingDbUmaId, e.getMessage());
+                    "Failed to delete DB study with UMA ID {}, because: {}",
+                    danglingDbUmaId,
+                    e.getMessage());
                 Logger.debug("Stacktrace: ", e);
               }
             });
 
     // add new resources
+    var allUmaScopes = this.csvConfig.getAllUmaScopes();
     dbStudies = this.studyRepository.findAll();
     var backendStudySet = backendStudyMap.keySet();
-    var dbStudyIds =
-        dbStudies.stream()
-            .map(Study::getStudyId)
-            .collect(Collectors.toSet());
+    var dbStudyIds = dbStudies.stream().map(Study::getStudyId).collect(Collectors.toSet());
     Sets.difference(backendStudySet, dbStudyIds)
         .forEach(
             newStudyId -> {
               var studyTitle = backendStudyMap.get(newStudyId);
               var umaName = String.format("study ID: %s; title: %s", newStudyId, studyTitle);
               var newUmaResource =
-                  new UmaRegistrationResource(
-                      umaName, AdcConstants.UMA_STUDY_TYPE, allUmaScopes);
+                  new UmaRegistrationResource(umaName, AdcConstants.UMA_STUDY_TYPE, allUmaScopes);
 
               String createdUmaId = null;
               try {
@@ -264,30 +259,32 @@ public class DbRepository {
 
     // validate common resources
     Sets.intersection(serverUmaIds, dbUmaIds)
-        .forEach(umaId -> {
-          try {
-            var resource = this.umaClient.getResource(umaId);
-            Set<String> actualResources = resource.getResourceScopes();
-            if (actualResources.containsAll(allUmaScopes)) {
-              return;
-            }
+        .forEach(
+            umaId -> {
+              try {
+                var resource = this.umaClient.getResource(umaId);
+                Set<String> actualResources = resource.getResourceScopes();
+                if (actualResources.containsAll(allUmaScopes)) {
+                  return;
+                }
 
-            // update resource if scopes are not matching
+                // update resource if scopes are not matching
 
-            var updateResources = Sets.union(actualResources, allUmaScopes);
-            var updateResource = new UmaRegistrationResource();
-            updateResource.setName(resource.getName()); // mandatory by keycloak
-            updateResource.setResourceScopes(updateResources);
-            updateResource.setType(AdcConstants.UMA_STUDY_TYPE); // keycloak will delete type if not present here
+                var updateResources = Sets.union(actualResources, allUmaScopes);
+                var updateResource = new UmaRegistrationResource();
+                updateResource.setName(resource.getName()); // mandatory by keycloak
+                updateResource.setResourceScopes(updateResources);
+                updateResource.setType(
+                    AdcConstants.UMA_STUDY_TYPE); // keycloak will delete type if not present here
 
-            Logger.info("Updating resource {}:{} with {}", umaId, resource, updateResource);
+                Logger.info("Updating resource {}:{} with {}", umaId, resource, updateResource);
 
-            this.umaClient.updateUmaResource(umaId, updateResource);
-          } catch (Exception e) {
-            Logger.error("Failed to check UMA resource {}, because: {}", umaId, e.getMessage());
-            Logger.debug("Stacktrace: ", e);
-          }
-        });
+                this.umaClient.updateUmaResource(umaId, updateResource);
+              } catch (Exception e) {
+                Logger.error("Failed to check UMA resource {}, because: {}", umaId, e.getMessage());
+                Logger.debug("Stacktrace: ", e);
+              }
+            });
   }
 
   public static <T> void saveResource(CrudRepository<T, ?> repository, T resource) {

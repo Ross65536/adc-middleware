@@ -1,11 +1,10 @@
 package pt.inesctec.adcauthmiddleware.utils;
 
-import org.springframework.web.util.UriComponentsBuilder;
-
-import javax.validation.Validation;
-import javax.validation.ValidatorFactory;
 import java.net.URI;
 import java.util.stream.Collectors;
+import javax.validation.Validation;
+import javax.validation.ValidatorFactory;
+import org.springframework.web.util.UriComponentsBuilder;
 
 public final class Utils {
 
@@ -20,9 +19,10 @@ public final class Utils {
   public static void jaxValidate(Object obj) throws Exception {
     var constraints = ValidatorFactory.getValidator().validate(obj);
     if (constraints.size() != 0) {
-      var msg = constraints.stream()
-          .map(c -> c.getPropertyPath() + " " + c.getMessage())
-          .collect(Collectors.joining(", "));
+      var msg =
+          constraints.stream()
+              .map(c -> c.getPropertyPath() + " " + c.getMessage())
+              .collect(Collectors.joining(", "));
       throw new Exception("Invalid JSON received: " + msg);
     }
   }
@@ -47,5 +47,4 @@ public final class Utils {
 
     return Utils.getNestedExceptionMessage(cause);
   }
-
 }

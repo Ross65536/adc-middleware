@@ -2,10 +2,7 @@ package pt.inesctec.adcauthmiddleware.config.csv;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import javax.validation.constraints.NotNull;
-import java.util.Set;
-import java.util.regex.Pattern;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CsvField {
@@ -24,8 +21,7 @@ public class CsvField {
   @JsonProperty("field_type")
   private FieldType fieldType;
 
-  @NotNull
-  private boolean isPublic;
+  @NotNull private boolean isPublic;
 
   private static final String ValidScopePattern = "^[\\w_]*$";
 
@@ -33,8 +29,12 @@ public class CsvField {
     if (accessScope != null) {
       accessScope = accessScope.trim();
 
-      if (! accessScope.matches(ValidScopePattern)) {
-        throw new IllegalArgumentException("Invalid field mapping CSV access scope: " + accessScope + " must match pattern: " + ValidScopePattern);
+      if (!accessScope.matches(ValidScopePattern)) {
+        throw new IllegalArgumentException(
+            "Invalid field mapping CSV access scope: "
+                + accessScope
+                + " must match pattern: "
+                + ValidScopePattern);
       }
 
       if (accessScope.length() == 0) {
@@ -91,7 +91,8 @@ public class CsvField {
         this.isPublic = false;
         return;
       default:
-        throw new IllegalArgumentException("Invalid field mapping CSV protection value: " + protectionString);
+        throw new IllegalArgumentException(
+            "Invalid field mapping CSV protection value: " + protectionString);
     }
   }
 }

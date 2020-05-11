@@ -1,8 +1,13 @@
 package pt.inesctec.adcauthmiddleware.utils;
 
-import org.springframework.data.util.Pair;
-
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,8 +40,7 @@ public final class CollectionsUtils {
     }
   }
 
-  public static <T> void assertListContains(Collection<T> list, T ... elements)
-      throws Exception {
+  public static <T> void assertListContains(Collection<T> list, T... elements) throws Exception {
     for (T e : elements) {
       if (!list.contains(e)) {
         throw new Exception("list missing " + e);
@@ -45,20 +49,23 @@ public final class CollectionsUtils {
   }
 
   public static <E, K1, K2, K3> Map<K1, Map<K2, Map<K3, E>>> buildMap(
-      Collection<E> list, Function<E, K1> keyOuterFunc, Function<E, K2> keyMidFunc, Function<E, K3> keyInnerFunc) {
+      Collection<E> list,
+      Function<E, K1> keyOuterFunc,
+      Function<E, K2> keyMidFunc,
+      Function<E, K3> keyInnerFunc) {
     var topMap = new HashMap<K1, Map<K2, Map<K3, E>>>();
 
-    list.forEach(e -> {
-      var key1 = keyOuterFunc.apply(e);
-      var key2 = keyMidFunc.apply(e);
-      var key3 = keyInnerFunc.apply(e);
+    list.forEach(
+        e -> {
+          var key1 = keyOuterFunc.apply(e);
+          var key2 = keyMidFunc.apply(e);
+          var key3 = keyInnerFunc.apply(e);
 
+          var innerMap = topMap.computeIfAbsent(key1, k -> new HashMap<>());
+          var innermostMap = innerMap.computeIfAbsent(key2, k -> new HashMap<>());
 
-      var innerMap = topMap.computeIfAbsent(key1, k -> new HashMap<>());
-      var innermostMap = innerMap.computeIfAbsent(key2, k -> new HashMap<>());
-
-      innermostMap.put(key3, e);
-    });
+          innermostMap.put(key3, e);
+        });
 
     return topMap;
   }

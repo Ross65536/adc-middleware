@@ -2,18 +2,20 @@ package pt.inesctec.adcauthmiddleware.adc.models.filters;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
-import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.*;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
-
 import java.util.Map;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
+import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.NoValueContentFilter;
+import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.NumberContentFilter;
+import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.PrimitiveContentFilter;
+import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.PrimitiveListContentFilter;
+import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.StringContentFilter;
+import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.EXISTING_PROPERTY,
     property = "op",
-    visible = true
-)
+    visible = true)
 @JsonSubTypes({
     @JsonSubTypes.Type(value = PrimitiveContentFilter.class, name = "="),
     @JsonSubTypes.Type(value = PrimitiveContentFilter.class, name = "!="),
@@ -46,5 +48,3 @@ public abstract class AdcFilter {
     FiltersUtils.assertNonNull(field + ".op", op);
   }
 }
-
-

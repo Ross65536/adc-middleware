@@ -1,10 +1,9 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters.content;
 
+import java.util.Map;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.FiltersUtils;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
-
-import java.util.Map;
 
 public class PrimitiveValueContent extends FieldContent {
   private Object value;
@@ -24,7 +23,8 @@ public class PrimitiveValueContent extends FieldContent {
   }
 
   @Override
-  public void validate(String errorField, Map<String, FieldType> validFieldTypes) throws AdcException {
+  public void validate(String errorField, Map<String, FieldType> validFieldTypes)
+      throws AdcException {
     super.validate(errorField, validFieldTypes);
 
     String fieldName = errorField + ".value";
@@ -50,7 +50,12 @@ public class PrimitiveValueContent extends FieldContent {
         FiltersUtils.assertString(fieldName, value);
         break;
       case ARRAY_STRING:
-        throw new AdcException(String.format("'%s' cannot be a JSON array as indicated by field '%s'", fieldName, this.getField()));
+        throw new AdcException(
+            String.format(
+                "'%s' cannot be a JSON array as indicated by field '%s'",
+                fieldName, this.getField()));
+      default:
+        throw new IllegalStateException("Unreachable");
     }
   }
 }

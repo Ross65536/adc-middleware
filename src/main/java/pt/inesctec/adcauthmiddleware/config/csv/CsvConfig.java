@@ -3,19 +3,26 @@ package pt.inesctec.adcauthmiddleware.config.csv;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Utils;
-
-import java.io.*;
-import java.net.URL;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 public class CsvConfig {
@@ -39,8 +46,7 @@ public class CsvConfig {
   }
 
   public Set<String> getAllUmaScopes() {
-    return this.fieldsMapping.values()
-        .stream()
+    return this.fieldsMapping.values().stream()
         .map(Map::keySet)
         .flatMap(Collection::stream)
         .filter(Objects::nonNull)
@@ -49,9 +55,7 @@ public class CsvConfig {
 
   public Set<String> getUmaScopes(FieldClass fieldClass) {
 
-    return this.fieldsMapping.get(fieldClass)
-        .keySet()
-        .stream()
+    return this.fieldsMapping.get(fieldClass).keySet().stream()
         .filter(Objects::nonNull) // filter out public
         .collect(Collectors.toSet());
   }
@@ -60,33 +64,30 @@ public class CsvConfig {
     var fields = new HashSet<>(fieldsFilter);
     var classScopes = this.fieldsMapping.get(fieldClass);
 
-    return this.fieldsMapping.get(fieldClass)
-        .keySet()
-        .stream()
+    return this.fieldsMapping.get(fieldClass).keySet().stream()
         .filter(Objects::nonNull) // filter out public
         .filter(scope -> !Sets.intersection(classScopes.get(scope).keySet(), fields).isEmpty())
         .map(Objects::toString)
         .collect(Collectors.toSet());
   }
 
+  public Set<String> getPublicFields(FieldClass fieldClass) {
+    return this.getFields(fieldClass, FilterPublicScopes);
+  }
+
   public Map<String, FieldType> getFields(FieldClass fieldClass) {
-    return this.fieldsMapping.get(fieldClass)
-        .values()
-        .stream()
+    return this.fieldsMapping.get(fieldClass).values().stream()
         .map(Map::values)
         .flatMap(Collection::stream)
         .collect(Collectors.toMap(CsvField::getField, CsvField::getFieldType));
   }
 
-  public Set<String> getPublicFields(FieldClass fieldClass) {
-    return this.getFields(fieldClass, FilterPublicScopes);
-  }
-
   /**
+   * Get fields for class and scopes.
    *
-   * @param fieldClass
+   * @param fieldClass the class
    * @param scopes a null scope element value will return public fields
-   * @return
+   * @return the fields
    */
   public Set<String> getFields(FieldClass fieldClass, Set<String> scopes) {
     var classFields = this.fieldsMapping.get(fieldClass);
@@ -128,13 +129,16 @@ public class CsvConfig {
       set.add(fieldPath);
     }
 
-    var requiredFieldsPresent = uniqueFields.values()
-        .stream()
-        .flatMap(Collection::stream)
-        .collect(Collectors.toSet())
-        .containsAll(AdcConstants.AllUsedFields);
-    if (! requiredFieldsPresent) {
-      String msg = "All required fields: " + CollectionsUtils.toString(AdcConstants.AllUsedFields)  + " must be present in field mappings csv";
+    var requiredFieldsPresent =
+        uniqueFields.values().stream()
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet())
+            .containsAll(AdcConstants.AllUsedFields);
+    if (!requiredFieldsPresent) {
+      String msg =
+          "All required fields: "
+              + CollectionsUtils.toString(AdcConstants.AllUsedFields)
+              + " must be present in field mappings csv";
       Logger.error(msg);
       throw new IllegalArgumentException(msg);
     }

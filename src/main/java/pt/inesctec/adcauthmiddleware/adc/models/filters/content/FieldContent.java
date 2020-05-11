@@ -1,10 +1,9 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters.content;
 
+import java.util.Map;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.FiltersUtils;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
-
-import java.util.Map;
 
 public class FieldContent {
   private String field;
@@ -17,10 +16,11 @@ public class FieldContent {
     this.field = field;
   }
 
-  public void validate(String errorField, Map<String, FieldType> validFieldTypes) throws AdcException {
+  public void validate(String errorField, Map<String, FieldType> validFieldTypes)
+      throws AdcException {
     String fieldName = errorField + ".field";
     FiltersUtils.assertNonNull(fieldName, field);
-    if (! validFieldTypes.containsKey(field)) {
+    if (!validFieldTypes.containsKey(field)) {
       throw new AdcException(String.format("'%s' value '%s' is not valid", fieldName, field));
     }
   }

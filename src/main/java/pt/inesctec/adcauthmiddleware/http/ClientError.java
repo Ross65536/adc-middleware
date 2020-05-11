@@ -1,10 +1,9 @@
 package pt.inesctec.adcauthmiddleware.http;
 
-import org.springframework.http.MediaType;
-import pt.inesctec.adcauthmiddleware.HttpException;
-
 import java.io.IOException;
 import java.util.Optional;
+import org.springframework.http.MediaType;
+import pt.inesctec.adcauthmiddleware.HttpException;
 
 public class ClientError extends IOException {
   private final int statusCode;

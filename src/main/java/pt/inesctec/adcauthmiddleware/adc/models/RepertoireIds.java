@@ -2,17 +2,15 @@ package pt.inesctec.adcauthmiddleware.adc.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.NotNull;
 import java.util.Map;
+import javax.validation.constraints.NotNull;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RepertoireIds {
   @JsonProperty("repertoire_id")
   private String repertoireId;
 
-  @NotNull
-  private String studyId;
+  @NotNull private String studyId;
 
   private String studyTitle;
 

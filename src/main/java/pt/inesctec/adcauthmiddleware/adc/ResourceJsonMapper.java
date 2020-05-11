@@ -6,20 +6,24 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
-import pt.inesctec.adcauthmiddleware.http.Json;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import pt.inesctec.adcauthmiddleware.http.Json;
+import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
 public class ResourceJsonMapper implements StreamingResponseBody {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(ResourceJsonMapper.class);
   private static JsonFactory JsonFactory = new JsonFactory();
+
   static {
     JsonFactory.setCodec(Json.JsonObjectMapper);
   }
@@ -29,7 +33,11 @@ public class ResourceJsonMapper implements StreamingResponseBody {
   private final Function<String, Set<String>> fieldMapper;
   private final String idField;
 
-  public ResourceJsonMapper(InputStream response, String mappedField, Function<String, Set<String>> fieldMapper, String idField) {
+  public ResourceJsonMapper(
+      InputStream response,
+      String mappedField,
+      Function<String, Set<String>> fieldMapper,
+      String idField) {
 
     this.response = response;
     this.mappedField = mappedField;
@@ -53,7 +61,8 @@ public class ResourceJsonMapper implements StreamingResponseBody {
     while (parser.nextToken() != JsonToken.END_OBJECT) {
       var fieldName = parser.getCurrentName();
       var nextToken = parser.nextToken();
-      if (fieldName == null || (nextToken != JsonToken.START_OBJECT && nextToken != JsonToken.START_ARRAY)) {
+      if (fieldName == null
+          || (nextToken != JsonToken.START_OBJECT && nextToken != JsonToken.START_ARRAY)) {
         Logger.error("Malformed JSON received");
         generator.close();
         return;
@@ -99,7 +108,7 @@ public class ResourceJsonMapper implements StreamingResponseBody {
     var fieldNode = obj.get(fieldName);
 
     if (remainder.length != 0) {
-      if (! fieldNode.isObject()) {
+      if (!fieldNode.isObject()) {
         return Optional.empty();
       }
 
@@ -107,7 +116,7 @@ public class ResourceJsonMapper implements StreamingResponseBody {
       return ResourceJsonMapper.getFieldRecursive(childObj, remainder);
     }
 
-    if (! fieldNode.isTextual()) {
+    if (!fieldNode.isTextual()) {
       return Optional.empty();
     }
 
@@ -121,27 +130,25 @@ public class ResourceJsonMapper implements StreamingResponseBody {
       var parts = field.split(SEPARATOR, 2);
       var first = parts[0];
 
-      if (! map.containsKey(first)) {
+      if (!map.containsKey(first)) {
         map.put(first, new HashSet<>());
       }
 
       if (parts.length == 2) {
         String remainder = parts[1];
-        map.get(first)
-            .add(remainder);
+        map.get(first).add(remainder);
       }
     }
 
     return map;
   }
 
-
   private static void unsetObjectFieldsRecursive(ObjectNode node, Set<String> fields) {
 
     var reducedFields = ResourceJsonMapper.reduceFieldsLevel(fields);
 
     for (String fieldName : ImmutableList.copyOf(node.fieldNames())) {
-      if (! reducedFields.containsKey(fieldName)) {
+      if (!reducedFields.containsKey(fieldName)) {
         node.remove(fieldName);
         continue;
       }
@@ -152,7 +159,7 @@ public class ResourceJsonMapper implements StreamingResponseBody {
       }
 
       var childNode = node.get(fieldName);
-      if (! childNode.isObject()) {
+      if (!childNode.isObject()) {
         Logger.error("Invalid CSV config, expected " + fieldName + " field to be object");
         continue;
       }
@@ -191,6 +198,4 @@ public class ResourceJsonMapper implements StreamingResponseBody {
 
     return Optional.of(resource);
   }
-
-
 }

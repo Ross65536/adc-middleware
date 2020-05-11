@@ -4,7 +4,10 @@ import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 
 public class FiltersUtils {
   public static void assertPrimitiveType(String field, Object value) throws AdcException {
-    if (!(value instanceof Integer || value instanceof Double || value instanceof Boolean || value instanceof String)) {
+    if (!(value instanceof Integer
+        || value instanceof Double
+        || value instanceof Boolean
+        || value instanceof String)) {
       throw new AdcException("'" + field + "' must be a JSON number, boolean or string");
     }
   }

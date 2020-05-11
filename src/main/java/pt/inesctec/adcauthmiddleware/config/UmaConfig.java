@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.validation.annotation.Validated;
 
-
 @Validated
 @Configuration
 @ConfigurationProperties(prefix = "uma")

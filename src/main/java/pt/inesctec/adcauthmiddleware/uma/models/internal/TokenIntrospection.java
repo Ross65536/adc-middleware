@@ -1,9 +1,8 @@
 package pt.inesctec.adcauthmiddleware.uma.models.internal;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
-
 import java.util.List;
+import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TokenIntrospection {

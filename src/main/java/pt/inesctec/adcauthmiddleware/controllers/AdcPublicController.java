@@ -1,6 +1,5 @@
 package pt.inesctec.adcauthmiddleware.controllers;
 
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,8 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
-
-import java.io.OutputStream;
 
 @RestController
 public class AdcPublicController {

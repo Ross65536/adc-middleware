@@ -1,11 +1,10 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters.content;
 
+import java.util.List;
+import java.util.Map;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.FiltersUtils;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
-
-import java.util.List;
-import java.util.Map;
 
 public class PrimitiveListContent extends FieldContent {
   private List<Object> value;
@@ -15,7 +14,7 @@ public class PrimitiveListContent extends FieldContent {
   }
 
   public void setValue(List<Object> value) throws AdcException {
-    if (! value.isEmpty()) {
+    if (!value.isEmpty()) {
       for (int i = 0; i < value.size(); i++) {
         var val = value.get(i);
         FiltersUtils.assertPrimitiveType("value." + i, val);
@@ -26,7 +25,8 @@ public class PrimitiveListContent extends FieldContent {
   }
 
   @Override
-  public void validate(String errorField, Map<String, FieldType> validFieldTypes) throws AdcException {
+  public void validate(String errorField, Map<String, FieldType> validFieldTypes)
+      throws AdcException {
     super.validate(errorField, validFieldTypes);
 
     String fieldName = errorField + ".value";
@@ -42,7 +42,10 @@ public class PrimitiveListContent extends FieldContent {
         }
         break;
       default:
-        throw new AdcException(String.format("'%s' must be of type JSON string array as indicated by field '%s'", fieldName, this.getField()));
+        throw new AdcException(
+            String.format(
+                "'%s' must be of type JSON string array as indicated by field '%s'",
+                fieldName, this.getField()));
     }
   }
 }

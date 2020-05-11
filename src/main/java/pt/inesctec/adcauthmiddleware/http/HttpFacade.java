@@ -2,15 +2,14 @@ package pt.inesctec.adcauthmiddleware.http;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 public class HttpFacade {
   public static final HttpClient Client = HttpClient.newBuilder().build();
@@ -20,12 +19,14 @@ public class HttpFacade {
     HttpFacade.validateOkResponseDiscarding(response);
   }
 
-  public static <T> T makeExpectJsonRequest(HttpRequest request, Class<T> respClass) throws IOException, InterruptedException {
+  public static <T> T makeExpectJsonRequest(HttpRequest request, Class<T> respClass)
+      throws IOException, InterruptedException {
     var inputStream = HttpFacade.makeExpectJsonAsStreamRequest(request);
     return Json.parseJson(respClass, inputStream);
   }
 
-  public static InputStream makeExpectJsonAsStreamRequest(HttpRequest request) throws IOException, InterruptedException {
+  public static InputStream makeExpectJsonAsStreamRequest(HttpRequest request)
+      throws IOException, InterruptedException {
     var response = HttpFacade.Client.send(request, HttpResponse.BodyHandlers.ofInputStream());
 
     HttpFacade.validateOkResponse(response);
@@ -59,8 +60,7 @@ public class HttpFacade {
       throw new IOException("Response contains no content-type header");
     }
 
-    var anyJson = values.stream()
-          .anyMatch(val -> val.contains(MediaType.APPLICATION_JSON_VALUE));
+    var anyJson = values.stream().anyMatch(val -> val.contains(MediaType.APPLICATION_JSON_VALUE));
 
     if (!anyJson) {
       throw new IOException("Response isn't JSON");

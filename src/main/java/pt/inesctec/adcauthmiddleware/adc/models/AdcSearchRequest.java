@@ -2,14 +2,16 @@ package pt.inesctec.adcauthmiddleware.adc.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.AdcFilter;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.LogicalFilter;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.PrimitiveListContent;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.PrimitiveListContentFilter;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
-
-import java.util.*;
-import java.util.function.Supplier;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdcSearchRequest {
@@ -51,8 +53,9 @@ public class AdcSearchRequest {
   private static final Set<String> SupportedFormats = Set.of("json", "tsv");
 
   public void setFormat(String format) throws AdcException {
-    if (! SupportedFormats.contains(format)) {
-      throw new AdcException(String.format("'format' value '%s' not supported, use 'json' or 'tsv'", format));
+    if (!SupportedFormats.contains(format)) {
+      throw new AdcException(
+          String.format("'format' value '%s' not supported, use 'json' or 'tsv'", format));
     }
 
     this.format = format;
@@ -103,9 +106,8 @@ public class AdcSearchRequest {
     return true;
   }
 
-  public AdcSearchRequest addFields(String ... fields) {
-    Arrays.stream(fields)
-        .forEach(this::addField);
+  public AdcSearchRequest addFields(String... fields) {
+    Arrays.stream(fields).forEach(this::addField);
 
     return this;
   }
@@ -127,7 +129,8 @@ public class AdcSearchRequest {
     this.filters = filters;
   }
 
-  public static void validate(AdcSearchRequest adcSearch, Map<String, FieldType> validFieldTypes) throws AdcException {
+  public static void validate(AdcSearchRequest adcSearch, Map<String, FieldType> validFieldTypes)
+      throws AdcException {
     var fields = adcSearch.getFields();
     if (fields != null && adcSearch.getFacets() != null) {
       throw new AdcException("Can't use 'fields' and 'facets' at the same time in request");
@@ -154,7 +157,7 @@ public class AdcSearchRequest {
     var inContent = new PrimitiveListContent();
     inContent.setField(field);
     try {
-      inContent.setValue( (List) values);
+      inContent.setValue((List) values);
     } catch (AdcException e) {
       throw new IllegalArgumentException(e);
     }

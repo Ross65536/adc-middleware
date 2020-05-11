@@ -1,10 +1,9 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters;
 
-import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
-
 import java.util.List;
 import java.util.Map;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
+import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 
 public class LogicalFilter extends AdcFilter {
   private List<AdcFilter> content;
