@@ -10,53 +10,56 @@ Project runs on java 11, with (modified) google java style guide.
 
 1. Load a resource server backend:
 
-- Start turnkey backend, based [on](https://github.com/sfu-ireceptor/turnkey-service-php):
-
-```shell script
-# folder name should be 'turnkey-service-php', important for finding correct network. 
-git clone https://github.com/sfu-ireceptor/turnkey-service-php.git  
-cd turnkey-service-php
-echo "API_TAG=master" > .env # this should load the latest api
-scripts/install_turnkey.sh
-```
-
-> If you use a different folder or network for the backend you need to update the file's `./data/config/docker-compose.example.yml` value `turnkey-service_default` and the `middleware` service's `RESOURCE_SERVER_BASE_URL` with the backend URL.
-
-- Load some data, based [on](https://github.com/sfu-ireceptor/dataloading-curation):
-
-follow the instructions to load some data.
-> TODO add specific instructions
+    - Start turnkey backend, based [on](https://github.com/sfu-ireceptor/turnkey-service-php):
+    
+    ```shell script
+    # folder name should be 'turnkey-service-php', important for finding correct network. 
+    git clone https://github.com/sfu-ireceptor/turnkey-service-php.git  
+    cd turnkey-service-php
+    echo "API_TAG=master" > .env # this should load the latest api
+    scripts/install_turnkey.sh
+    ```
+    
+    > If you use a different folder or network for the backend you need to update the file's `./data/config/docker-compose.example.yml` value `turnkey-service_default` and the `middleware` service's `RESOURCE_SERVER_BASE_URL` with the backend URL.
+    
+    - Load some data, based [on](https://github.com/sfu-ireceptor/dataloading-curation):
+    
+    follow the instructions to load some data.
+    > TODO add specific instructions
 
 2. Setup and configure keycloak server:
 
-```shell script
-docker-compose --file docker-compose.example.yml build
-docker-compose --file docker-compose.example.yml up keycloak
-```
-
-See instructions below on how to setup or skip setup if keycloak was already configured for development. Make note of the generated client secret.
+    ```shell script
+    docker-compose --file docker-compose.example.yml build
+    docker-compose --file docker-compose.example.yml up keycloak
+    ```
+    
+    See instructions below on how to setup or skip setup if keycloak was already configured for development. Make note of the generated client secret.
 
 3. Run the middleware:
 
-```shell script
-docker-compose --file docker-compose.example.yml up middleware-db
-MIDDLEWARE_UMA_CLIENT_SECRET=<the client secret from previous step> docker-compose --file docker-compose.example.yml up middleware 
-
-```
-
-You can now make requests to `http://localhost:8080/airr/v1/`. Try with `http://localhost:8080/airr/v1/info`.
+    ```shell script
+    docker-compose --file docker-compose.example.yml up middleware-db
+    MIDDLEWARE_UMA_CLIENT_SECRET=<the client secret from previous step> docker-compose --file docker-compose.example.yml up middleware 
+    ```
+    
+    You can now make requests to `http://localhost:8080/airr/v1/`. Try with `http://localhost:8080/airr/v1/info`.
 
 4. Synchronize middleware cache:
 
-```shell script
-./synchronize.sh
-```
+    ```shell script
+    curl --location --request POST 'localhost:8080/airr/v1/synchronize' --header 'Authorization: Bearer 12345abcd'
+    ```
+    
+    See below for a discussion on when to re-synchronize.
 
-See below for a discussion on when to re-synchronize.
+#### Deployment Notes
 
 > **Important**: When deploying it's very important to make the backend's API unavailable to the public (for the turnkey example, delete the exposed ports in the `scripts/docker-compose.yml` file's `ireceptor-api` service)
 
-> **Important**: You must generate a new password and hash for the `app.synchronizePasswordHash` variable, see below how.
+> **Important**: You must generate a new password and hash for the `app.synchronizePasswordHash` variable, see below how. 
+
+> **Important**: The middleware APIs should be under a SSL connection in order not to leak user credentials or synchronization password.
 
 ### First time setup (dev):
 
