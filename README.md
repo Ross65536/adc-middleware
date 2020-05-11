@@ -67,7 +67,9 @@ Required:
 - `uma.clientId`: Client ID for this middleware in keycloak
 - `uma.clientSecret`: Client Secret for the client ID
 - `uma.resourceOwner`: The Keycloak username who will be the owner of the created resources.
-
+- `spring.datasource.url`: The url to the DB
+- `spring.datasource.username`: DB username
+- `spring.datasource.password`: DB password
 
 Optional:
 - `server.servlet.context-path`: The base path of the middleware API, used to forward requests. Defaults to: `/airr/v1`
@@ -75,7 +77,7 @@ Optional:
 - `app.adcCsvConfigPath`: The path for the CSV config file containing the custom fields configuration. Example `./field-mapping.csv`. Defaults to the file `src/main/resources/field-mapping.csv`. See below for structure of file.
 
 Optional Dev:
-- `spring.h2.console.enabled`: Will enable H2 web console on `http://localhost:8080/airr/v1/h2-console` (default with url `jdbc:h2:file:./data/db` account `sa:password`). Defaults to false.
+- (H2 only) `spring.h2.console.enabled`: Will enable H2 web console on `http://localhost:8080/airr/v1/h2-console` (default with url `jdbc:h2:file:./data/db` account `sa:password`). Defaults to false.
 
 Running with custom properties file (using deployment jar):
 
@@ -84,6 +86,71 @@ Running with custom properties file (using deployment jar):
 # MAKE sure to also include the MANDATORY default properties file 'classpath:/application.properties' 
 java -jar ./build/libs/adc-auth-middleware-0.0.1-SNAPSHOT.jar \ 
 --spring.config.location=classpath:/application.properties,./config.properties 
+```
+
+#### DB configuration
+
+See the `example.properties` for a working example
+
+- Example config for H2 DB
+
+```
+adc.resourceServerUrl=http://localhost:80/airr/v1
+
+uma.wellKnownUrl=http://localhost:8082/auth/realms/master/.well-known/uma2-configuration
+uma.clientId=adc-middleware
+uma.clientSecret=ef6f421a-1375-4d5c-a187-e41ea9f26379
+uma.resourceOwner=owner
+
+# DB
+spring.datasource.url=jdbc:h2:file:./data/h2/db
+spring.datasource.username=sa
+spring.datasource.password=password
+```
+
+- Example config for PostgreSQL DB
+
+```
+adc.resourceServerUrl=http://localhost:80/airr/v1
+
+uma.wellKnownUrl=http://localhost:8082/auth/realms/master/.well-known/uma2-configuration
+uma.clientId=adc-middleware
+uma.clientSecret=ef6f421a-1375-4d5c-a187-e41ea9f26379
+uma.resourceOwner=owner
+
+# DB
+spring.datasource.url=jdbc:postgresql://localhost:5432/postgres
+spring.datasource.username=postgres
+spring.datasource.password=password
+spring.datasource.platform=postgres
+```
+
+### Example Deployment
+
+1. You need to setup and configure a keycloak server.
+
+```shell script
+docker-compose --file docker-compose.example.yml build
+docker-compose --file docker-compose.example.yml up keycloak
+```
+
+See instructions above on how to setup or skip setup if keycloak was already configured for development.
+
+2. Setup variables
+
+Copy the properties example:
+
+```shell script
+mkdir -p ./data/config
+cp example.properties data/config/example.properties
+
+```
+
+3. Run the other services:
+
+```shell script
+docker-compose --file docker-compose.example.yml up keycloak db
+docker-compose --file docker-compose.example.yml up middleware
 ```
 
 ### CSV field config
@@ -110,6 +177,10 @@ Repertoire,study.study_type.value,protected,statistics,string,Type of study desi
 ```
 
 The CSV can include other columns after these which are ignored.
+
+### Synchronization
+
+The middleware needs to synchronize with the backend periodically. 
 
 ## Profilling
 

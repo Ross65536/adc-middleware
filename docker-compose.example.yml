@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  middleware:
+    build: .
+    volumes:
+      - ./data/config:/middleware/config
+    ports:
+      - 8080:80
+    environment:
+      - CLIENT_SECRET=ef6f421a-1375-4d5c-a187-e41ea9f26379
+      - RESOURCE_SERVER_BASE_URL=http://ireceptor-api:80/airr/v1
+    depends_on:
+      - keycloak
+      - middleware-db
+    networks:
+      - service-php-mongodb_default
+
+  keycloak:
+    build:
+      context: keycloak
+      dockerfile: dev.Dockerfile
+    volumes:
+      - ./data/keycloak:/keycloak/standalone/data
+    ports:
+      - 8082:80
+    networks:
+      - service-php-mongodb_default
+
+  middleware-db:
+    image: postgres:12
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+#    ports:
+#      - 5432:5432
+    environment:
+      # default user and DB is postgres
+      POSTGRES_PASSWORD: password
+    networks:
+      - service-php-mongodb_default
+
+networks:
+  service-php-mongodb_default:
+    external: true

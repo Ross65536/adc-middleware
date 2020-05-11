@@ -33,5 +33,6 @@ out/
 
 dev.properties
 tmp/
-data/
+data/*
+!data/config
 .~lock.*
