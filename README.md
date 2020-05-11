@@ -6,9 +6,57 @@ Project runs on java 11, with (modified) google java style guide.
 
 ## Instructions
 
+### Example Deployment
+
+1. Load a resource server backend:
+
+- Start turnkey backend, based [on](https://github.com/sfu-ireceptor/turnkey-service-php):
+
+```shell script
+# folder name should be 'turnkey-service-php', important for finding correct network. 
+git clone https://github.com/sfu-ireceptor/turnkey-service-php.git  
+cd turnkey-service-php
+echo "API_TAG=master" > .env # this should load the latest api
+scripts/install_turnkey.sh
+```
+
+> If you use a different folder or network for the backend you need to update the file's `./data/config/docker-compose.example.yml` value `turnkey-service_default` and the `middleware` service's `RESOURCE_SERVER_BASE_URL` with the backend URL.
+
+- Load some data, based [on](https://github.com/sfu-ireceptor/dataloading-curation):
+
+follow the instructions to load some data.
+> TODO add specific instructions
+
+2. Setup and configure keycloak server:
+
+```shell script
+docker-compose --file docker-compose.example.yml build
+docker-compose --file docker-compose.example.yml up keycloak
+```
+
+See instructions below on how to setup or skip setup if keycloak was already configured for development. Make note of the generated client secret.
+
+3. Run the middleware:
+
+```shell script
+docker-compose --file docker-compose.example.yml up middleware-db
+MIDDLEWARE_UMA_CLIENT_SECRET=<the client secret from previous step> docker-compose --file docker-compose.example.yml up middleware 
+
+```
+
+You can now make requests to `http://localhost:8080/airr/v1/`. Try with `http://localhost:8080/airr/v1/info`.
+
+4. Synchronize middleware cache:
+
+```shell script
+curl --location --request POST 'localhost:8080/airr/v1/synchronize'
+```
+
+See below for a discussion on when to re-synchronize.
+
 ### First time setup (dev):
 
-> If using OpenJDK, use minimum v11.0.7
+> If using OpenJDK, use minimum of v11.0.7
 
 - Configuring keycloak
 
@@ -57,7 +105,9 @@ To run style checker run:
 ./gradlew checkstyleMain
 ```
 
-### Arguments
+### Notes
+
+#### Middleware Configuration
 
 You can set these by either adding a custom properties file (using `--spring.config.location` to inject the file, see example below) or by passing them as CLI options (with `-D<property>=<value>`). In the properties files you can use the field names directly as displayed here, for the CLI prepend `-D`, for the gradle CLI prepend `--` (see above example).
 
@@ -70,6 +120,7 @@ Required:
 - `spring.datasource.url`: The url to the DB
 - `spring.datasource.username`: DB username
 - `spring.datasource.password`: DB password
+- `spring.datasource.platform`: The platform. Omit for H2 DB, set to `postgres` for PostgreSQL DB.
 
 Optional:
 - `server.servlet.context-path`: The base path of the middleware API, used to forward requests. Defaults to: `/airr/v1`
@@ -88,9 +139,7 @@ java -jar ./build/libs/adc-auth-middleware-0.0.1-SNAPSHOT.jar \
 --spring.config.location=classpath:/application.properties,./config.properties 
 ```
 
-#### DB configuration
-
-See the `example.properties` for a working example
+##### DB configuration
 
 - Example config for H2 DB
 
@@ -110,50 +159,10 @@ spring.datasource.password=password
 
 - Example config for PostgreSQL DB
 
-```
-adc.resourceServerUrl=http://localhost:80/airr/v1
+See the `data/config/example.properties` for a working example
 
-uma.wellKnownUrl=http://localhost:8082/auth/realms/master/.well-known/uma2-configuration
-uma.clientId=adc-middleware
-uma.clientSecret=ef6f421a-1375-4d5c-a187-e41ea9f26379
-uma.resourceOwner=owner
 
-# DB
-spring.datasource.url=jdbc:postgresql://localhost:5432/postgres
-spring.datasource.username=postgres
-spring.datasource.password=password
-spring.datasource.platform=postgres
-```
-
-### Example Deployment
-
-1. You need to setup and configure a keycloak server.
-
-```shell script
-docker-compose --file docker-compose.example.yml build
-docker-compose --file docker-compose.example.yml up keycloak
-```
-
-See instructions above on how to setup or skip setup if keycloak was already configured for development.
-
-2. Setup variables
-
-Copy the properties example:
-
-```shell script
-mkdir -p ./data/config
-cp example.properties data/config/example.properties
-
-```
-
-3. Run the other services:
-
-```shell script
-docker-compose --file docker-compose.example.yml up keycloak db
-docker-compose --file docker-compose.example.yml up middleware
-```
-
-### CSV field config
+#### CSV field config
 
 Value for the `app.adcCsvConfigPath` config param. You can use the default provided `./field-mapping.csv` or extend it.
 The CSV must have header:
@@ -178,9 +187,11 @@ Repertoire,study.study_type.value,protected,statistics,string,Type of study desi
 
 The CSV can include other columns after these which are ignored.
 
-### Synchronization
+#### Synchronization
 
 The middleware needs to synchronize with the backend periodically. 
+
+> TODO add more details
 
 ## Profilling
 

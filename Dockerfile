@@ -19,5 +19,4 @@ ENV PROPERTIES_PATH ./config/example.properties
 WORKDIR /middleware
 
 COPY --from=0 /middleware/middleware.jar .
-CMD java -jar ./middleware.jar --spring.config.location=classpath:/application.properties,$PROPERTIES_PATH --uma.clientSecret=$CLIENT_SECRET
-#--adc.resourceServerUrl=$RESOURCE_SERVER_BASE_URL
+CMD java -jar ./middleware.jar --spring.config.location=classpath:/application.properties,$PROPERTIES_PATH --uma.clientSecret=$CLIENT_SECRET --adc.resourceServerUrl=$RESOURCE_SERVER_BASE_URL
