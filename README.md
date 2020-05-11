@@ -49,10 +49,12 @@ You can now make requests to `http://localhost:8080/airr/v1/`. Try with `http://
 4. Synchronize middleware cache:
 
 ```shell script
-curl --location --request POST 'localhost:8080/airr/v1/synchronize'
+./synchronize.sh
 ```
 
 See below for a discussion on when to re-synchronize.
+
+> **Important**: When deploying it's very important to make the backend's API unavailable to the public (for the turnkey example, delete the exposed ports in the `scripts/docker-compose.yml` file's `ireceptor-api` service)
 
 ### First time setup (dev):
 
@@ -189,7 +191,10 @@ The CSV can include other columns after these which are ignored.
 
 #### Synchronization
 
-The middleware needs to synchronize with the backend periodically. 
+The middleware needs to synchronize with the backend periodically. No automatic synchronization is performed so you must invoke synchronization when data in the resource server changes, namely when: a repertoire or rearrangement ir added, deleted or updated (study, repertoire_id and rearrangement_id fields).
+
+To synchronize you can use the `synchronize.sh` script.
+
 
 > TODO add more details
 

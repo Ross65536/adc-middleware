@@ -1,0 +1,1 @@
+curl --location --request POST 'localhost:8080/airr/v1/synchronize'
