@@ -12,8 +12,7 @@ import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Utils;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -141,35 +140,35 @@ public class CsvConfig {
     }
   }
 
-  private File loadCsvFile(String userCsvPath) {
+  private InputStream loadCsvFile(String userCsvPath) {
     if (userCsvPath == null) {
       Logger.info("Loading default field mapping csv file from resources folder");
 
-      URL resource = this.getClass().getClassLoader().getResource("field-mapping.csv");
+      var resource = this.getClass().getClassLoader().getResourceAsStream("field-mapping.csv");
       if (resource == null) {
         throw new IllegalStateException(
             "Invalid resources configuration, missing field-mapping.csv file");
       }
-      return new File(resource.getFile());
+      return resource;
     }
 
     Logger.info("Loading field mapping csv file from path: " + userCsvPath);
     var file = new File(userCsvPath);
-
-    if (!file.exists()) {
-      Logger.error("Field mapping csv file doesn't exist: " + userCsvPath);
-      throw new IllegalArgumentException(userCsvPath + " doesn't exist");
-    }
 
     if (file.isDirectory()) {
       Logger.error("Field mapping csv file must be file: " + userCsvPath);
       throw new IllegalArgumentException(userCsvPath + " is not file");
     }
 
-    return file;
+    try {
+      return new FileInputStream(file);
+    } catch (FileNotFoundException e) {
+      Logger.error("Field mapping csv file doesn't exist: " + userCsvPath);
+      throw new IllegalArgumentException(userCsvPath + " doesn't exist", e);
+    }
   }
 
-  private static List<CsvField> parseCsv(File file) throws IOException {
+  private static List<CsvField> parseCsv(InputStream file) throws IOException {
 
     var schema = CsvSchema.emptySchema().withHeader();
     return (List<CsvField>)
