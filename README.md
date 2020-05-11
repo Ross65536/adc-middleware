@@ -109,8 +109,14 @@ The jar uses java 11
 To run style checker run:
 
 ```shell script
-# '12345abcd' is the password set in the example
-curl --location --request POST 'localhost:8080/airr/v1/synchronize' --header 'Authorization: Bearer 12345abcd'
+./gradlew clean
+./gradlew checkstyleMain
+```
+
+### Tets
+
+```shell script
+./gradlew test
 ```
 
 ### Notes
