@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.hash.Hashing;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
@@ -20,6 +21,7 @@ import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.ResourceJsonMapper;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
+import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.db.DbRepository;
@@ -27,13 +29,13 @@ import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingProducer;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -45,6 +47,7 @@ public class AdcAuthController {
   private static List<UmaResource> EmptyResources = ImmutableList.of();
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcAuthController.class);
 
+  @Autowired private AppConfig appConfig;
   @Autowired private AdcClient adcClient;
   @Autowired private DbRepository dbRepository;
   @Autowired private UmaFlow umaFlow;
@@ -99,6 +102,12 @@ public class AdcAuthController {
     Logger.info("Uma flow access error {}", e.getMessage());
     Logger.debug("Stacktrace: ", e);
 
+    return SpringUtils.buildJsonErrorResponse(HttpStatus.UNAUTHORIZED, null);
+  }
+
+  @ExceptionHandler(SyncException.class)
+  public ResponseEntity<String> synchronizeErrorHandler(SyncException e) {
+    Logger.info("Synchronize: {}", e.getMessage());
     return SpringUtils.buildJsonErrorResponse(HttpStatus.UNAUTHORIZED, null);
   }
 
@@ -217,17 +226,22 @@ public class AdcAuthController {
     }
   }
 
-  @RequestMapping(value = "/synchronize", method = RequestMethod.POST) // TODO add security
-  public void synchronize() throws Exception {
-    this.dbRepository.synchronize();
-  }
+  @RequestMapping(value = "/synchronize", method = RequestMethod.POST) // TODO make use of OIDC flow
+  public void synchronize(HttpServletRequest request) throws Exception {
+    String bearer = SpringUtils.getBearer(request);
+    if (bearer == null) {
+      throw new SyncException("Invalid user credential format");
+    }
 
-  @RequestMapping(
-      value = "/echo",
-      method = RequestMethod.GET,
-      produces = MediaType.APPLICATION_JSON_VALUE)
-  public UmaRegistrationResource rearrangement_search() throws Exception {
-    return this.umaClient.getResource("4edb7f1a-1556-4eb1-af4c-a8f09b77e14e");
+    var hashed = Hashing.sha256()
+        .hashString(bearer, StandardCharsets.UTF_8)
+        .toString();
+
+    if (!hashed.equals(appConfig.getSynchronizePasswordHash())) {
+      throw new SyncException("Invalid user credential");
+    }
+
+    this.dbRepository.synchronize();
   }
 
   private List<String> getRearrangementsRepertoireIds(AdcSearchRequest idsQuery) throws Exception {

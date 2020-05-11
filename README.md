@@ -56,6 +56,8 @@ See below for a discussion on when to re-synchronize.
 
 > **Important**: When deploying it's very important to make the backend's API unavailable to the public (for the turnkey example, delete the exposed ports in the `scripts/docker-compose.yml` file's `ireceptor-api` service)
 
+> **Important**: You must generate a new password and hash for the `app.synchronizePasswordHash` variable, see below how.
+
 ### First time setup (dev):
 
 > If using OpenJDK, use minimum of v11.0.7
@@ -104,7 +106,8 @@ The jar uses java 11
 To run style checker run:
 
 ```shell script
-./gradlew checkstyleMain
+# '12345abcd' is the password set in the example
+curl --location --request POST 'localhost:8080/airr/v1/synchronize' --header 'Authorization: Bearer 12345abcd'
 ```
 
 ### Notes
@@ -123,6 +126,7 @@ Required:
 - `spring.datasource.username`: DB username
 - `spring.datasource.password`: DB password
 - `spring.datasource.platform`: The platform. Omit for H2 DB, set to `postgres` for PostgreSQL DB.
+- `app.synchronizePasswordHash`: The sha256 hash of the password protecting the synchronization endpoint. See below how to generate.
 
 Optional:
 - `server.servlet.context-path`: The base path of the middleware API, used to forward requests. Defaults to: `/airr/v1`
@@ -193,8 +197,20 @@ The CSV can include other columns after these which are ignored.
 
 The middleware needs to synchronize with the backend periodically. No automatic synchronization is performed so you must invoke synchronization when data in the resource server changes, namely when: a repertoire or rearrangement ir added, deleted or updated (study, repertoire_id and rearrangement_id fields).
 
-To synchronize you can use the `synchronize.sh` script.
+To synchronize you can make the following request:
 
+```shell script
+curl --location --request POST "$MIDDLEWARE_HOST/airr/v1/synchronize" --header "Authorization: Bearer $THE_PASSWORD"
+```
+
+
+##### Generating password
+
+```shell script
+sudo apt install apache2-utils
+PASSWORD=$(xxd -l 32 -c 100000 -p /dev/urandom) # or use a different password
+echo -n $PASSWORD | sha256sum
+```
 
 > TODO add more details
 
