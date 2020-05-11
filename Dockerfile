@@ -8,9 +8,8 @@ ADD gradle /middleware/gradle
 ADD build.gradle /middleware
 ADD gradlew /middleware
 
-#RUN ./gradlew bootJar
-#RUN mv ./build/libs/*.jar ./middleware.jar
-ADD ./build/libs/adc-auth-middleware-0.0.1-SNAPSHOT.jar /middleware/middleware.jar
+RUN ./gradlew bootJar
+RUN mv ./build/libs/*.jar ./middleware.jar
 
 FROM openjdk:11
 
