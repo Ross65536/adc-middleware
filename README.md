@@ -154,6 +154,8 @@ Optional:
 Optional Dev:
 - (H2 only) `spring.h2.console.enabled`: Will enable H2 web console on `http://localhost:8080/airr/v1/h2-console` (default with url `jdbc:h2:file:./data/db` account `sa:password`). Defaults to false.
 
+> Pay attention to spaces, a space at the end of a property value line will be included in the string
+
 Running with custom properties file (using deployment jar):
 
 ```shell script
@@ -184,7 +186,7 @@ spring.datasource.password=password
 spring.datasource.platform=postgres
 ```
 
-- Using Redis as Cache
+- Using Redis as Cache (Optional)
 
 If these values are not set the default spring cache will be used
 
