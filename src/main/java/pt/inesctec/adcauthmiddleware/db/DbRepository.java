@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
+import pt.inesctec.adcauthmiddleware.adc.models.RearrangementIds;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireIds;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
@@ -62,7 +63,7 @@ public class DbRepository {
     }
   }
 
-  @Cacheable(value=STUDIES_CACHE_NAME, unless = "#result==null")
+  @Cacheable(value = STUDIES_CACHE_NAME, unless = "#result==null")
   public String getStudyUmaId(String studyId) {
     var study = this.studyRepository.findByStudyId(studyId);
     if (study == null) {
@@ -72,7 +73,7 @@ public class DbRepository {
     return study.getUmaId();
   }
 
-  @Cacheable(value=REPERTOIRES_CACHE_NAME, unless = "#result==null")
+  @Cacheable(value = REPERTOIRES_CACHE_NAME, unless = "#result==null")
   public String getRepertoireUmaId(String repertoireId) {
     var repertoire = this.repertoireRepository.findByRepertoireId(repertoireId);
     if (repertoire == null) {
@@ -82,15 +83,31 @@ public class DbRepository {
     return repertoire.getStudy().getUmaId();
   }
 
-  @Cacheable(value=REARRANGEMENTS_CACHE_NAME, unless = "#result==null")
-  public String getRearrangementUmaId(String rearrangementId) throws Exception {
-    var rearrangements = this.adcClient.getRearrangement(rearrangementId);
+  @Cacheable(value = REARRANGEMENTS_CACHE_NAME, unless = "#result==null")
+  public String getRearrangementUmaId(String rearrangementId) {
+    List<RearrangementIds> rearrangements;
+
+    try {
+      rearrangements = this.adcClient.getRearrangement(rearrangementId);
+    } catch (Exception e) {
+      Logger.error(
+          String.format(
+              "Cache: Can't get rearrangement's '%s' UMA ID because: %s",
+              rearrangementId, e.getMessage()));
+      Logger.debug("Stacktrace: ", e);
+      return null;
+    }
+
     if (rearrangements.size() != 1) { // not found
       return null;
     }
 
     var repertoireId = rearrangements.get(0).getRepertoireId();
-    Utils.assertNotNull(repertoireId);
+    if (repertoireId == null) {
+      Logger.error("Response's rearrangement can't have a null rearrangement_id");
+      return null;
+    }
+
     return this.getRepertoireUmaId(repertoireId);
   }
 

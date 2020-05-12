@@ -166,22 +166,10 @@ public class AdcAuthController {
 
     var bearer = SpringUtils.getBearer(request);
     if (bearer == null) {
-      HttpException notFound = SpringUtils.buildHttpException(HttpStatus.NOT_FOUND, "Not found");
-      String umaId;
-      try {
-        umaId = this.dbRepository.getRearrangementUmaId(rearrangementId);
-      } catch (Exception e) {
-        Logger.error(
-            String.format(
-                "Cache: Can't get rearrangement's '%s' UMA ID because: %s",
-                rearrangementId, e.getMessage()));
-        Logger.debug("Stacktrace: ", e);
-        throw notFound;
-      }
-
+      String umaId = this.dbRepository.getRearrangementUmaId(rearrangementId);
       if (umaId == null) {
         Logger.info("User tried accessing non-existing rearrangement with ID {}", rearrangementId);
-        throw notFound;
+        throw SpringUtils.buildHttpException(HttpStatus.NOT_FOUND, "Not found");
       }
 
       var umaScopes = this.csvConfig.getUmaScopes(FieldClass.REARRANGEMENT);
@@ -362,18 +350,6 @@ public class AdcAuthController {
         this.buildUmaFieldMapper(umaResources, fieldClass, removeFields).compose(mapperComposition);
     return buildFilteredJsonResponse(
         resourceId, responseFilterField, fieldMapper, () -> adcRequest.apply(adcSearch));
-  }
-
-  private Function<String, Set<String>> singleRequestUmaFlow(
-      HttpServletRequest request, String umaId, FieldClass fieldClass) throws Exception {
-    var bearer = SpringUtils.getBearer(request);
-    if (bearer == null) {
-      var umaScopes = this.csvConfig.getUmaScopes(fieldClass);
-      throw this.umaFlow.noRptToken(ImmutableList.of(umaId), umaScopes);
-    }
-
-    var tokenResources = this.umaClient.introspectToken(bearer);
-    return this.buildUmaFieldMapper(tokenResources, fieldClass, EmptySet);
   }
 
   private void validateAdcSearch(AdcSearchRequest adcSearch, FieldClass fieldClass)
