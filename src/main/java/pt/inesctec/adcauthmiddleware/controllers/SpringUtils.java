@@ -26,6 +26,7 @@ public final class SpringUtils {
     if (auth == null) {
       return null;
     }
+    auth = auth.trim();
 
     if (!auth.startsWith("Bearer ")) {
       return null;

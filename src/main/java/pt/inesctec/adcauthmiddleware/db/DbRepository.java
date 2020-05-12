@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
-import pt.inesctec.adcauthmiddleware.adc.models.RearrangementIds;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireIds;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
@@ -25,6 +24,7 @@ import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
+import pt.inesctec.adcauthmiddleware.utils.Utils;
 
 @Component
 public class DbRepository {
@@ -84,8 +84,14 @@ public class DbRepository {
 
   @Cacheable(REARRANGEMENTS_CACHE_NAME)
   public String getRearrangementUmaId(String rearrangementId) throws Exception {
-    RearrangementIds rearrangement = this.adcClient.getRearrangement(rearrangementId);
-    return this.getRepertoireUmaId(rearrangement.getRepertoireId());
+    var rearrangements = this.adcClient.getRearrangement(rearrangementId);
+    if (rearrangements.size() != 1) { // not found
+      return null;
+    }
+
+    var repertoireId = rearrangements.get(0).getRepertoireId();
+    Utils.assertNotNull(repertoireId);
+    return this.getRepertoireUmaId(repertoireId);
   }
 
   public String getUmaStudyId(String umaId) {

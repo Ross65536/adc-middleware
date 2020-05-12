@@ -52,24 +52,14 @@ public class AdcClient {
     return HttpFacade.makeExpectJsonAsStreamRequest(request);
   }
 
-  public RearrangementIds getRearrangement(String rearrangementId) throws Exception {
+  public List<RearrangementIds> getRearrangement(String rearrangementId) throws Exception {
     final URI uri = this.getResourceServerPath("rearrangement", rearrangementId);
     var request = new HttpRequestBuilderFacade().getJson(uri).build();
     var rearrangements =
         HttpFacade.makeExpectJsonRequest(request, AdcIdsResponse.class).getRearrangements();
 
     listPostConditions(rearrangements);
-
-    if (rearrangements.size() != 1) {
-      throw new Exception(
-          String.format(
-              "Illegal response for rearrangement %s received, expected 1 rearrangement but got %d",
-              rearrangementId, rearrangements.size()));
-    }
-
-    var rearrangement = rearrangements.get(0);
-    Utils.assertNotNull(rearrangement.getRearrangementId());
-    return rearrangement;
+    return rearrangements;
   }
 
   public InputStream searchRepertoiresAsStream(AdcSearchRequest adcRequest) throws Exception {
