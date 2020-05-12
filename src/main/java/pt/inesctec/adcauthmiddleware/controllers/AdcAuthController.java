@@ -24,6 +24,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -54,6 +56,7 @@ public class AdcAuthController {
   private static Set<String> EmptySet = ImmutableSet.of();
   private static List<UmaResource> EmptyResources = ImmutableList.of();
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcAuthController.class);
+  private static final PasswordEncoder PasswordEncoder = new BCryptPasswordEncoder();
 
   @Autowired private AppConfig appConfig;
   @Autowired private AdcClient adcClient;
@@ -241,9 +244,7 @@ public class AdcAuthController {
       throw new SyncException("Invalid user credential format");
     }
 
-    var hashed = Hashing.sha256().hashString(bearer, StandardCharsets.UTF_8).toString();
-
-    if (!hashed.equals(appConfig.getSynchronizePasswordHash())) {
+    if (! PasswordEncoder.matches(bearer, appConfig.getSynchronizePasswordHash())) {
       throw new SyncException("Invalid user credential");
     }
 

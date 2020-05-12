@@ -209,7 +209,7 @@ The CSV can include other columns after these which are ignored.
 
 The middleware needs to synchronize with the backend periodically. No automatic synchronization is performed so you must invoke synchronization when data in the resource server changes, namely when: a repertoire or rearrangement ir added, deleted or updated (study, repertoire_id and rearrangement_id fields).
 
-To synchronize you can make the following request:
+To synchronize you can make the following request to the `/airr/v1/synchronize` endpoint using the password as Bearer token:
 
 ```shell script
 curl --location --request POST "$MIDDLEWARE_HOST/airr/v1/synchronize" --header "Authorization: Bearer $THE_PASSWORD"
@@ -218,10 +218,13 @@ curl --location --request POST "$MIDDLEWARE_HOST/airr/v1/synchronize" --header "
 
 ##### Generating password
 
+You need to hash a BCrypt password with 10 rounds to use the synchronization endpoint
+
 ```shell script
-sudo apt install apache2-utils
+sdk install springboot # need https://sdkman.io/ installed
 PASSWORD=$(xxd -l 32 -c 100000 -p /dev/urandom) # or use a different password
-echo -n $PASSWORD | sha256sum
+spring encodepassword  -a bcrypt $PASSWORD # $THE_PASSWORD
+# example acceptable password: 'master' for '$2a$10$qr81MrxWblqZlMAt5kf/9.xdBPubtDMuoV3DRKgTk2bu.SPazsaTm'
 ```
 
 ## Profilling
