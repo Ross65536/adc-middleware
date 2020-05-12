@@ -6,10 +6,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cache.annotation.EnableCaching;
 import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
 
-@SpringBootApplication(
-    exclude = {
-      org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class, // disable spring security auto config
-    })
+@SpringBootApplication(exclude = {
+    org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class
+})
 @EnableConfigurationProperties(AdcConfiguration.class)
 @EnableCaching
 public class AdcAuthMiddlewareApplication {
