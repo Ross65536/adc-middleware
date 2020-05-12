@@ -87,7 +87,7 @@ Then configure keycloak:
 
 You can use different values for these strings, but you would need to update the some variables and example code.
 
-### To install, build and run for development:
+#### To install, build and run for development:
 
 ```shell script
 ./gradlew bootRun
@@ -99,7 +99,7 @@ With arguments:
 ./gradlew bootRun --args='--server.port=9999' # --server.port equivalent to java's -Dserver.port 
 ```
 
-### Build deployable jar
+#### Build deployable jar
 
 The jar uses java 11
 
@@ -107,7 +107,7 @@ The jar uses java 11
 ./gradlew bootJar # jar will be placed in ./build/libs/ 
 ```
 
-### Style checks
+#### Style checks
 
 To run style checker run:
 
@@ -116,13 +116,13 @@ To run style checker run:
 ./gradlew checkstyleMain
 ```
 
-### Tets
+#### Tets
 
 ```shell script
 ./gradlew test
 ```
 
-### Notes
+### Configuration
 
 #### Middleware Configuration
 
@@ -157,19 +157,11 @@ java -jar ./build/libs/adc-auth-middleware-0.0.1-SNAPSHOT.jar \
 --spring.config.location=classpath:/application.properties,./config.properties 
 ```
 
-##### DB configuration
+##### DB & Cache configuration
 
 - Example config for H2 DB
 
 ```
-adc.resourceServerUrl=http://localhost:80/airr/v1
-
-uma.wellKnownUrl=http://localhost:8082/auth/realms/master/.well-known/uma2-configuration
-uma.clientId=adc-middleware
-uma.clientSecret=ef6f421a-1375-4d5c-a187-e41ea9f26379
-uma.resourceOwner=owner
-
-# DB
 spring.datasource.url=jdbc:h2:file:./data/h2/db
 spring.datasource.username=sa
 spring.datasource.password=password
@@ -177,7 +169,24 @@ spring.datasource.password=password
 
 - Example config for PostgreSQL DB
 
-See the `data/config/example.properties` for a working example
+See `data/config/example.properties` for example
+
+```
+spring.datasource.url=jdbc:postgresql://localhost:5432/postgres
+spring.datasource.username=postgres
+spring.datasource.password=password
+spring.datasource.platform=postgres
+```
+
+- Using Redis as Cache
+
+If these values are not set the default spring cache will be used
+
+```
+spring.cache.type=redis
+spring.redis.host=localhost
+spring.redis.port=6379
+```
 
 
 #### CSV field config
