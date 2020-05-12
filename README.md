@@ -45,7 +45,7 @@ Project runs on java 11, with (modified) google java style guide.
     MIDDLEWARE_UMA_CLIENT_SECRET=<the client secret from previous step> docker-compose --file docker-compose.example.yml up middleware 
     ```
     
-    You can now make requests to `http://localhost:8080/airr/v1/`. Try with `http://localhost:8080/airr/v1/info`.
+    You can now make requests to `http://localhost:8080/airr/v1/`. Try with `http://localhost:8080/airr/v1/info` to see if there is a connection to the backend. On middleware boot the server automatically connects to keycloak.
 
 4. Synchronize middleware cache:
 
