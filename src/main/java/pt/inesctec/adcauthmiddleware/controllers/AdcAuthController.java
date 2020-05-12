@@ -63,11 +63,6 @@ public class AdcAuthController {
   @Autowired private UmaClient umaClient;
   @Autowired private CsvConfig csvConfig;
 
-  @Autowired
-  public AdcAuthController(DbRepository dbRepository) throws Exception {
-    //    cacheRepository.synchronize();
-  }
-
   private static final Pattern JsonErrorPattern =
       Pattern.compile(".*line: (\\d+), column: (\\d+).*");
 
