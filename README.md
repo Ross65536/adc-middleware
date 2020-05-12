@@ -1,5 +1,7 @@
 # ADC auth extensions middleware
 
+[![pipeline status](https://gitlab.com/Ross65536/adc-middleware/badges/master/pipeline.svg)](https://gitlab.com/Ross65536/adc-middleware/commits/master)
+
 Middleware server for handling UMA authorization and access control.
 
 Project runs on java 11, with (modified) google java style guide.
