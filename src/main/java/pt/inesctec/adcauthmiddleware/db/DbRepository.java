@@ -30,8 +30,11 @@ import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
 @Component
 public class DbRepository {
-  private static org.slf4j.Logger Logger = LoggerFactory.getLogger(DbRepository.class);
-  private static Object SyncMonitor = new Object();
+  private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(DbRepository.class);
+  private static final Object SyncMonitor = new Object();
+  private static final String STUDIES_CACHE_NAME = "studies";
+  private static final String REPERTOIRES_CACHE_NAME = "repertoires";
+  private static final String REARRANGEMENTS_CACHE_NAME = "rearrangements";
 
   private final AdcClient adcClient;
   private final UmaClient umaClient;
@@ -56,7 +59,7 @@ public class DbRepository {
   }
 
   @CacheEvict(
-      cacheNames = {"studies", "repertoires", "rearrangements"},
+      cacheNames = {STUDIES_CACHE_NAME, REPERTOIRES_CACHE_NAME, REARRANGEMENTS_CACHE_NAME},
       allEntries = true)
   public void synchronize() throws Exception {
     synchronized (DbRepository.SyncMonitor) {
@@ -64,7 +67,7 @@ public class DbRepository {
     }
   }
 
-  @Cacheable("studies")
+  @Cacheable(STUDIES_CACHE_NAME)
   public String getStudyUmaId(String studyId) {
     var study = this.studyRepository.findByStudyId(studyId);
     if (study == null) {
@@ -74,7 +77,7 @@ public class DbRepository {
     return study.getUmaId();
   }
 
-  @Cacheable("repertoires")
+  @Cacheable(REPERTOIRES_CACHE_NAME)
   public String getRepertoireUmaId(String repertoireId) {
     var repertoire = this.repertoireRepository.findByRepertoireId(repertoireId);
     if (repertoire == null) {
@@ -84,7 +87,7 @@ public class DbRepository {
     return repertoire.getStudy().getUmaId();
   }
 
-  @Cacheable("rearrangements")
+  @Cacheable(REARRANGEMENTS_CACHE_NAME)
   public String getRearrangementUmaId(String rearrangementId) {
     var rearrangement = this.rearrangementRepository.findByRearrangementId(rearrangementId);
     if (rearrangement == null) {
