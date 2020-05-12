@@ -9,3 +9,8 @@ services:
       - ./data/keycloak:/keycloak/standalone/data
     ports:
       - 8082:80
+
+  redis:
+    image: redis
+    ports:
+      - 6379:6379

@@ -21,6 +21,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.postgresql:postgresql'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.security:spring-security-test'
 	runtimeOnly 'com.h2database:h2:1.4.200'
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
