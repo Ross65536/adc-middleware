@@ -62,7 +62,7 @@ public class DbRepository {
     }
   }
 
-  @Cacheable(STUDIES_CACHE_NAME)
+  @Cacheable(value=STUDIES_CACHE_NAME, unless = "#result==null")
   public String getStudyUmaId(String studyId) {
     var study = this.studyRepository.findByStudyId(studyId);
     if (study == null) {
@@ -72,7 +72,7 @@ public class DbRepository {
     return study.getUmaId();
   }
 
-  @Cacheable(REPERTOIRES_CACHE_NAME)
+  @Cacheable(value=REPERTOIRES_CACHE_NAME, unless = "#result==null")
   public String getRepertoireUmaId(String repertoireId) {
     var repertoire = this.repertoireRepository.findByRepertoireId(repertoireId);
     if (repertoire == null) {
@@ -82,7 +82,7 @@ public class DbRepository {
     return repertoire.getStudy().getUmaId();
   }
 
-  @Cacheable(REARRANGEMENTS_CACHE_NAME)
+  @Cacheable(value=REARRANGEMENTS_CACHE_NAME, unless = "#result==null")
   public String getRearrangementUmaId(String rearrangementId) throws Exception {
     var rearrangements = this.adcClient.getRearrangement(rearrangementId);
     if (rearrangements.size() != 1) { // not found
