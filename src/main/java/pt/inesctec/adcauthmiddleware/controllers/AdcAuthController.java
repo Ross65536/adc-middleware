@@ -4,14 +4,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.common.hash.Hashing;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -43,6 +42,7 @@ import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.db.DbRepository;
+import pt.inesctec.adcauthmiddleware.http.ClientError;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
@@ -158,10 +158,32 @@ public class AdcAuthController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<StreamingResponseBody> rearrangement(
       HttpServletRequest request, @PathVariable String rearrangementId) throws Exception {
-    var umaId = this.dbRepository.getRearrangementUmaId(rearrangementId);
+    String umaId;
+    Consumer<Exception> logger =
+        (e) -> {
+          Logger.error(String.format(
+                "Cache: Can't get rearrangement's '%s' UMA ID (might be it doesn't exist) because: %s",
+                rearrangementId, e.getMessage()));
+          Logger.debug("Stacktrace: ", e);
+        };
+
+    HttpException notFound = SpringUtils.buildHttpException(HttpStatus.NOT_FOUND, "Not found");
+    try {
+      umaId = this.dbRepository.getRearrangementUmaId(rearrangementId);
+    } catch (ClientError e) {
+      if (e.statusCode != 404) {
+        logger.accept(e);
+      }
+
+      throw notFound;
+    } catch (Exception e) {
+      logger.accept(e);
+      throw notFound;
+    }
+
     if (umaId == null) {
       Logger.info("User tried accessing non-existing rearrangement with ID {}", rearrangementId);
-      throw SpringUtils.buildHttpException(HttpStatus.NOT_FOUND, "Not found");
+      throw notFound;
     }
 
     var fieldMapper =
@@ -244,7 +266,7 @@ public class AdcAuthController {
       throw new SyncException("Invalid user credential format");
     }
 
-    if (! PasswordEncoder.matches(bearer, appConfig.getSynchronizePasswordHash())) {
+    if (!PasswordEncoder.matches(bearer, appConfig.getSynchronizePasswordHash())) {
       throw new SyncException("Invalid user credential");
     }
 

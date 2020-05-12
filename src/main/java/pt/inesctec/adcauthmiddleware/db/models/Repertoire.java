@@ -1,16 +1,11 @@
 package pt.inesctec.adcauthmiddleware.db.models;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -29,8 +24,6 @@ public class Repertoire {
   @NotNull
   private Study study;
 
-  @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.REMOVE)
-  private List<Rearrangement> rearrangements = new ArrayList<>();
 
   public Repertoire() {}
 
@@ -50,9 +43,5 @@ public class Repertoire {
   @Override
   public String toString() {
     return String.format("{repertoireId: %s}", repertoireId);
-  }
-
-  public List<Rearrangement> getRearrangements() {
-    return rearrangements;
   }
 }

@@ -6,7 +6,7 @@ import org.springframework.http.MediaType;
 import pt.inesctec.adcauthmiddleware.HttpException;
 
 public class ClientError extends IOException {
-  private final int statusCode;
+  public final int statusCode;
   private final String errorMsg;
   private final Optional<String> contentType;
 

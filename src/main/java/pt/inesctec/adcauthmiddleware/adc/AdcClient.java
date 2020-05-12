@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.util.List;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RearrangementIds;
@@ -20,7 +19,6 @@ import pt.inesctec.adcauthmiddleware.utils.Utils;
 
 @Component
 public class AdcClient {
-  private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcClient.class);
 
   private final AdcConfiguration adcConfig;
 
@@ -52,6 +50,26 @@ public class AdcClient {
     var request = new HttpRequestBuilderFacade().getJson(uri).build();
 
     return HttpFacade.makeExpectJsonAsStreamRequest(request);
+  }
+
+  public RearrangementIds getRearrangement(String rearrangementId) throws Exception {
+    final URI uri = this.getResourceServerPath("rearrangement", rearrangementId);
+    var request = new HttpRequestBuilderFacade().getJson(uri).build();
+    var rearrangements =
+        HttpFacade.makeExpectJsonRequest(request, AdcIdsResponse.class).getRearrangements();
+
+    listPostConditions(rearrangements);
+
+    if (rearrangements.size() != 1) {
+      throw new Exception(
+          String.format(
+              "Illegal response for rearrangement %s received, expected 1 rearrangement but got %d",
+              rearrangementId, rearrangements.size()));
+    }
+
+    var rearrangement = rearrangements.get(0);
+    Utils.assertNotNull(rearrangement.getRearrangementId());
+    return rearrangement;
   }
 
   public InputStream searchRepertoiresAsStream(AdcSearchRequest adcRequest) throws Exception {

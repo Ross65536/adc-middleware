@@ -18,10 +18,8 @@ import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RearrangementIds;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireIds;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
-import pt.inesctec.adcauthmiddleware.db.models.Rearrangement;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
-import pt.inesctec.adcauthmiddleware.db.repository.RearrangementRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
@@ -40,7 +38,6 @@ public class DbRepository {
   private final UmaClient umaClient;
   private final StudyRepository studyRepository;
   private final RepertoireRepository repertoireRepository;
-  private final RearrangementRepository rearrangementRepository;
   private final CsvConfig csvConfig;
 
   public DbRepository(
@@ -48,13 +45,11 @@ public class DbRepository {
       UmaClient umaClient,
       StudyRepository studyRepository,
       RepertoireRepository repertoireRepository,
-      RearrangementRepository rearrangementRepository,
       CsvConfig csvConfig) {
     this.adcClient = adcClient;
     this.umaClient = umaClient;
     this.studyRepository = studyRepository;
     this.repertoireRepository = repertoireRepository;
-    this.rearrangementRepository = rearrangementRepository;
     this.csvConfig = csvConfig;
   }
 
@@ -88,13 +83,9 @@ public class DbRepository {
   }
 
   @Cacheable(REARRANGEMENTS_CACHE_NAME)
-  public String getRearrangementUmaId(String rearrangementId) {
-    var rearrangement = this.rearrangementRepository.findByRearrangementId(rearrangementId);
-    if (rearrangement == null) {
-      return null;
-    }
-
-    return rearrangement.getRepertoire().getStudy().getUmaId();
+  public String getRearrangementUmaId(String rearrangementId) throws Exception {
+    RearrangementIds rearrangement = this.adcClient.getRearrangement(rearrangementId);
+    return this.getRepertoireUmaId(rearrangement.getRepertoireId());
   }
 
   public String getUmaStudyId(String umaId) {
@@ -152,7 +143,6 @@ public class DbRepository {
     // sync cache
     this.deleteCache();
     this.synchronizeRepertoires(backendRepertoires);
-    this.synchronizeRearrangements(backendRearrangements);
 
     Logger.info("Finished DB and cache synchronization");
   }
@@ -172,23 +162,7 @@ public class DbRepository {
         });
   }
 
-  protected void synchronizeRearrangements(List<RearrangementIds> backendRepertoires) {
-    backendRepertoires.forEach(
-        repertoireIds -> {
-          var repertoireId = repertoireIds.getRepertoireId();
-          var repertoire = this.repertoireRepository.findByRepertoireId(repertoireId);
-          if (repertoire == null) {
-            Logger.error("Invalid DB state, missing repertoire {}, skipping", repertoireId);
-            return;
-          }
-
-          var rearrangement = new Rearrangement(repertoireIds.getRearrangementId(), repertoire);
-          DbRepository.saveResource(this.rearrangementRepository, rearrangement);
-        });
-  }
-
   protected void deleteCache() {
-    this.rearrangementRepository.deleteAll();
     this.repertoireRepository.deleteAll();
   }
 
