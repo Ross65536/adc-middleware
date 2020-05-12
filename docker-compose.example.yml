@@ -27,12 +27,15 @@ services:
     networks:
       - turnkey-service_default
 
+  middleware-redis:
+    image: redis
+    networks:
+      - turnkey-service_default
+
   middleware-db:
     image: postgres:12
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
-#    ports:
-#      - 5432:5432
     environment:
       # default user and DB is postgres
       POSTGRES_PASSWORD: password

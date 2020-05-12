@@ -41,7 +41,7 @@ Project runs on java 11, with (modified) google java style guide.
 3. Run the middleware:
 
     ```shell script
-    docker-compose --file docker-compose.example.yml up middleware-db
+    docker-compose --file docker-compose.example.yml up middleware-db middleware-redis
     MIDDLEWARE_UMA_CLIENT_SECRET=<the client secret from previous step> docker-compose --file docker-compose.example.yml up middleware 
     ```
     
@@ -68,7 +68,7 @@ Project runs on java 11, with (modified) google java style guide.
 
 > If using OpenJDK, use minimum of v11.0.7
 
-- Configuring keycloak
+#### Configuring keycloak
 
 You need to setup and configure a keycloak server.
 
@@ -86,6 +86,12 @@ Then configure keycloak:
 4. In the `Users` tab create user with username `owner`, this is the resource owner. Create user with username `user` and `user2`, these are the users that will access resources. For each user in the user's `Credentials` tab create the password (equal to username). A user can then login on `http://localhost:8082/auth/realms/master/account` (for example owner to grant accesses to users).
 
 You can use different values for these strings, but you would need to update the some variables and example code.
+
+#### Other dev services
+
+```shell script
+docker-compose --file docker-compose.dev.yml up redis db
+```
 
 #### To install, build and run for development:
 
@@ -232,7 +238,7 @@ You need to hash a BCrypt password with 10 rounds to use the synchronization end
 ```shell script
 sdk install springboot # need https://sdkman.io/ installed
 PASSWORD=$(xxd -l 32 -c 100000 -p /dev/urandom) # or use a different password
-spring encodepassword  -a bcrypt $PASSWORD # $THE_PASSWORD
+spring encodepassword -a bcrypt $PASSWORD # $THE_PASSWORD
 # example acceptable password: 'master' for '$2a$10$qr81MrxWblqZlMAt5kf/9.xdBPubtDMuoV3DRKgTk2bu.SPazsaTm'
 ```
 
