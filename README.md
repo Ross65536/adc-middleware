@@ -6,7 +6,9 @@ Middleware server for handling UMA authorization and access control.
 
 Project runs on java 11, with (modified) google java style guide.
 
-## Instructions
+Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middleware)
+
+## Deployment
 
 ### Example Deployment
 
@@ -15,24 +17,30 @@ Project runs on java 11, with (modified) google java style guide.
     - Start turnkey backend, based [on](https://github.com/sfu-ireceptor/turnkey-service-php):
     
         ```shell script
-        # folder name should be 'turnkey-service-php', important for finding correct network. 
+        # folder name should be 'turnkey-service-php', important for finding correct docker network. 
         git clone https://github.com/sfu-ireceptor/turnkey-service-php.git  
         cd turnkey-service-php
         echo "API_TAG=master" > .env # this should load the latest api
         scripts/install_turnkey.sh
         ```
         
-        > If you use a different folder or network for the backend you need to update the file's `./data/config/docker-compose.example.yml` value `turnkey-service_default` and the `middleware` service's `RESOURCE_SERVER_BASE_URL` with the backend URL.
+        > If you use a different folder or network for the backend you need to update the file's `./data/config/docker-compose.example.yml` value `turnkey-service_default` and the `middleware` service's `RESOURCE_SERVER_BASE_URL` env var with the backend URL.
     
     - Load some data, based [on](https://github.com/sfu-ireceptor/dataloading-curation):
     
         follow the instructions to load some data.
         > TODO add specific instructions
 
+2. Either build or download adc-middleware image:
+    
+    ```shell script
+    # build, to download skip this step
+    docker build -t ros65536/adc-middleware:latest .
+    ```
+
 2. Setup and configure keycloak server:
 
     ```shell script
-    docker-compose --file docker-compose.example.yml build
     docker-compose --file docker-compose.example.yml up keycloak
     ```
     
@@ -60,9 +68,20 @@ Project runs on java 11, with (modified) google java style guide.
 
 > **Important**: When deploying it's very important to make the backend's API unavailable to the public (for the turnkey example, delete the exposed ports in the `scripts/docker-compose.yml` file's `ireceptor-api` service)
 
-> **Important**: You must generate a new password and hash for the `app.synchronizePasswordHash` variable, see below how. 
+> **Important**: You must generate a new password and hash for the `app.synchronizePasswordHash` property variable, see below how. 
 
 > **Important**: The middleware APIs should be under a SSL connection in order not to leak user credentials or synchronization password.
+
+### Docker image
+
+The docker image for the middleware accepts the following environment variables:
+
+- `CLIENT_SECRET`: The UMA client secret
+- `RESOURCE_SERVER_BASE_URL`: The url for the resource server
+
+The remaining configuration is done using java properties (see below).
+
+## Instructions
 
 ### First time setup (dev):
 
@@ -122,10 +141,19 @@ To run style checker run:
 ./gradlew checkstyleMain
 ```
 
-#### Tets
+#### Tests
 
 ```shell script
 ./gradlew test
+```
+
+#### Pushing docker image
+
+Dockerhub has setup a hook to automatically pull and build images from repository commits that are tagged like `v1.0.1` using semantic versioning.
+
+```shell script
+git tag -a v<VERSION> -m <MESSAGE> # tak latest commit
+git push origin --tags # This should trigger a build in dockerhub
 ```
 
 ### Configuration

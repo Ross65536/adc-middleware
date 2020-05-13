@@ -1,3 +1,9 @@
+# Docker instructions
+#
+# docker build -t $USERNAME/adc-middleware:$VERSION .
+# docker login --username $USERNAME
+# docker push $USERNAME/adc-middleware:$VERSION
+
 
 FROM openjdk:11
 
