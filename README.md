@@ -61,7 +61,7 @@ Project runs on java 11, with (modified) google java style guide.
     ```
     
     You can now make requests to `http://localhost:8080/airr/v1/`. Try with `http://localhost:8080/airr/v1/info` to see if there is a connection to the backend. 
-    On boot the middleware server automatically connects to keycloak.
+    On boot the middleware server automatically connects to keycloak and the DB.
     
 4. Synchronize middleware cache:
 
@@ -184,8 +184,8 @@ Required:
 - `app.synchronizePasswordHash`: The sha256 hash of the password protecting the synchronization endpoint. See below how to generate.
 
 Optional:
-- `server.servlet.context-path`: The base path of the middleware API, used to forward requests. Defaults to: `/airr/v1`
-- `server.port`: The middleware server port, defaults to `8080`
+- `server.servlet.context-path`: The base path of the middleware API. Defaults to: `/airr/v1`
+- `server.port`: The middleware server port, defaults to `80`
 - `app.adcCsvConfigPath`: The path for the CSV config file containing the custom fields configuration. Example `./field-mapping.csv`. Defaults to the file `src/main/resources/field-mapping.csv`. See below for structure of file.
 
 Optional Dev:
