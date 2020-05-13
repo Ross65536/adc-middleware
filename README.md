@@ -96,7 +96,7 @@ The remaining configuration is done using java properties (for example see `data
 
 ## Instructions
 
-### First time setup (dev):
+### Dev Setup:
 
 > If using OpenJDK, use minimum of v11.0.7
 
@@ -120,11 +120,7 @@ A user can then login on `http://localhost:8082/auth/realms/master/account` (for
 
 You can use different values for these strings, but you would need to update the configuration variables.
 
-#### Other dev services
 
-```shell script
-docker-compose --file docker-compose.dev.yml up redis db
-```
 
 #### To install, build and run for development:
 
@@ -138,7 +134,36 @@ With arguments:
 ./gradlew bootRun --args='--server.port=9999' # --server.port equivalent to java's -Dserver.port 
 ```
 
-#### Build deployable jar
+#### Dev properties configuration example
+
+file `dev.properties` (You need to update `uma.clientSecret`):
+
+```
+adc.resourceServerUrl=http://localhost:80/airr/v1
+server.port=8080
+
+app.synchronizePasswordHash=$2a$10$qr81MrxWblqZlMAt5kf/9.xdBPubtDMuoV3DRKgTk2bu.SPazsaTm
+
+# UMA
+uma.wellKnownUrl=http://localhost:8082/auth/realms/master/.well-known/uma2-configuration
+uma.clientId=adc-middleware
+uma.clientSecret=<the generate client secret rom keycloak>
+uma.resourceOwner=owner
+
+# Postgres
+spring.datasource.url=jdbc:postgresql://localhost:5432/middleware_db
+spring.datasource.username=postgres
+spring.datasource.password=password
+spring.datasource.platform=postgres
+
+#redis
+spring.cache.type=redis
+spring.redis.host=localhost
+spring.redis.port=6379
+```
+
+
+### Build deployable jar
 
 The jar uses java 11
 
@@ -146,7 +171,7 @@ The jar uses java 11
 ./gradlew bootJar # jar will be placed in ./build/libs/ 
 ```
 
-#### Style checks
+### Style checks
 
 To run style checker run:
 
