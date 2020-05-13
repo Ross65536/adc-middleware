@@ -22,4 +22,4 @@ FROM openjdk:11-slim
 WORKDIR /middleware
 
 COPY --from=0 /middleware/middleware.jar .
-CMD java -jar ./middleware.jar --spring.config.location=classpath:/application.properties,${PROPERTIES_PATH:-./config/example.properties} --uma.clientSecret=$CLIENT_SECRET
+CMD java -jar ./middleware.jar --spring.config.location=classpath:/application.properties,$PROPERTIES_PATH --uma.clientSecret=$UMA_CLIENT_SECRET --spring.datasource.password=$DB_PASSWORD

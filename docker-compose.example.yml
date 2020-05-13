@@ -9,7 +9,9 @@ services:
     ports:
       - 8080:80
     environment:
-      - CLIENT_SECRET=$MIDDLEWARE_UMA_CLIENT_SECRET
+      - UMA_CLIENT_SECRET=$MIDDLEWARE_UMA_CLIENT_SECRET
+      - DB_PASSWORD=password
+      - PROPERTIES_PATH=./config/example.properties
     depends_on:
       - keycloak
       - middleware-db

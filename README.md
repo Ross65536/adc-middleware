@@ -84,8 +84,9 @@ Project runs on java 11, with (modified) google java style guide.
 
 The docker image for the middleware accepts the following environment variables:
 
-- `CLIENT_SECRET`: The UMA client secret.
-- `PROPERTIES_PATH`: The path for the java properties configuration file. Defaults to `./config/example.properties`. Intended to be used if mounting the config file with a different path or name. 
+- `CLIENT_SECRET`: The UMA client secret for the middleware.
+- `DB_PASSWORD`: The DB password for the middleware
+- `PROPERTIES_PATH`: The path for the java properties configuration file. 
 
 The remaining configuration is done using java properties (for example see `data/config/example.properties`, for explanation see below).
 
