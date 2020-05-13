@@ -2,7 +2,7 @@
 
 [![pipeline status](https://gitlab.com/Ross65536/adc-middleware/badges/master/pipeline.svg)](https://gitlab.com/Ross65536/adc-middleware/commits/master)
 
-See Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middleware)
+Check out Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middleware)
 
 Middleware server for handling UMA authorization and access control.
 

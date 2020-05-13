@@ -17,7 +17,7 @@ ADD gradlew /middleware
 RUN ./gradlew bootJar
 RUN mv ./build/libs/*.jar ./middleware.jar
 
-FROM openjdk:11-slim
+FROM openjdk:11-jre-slim
 
 WORKDIR /middleware
 
