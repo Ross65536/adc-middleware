@@ -2,7 +2,6 @@ version: '3'
 
 services:
   middleware:
-#    build: .
     image: ros65536/adc-middleware
     volumes:
       - ./data/config:/middleware/config
@@ -15,17 +14,37 @@ services:
     depends_on:
       - keycloak
       - middleware-db
+      - middleware-redis
     networks:
       - turnkey-service_default
 
   keycloak:
-    build:
-      context: keycloak
-      dockerfile: dev.Dockerfile
-    volumes:
-      - ./data/keycloak:/keycloak/standalone/data
+    image: jboss/keycloak:9.0.3
+    environment:
+      DB_VENDOR: postgres
+      DB_ADDR: keycloak_db
+      DB_DATABASE: keycloak_db
+      DB_USER: postgres
+      DB_PASSWORD: password2
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+      DB_SCHEMA: public
+      PROXY_ADDRESS_FORWARDING: 'true'
     ports:
-      - 8082:80
+      - 8082:8080
+    depends_on:
+      - keycloak_db
+    networks:
+      - turnkey-service_default
+
+  keycloak_db:
+    image: postgres:12
+    volumes:
+      - ./data/db_keycloak:/var/lib/postgresql/data
+    environment:
+      # default user is 'postgres'
+      POSTGRES_DB: keycloak_db
+      POSTGRES_PASSWORD: password2
     networks:
       - turnkey-service_default
 

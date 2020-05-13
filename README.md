@@ -43,17 +43,20 @@ Project runs on java 11, with (modified) google java style guide.
     docker build -t ros65536/adc-middleware:latest .
     ```
 
-2. Setup and configure keycloak server:
+3. Setup and configure keycloak server:
 
     ```shell script
+    docker-compose --file docker-compose.example.yml up keycloak_db
     docker-compose --file docker-compose.example.yml up keycloak
     ```
 
     Keycloak is accessible at `http://localhost:8082/`.
 
-    See instructions below on how to setup or skip setup if keycloak was already configured for development. Make note of the generated client secret (`$MIDDLEWARE_UMA_CLIENT_SECRET`).
+    See instructions below on how to configure or skip setup if keycloak was already configured for development. 
+    
+    Make note of the generated client secret (`$MIDDLEWARE_UMA_CLIENT_SECRET`).
 
-3. Run the middleware:
+4. Run the middleware:
 
     ```shell script
     docker-compose --file docker-compose.example.yml up middleware-db middleware-redis
@@ -61,9 +64,10 @@ Project runs on java 11, with (modified) google java style guide.
     ```
     
     You can now make requests to `http://localhost:8080/airr/v1/`. Try with `http://localhost:8080/airr/v1/info` to see if there is a connection to the backend. 
+    
     On boot the middleware server automatically connects to keycloak and the DB.
     
-4. Synchronize middleware cache:
+5. Synchronize middleware cache:
 
     ```shell script
     # '12345abcd' is the password
@@ -102,18 +106,19 @@ You need to setup and configure a keycloak server.
 
 Run:
 ```shell script
-docker-compose --file docker-compose.dev.yml build
+docker-compose --file docker-compose.dev.yml up keycloak_db
 docker-compose --file docker-compose.dev.yml up keycloak
 ```
 
 Then configure keycloak:
 
-1. Go to http://localhost:8081. Login as admin with `admin:admin`. 
-2. Go to master realm settings and enable `User-Managed Access`.
-3. Create a new client in the Clients tab: load (import) and save the client from the file `./keycloak/adc-middleware.json`. Go to credentials tab in the client and note the generated `Secret` value which is the client secret while `adc-middleware` is the client ID.
-4. In the `Users` tab create user with username `owner`, this is the resource owner. Create user with username `user` and `user2`, these are the users that will access resources. For each user in the user's `Credentials` tab create the password (equal to username). A user can then login on `http://localhost:8082/auth/realms/master/account` (for example owner to grant accesses to users).
+1. Go to `http://localhost:8082`. Login as admin with `admin:admin`. 
+2. Go to `master` realm settings and enable `User-Managed Access` in the `General` tab.
+3. Create a new client in the `Clients` tab: load (import) and save the client from the file `./keycloak/adc-middleware.json`. Go to credentials tab in the client and note the generated `Secret` value which is the client secret while `adc-middleware` is the client ID.
+4. In the `Users` tab create user with username `owner`, this is the resource owner. Create user with username `user`, this is the user that will access resources. For each created user in the user's `Credentials` tab create the password (equal to username). 
+A user can then login on `http://localhost:8082/auth/realms/master/account` (for example login as owner to grant accesses to users).
 
-You can use different values for these strings, but you would need to update the some variables and example code.
+You can use different values for these strings, but you would need to update the configuration variables.
 
 #### Other dev services
 
