@@ -2,11 +2,12 @@
 
 [![pipeline status](https://gitlab.com/Ross65536/adc-middleware/badges/master/pipeline.svg)](https://gitlab.com/Ross65536/adc-middleware/commits/master)
 
+See Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middleware)
+
 Middleware server for handling UMA authorization and access control.
 
 Project runs on java 11, with (modified) google java style guide.
 
-Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middleware)
 
 ## Deployment
 
@@ -14,7 +15,7 @@ Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middle
 
 1. Load a resource server backend:
 
-    - Start turnkey backend, based [on](https://github.com/sfu-ireceptor/turnkey-service-php):
+    - Start turnkey backend, [from here](https://github.com/sfu-ireceptor/turnkey-service-php):
     
         ```shell script
         # folder name should be 'turnkey-service-php', important for finding correct docker network. 
@@ -24,8 +25,10 @@ Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middle
         scripts/install_turnkey.sh
         ```
         
-        > If you use a different folder or network for the backend you need to update the file's `./data/config/docker-compose.example.yml` value `turnkey-service_default` and the `middleware` service's `RESOURCE_SERVER_BASE_URL` env var with the backend URL.
-    
+        > If you use a different folder or network for the backend (docker network ls) you need to update the file's `./data/config/docker-compose.example.yml` values `turnkey-service_default` to the network used.
+        
+        > If you are using a different service name than `ireceptor-api` for the API backend you need to update `data/config/example.properties`'s `adc.resourceServerUrl` property.
+
     - Load some data, based [on](https://github.com/sfu-ireceptor/dataloading-curation):
     
         follow the instructions to load some data.
@@ -33,8 +36,10 @@ Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middle
 
 2. Either build or download adc-middleware image:
     
+    To download skip this step
+    
     ```shell script
-    # build, to download skip this step
+    # build
     docker build -t ros65536/adc-middleware:latest .
     ```
 
@@ -43,8 +48,10 @@ Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middle
     ```shell script
     docker-compose --file docker-compose.example.yml up keycloak
     ```
-    
-    See instructions below on how to setup or skip setup if keycloak was already configured for development. Make note of the generated client secret.
+
+    Keycloak is accessible at `http://localhost:8082/`.
+
+    See instructions below on how to setup or skip setup if keycloak was already configured for development. Make note of the generated client secret (`$MIDDLEWARE_UMA_CLIENT_SECRET`).
 
 3. Run the middleware:
 
@@ -53,8 +60,9 @@ Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middle
     MIDDLEWARE_UMA_CLIENT_SECRET=<the client secret from previous step> docker-compose --file docker-compose.example.yml up middleware 
     ```
     
-    You can now make requests to `http://localhost:8080/airr/v1/`. Try with `http://localhost:8080/airr/v1/info` to see if there is a connection to the backend. On middleware boot the server automatically connects to keycloak.
-
+    You can now make requests to `http://localhost:8080/airr/v1/`. Try with `http://localhost:8080/airr/v1/info` to see if there is a connection to the backend. 
+    On boot the middleware server automatically connects to keycloak.
+    
 4. Synchronize middleware cache:
 
     ```shell script
@@ -76,10 +84,10 @@ Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middle
 
 The docker image for the middleware accepts the following environment variables:
 
-- `CLIENT_SECRET`: The UMA client secret
-- `RESOURCE_SERVER_BASE_URL`: The url for the resource server
+- `CLIENT_SECRET`: The UMA client secret.
+- `PROPERTIES_PATH`: The path for the java properties configuration file. Defaults to `./config/example.properties`. Intended to be used if mounting the config file with a different path or name. 
 
-The remaining configuration is done using java properties (see below).
+The remaining configuration is done using java properties (for example see `data/config/example.properties`, for explanation see below).
 
 ## Instructions
 

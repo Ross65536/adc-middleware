@@ -10,7 +10,6 @@ services:
       - 8080:80
     environment:
       - CLIENT_SECRET=$MIDDLEWARE_UMA_CLIENT_SECRET
-      - RESOURCE_SERVER_BASE_URL=http://ireceptor-api:80/airr/v1
     depends_on:
       - keycloak
       - middleware-db
