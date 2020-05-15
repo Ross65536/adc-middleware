@@ -13,6 +13,7 @@ public class AppConfig {
 
   private String adcCsvConfigPath;
   private boolean facetsEnabled = true;
+  private boolean publicEndpointsEnabled = true;
   @NotNull @NotBlank
   private String synchronizePasswordHash;
 
@@ -38,5 +39,13 @@ public class AppConfig {
 
   public void setFacetsEnabled(boolean facetsEnabled) {
     this.facetsEnabled = facetsEnabled;
+  }
+
+  public boolean isPublicEndpointsEnabled() {
+    return publicEndpointsEnabled;
+  }
+
+  public void setPublicEndpointsEnabled(boolean publicEndpointsEnabled) {
+    this.publicEndpointsEnabled = publicEndpointsEnabled;
   }
 }

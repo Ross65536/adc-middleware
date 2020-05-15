@@ -352,7 +352,7 @@ public class AdcAuthController {
 
     if (adcSearch.isFacetsSearch() && !this.appConfig.isFacetsEnabled()) {
       throw SpringUtils.buildHttpException(
-          HttpStatus.UNPROCESSABLE_ENTITY, "Invalid input JSON: 'facets' support for current repository not enabled");
+          HttpStatus.NOT_IMPLEMENTED, "Invalid input JSON: 'facets' support for current repository not enabled");
     }
 
     var fieldTypes = this.csvConfig.getFields(fieldClass);

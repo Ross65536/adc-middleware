@@ -217,6 +217,8 @@ Optional:
 - `server.servlet.context-path`: The base path of the middleware API. Defaults to: `/airr/v1`
 - `server.port`: The middleware server port, defaults to `80`
 - `app.adcCsvConfigPath`: The path for the CSV config file containing the custom fields configuration. Example `./field-mapping.csv`. Defaults to the file `src/main/resources/field-mapping.csv`. See below for structure of file.
+- `app.facetsEnabled`: Boolean, indicates whether the resource server supports `facets` (and by extension ADC `filters`). Defaults to `true`.
+- `app.publicEndpointsEnabled`: Boolean, indicates whether the resource server supports the public ADC endpoints (`/`, `/info`, `/swagger`). Defaults to `true`.
 
 Optional Dev:
 - (H2 only) `spring.h2.console.enabled`: Will enable H2 web console on `http://localhost:8080/airr/v1/h2-console` (default with url `jdbc:h2:file:./data/db` account `sa:password`). Defaults to false.

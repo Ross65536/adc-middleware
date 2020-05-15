@@ -12,10 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
+import pt.inesctec.adcauthmiddleware.config.AppConfig;
 
 @RestController
 public class AdcPublicController {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcPublicController.class);
+  @Autowired private AppConfig appConfig;
 
   @Autowired private AdcClient adcClient;
 
@@ -57,6 +59,11 @@ public class AdcPublicController {
   }
 
   private ResponseEntity<StreamingResponseBody> forward(String path) throws Exception {
+    if (! appConfig.isPublicEndpointsEnabled()) {
+      throw SpringUtils.buildHttpException(
+          HttpStatus.NOT_IMPLEMENTED, "public endpoints not supported for current repository");
+    }
+
     var is = SpringUtils.catchForwardingError(() -> this.adcClient.getResource(path));
     return SpringUtils.buildJsonStream(is);
   }
