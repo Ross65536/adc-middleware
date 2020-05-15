@@ -151,11 +151,6 @@ public class DbRepository {
             .addFields(
                 AdcConstants.REARRANGEMENT_REARRANGEMENT_ID_FIELD,
                 AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
-    var backendRearrangements = this.adcClient.getRearrangementIds(rearrangementSearch);
-    CollectionsUtils.assertList(
-        backendRearrangements,
-        e -> e.getRearrangementId() != null,
-        "Rearrangements response must have rearrangement_id");
 
     // sync studies
     var backendStudyMap =
