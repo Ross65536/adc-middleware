@@ -6,8 +6,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -37,6 +39,7 @@ import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.ResourceJsonMapper;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
+import pt.inesctec.adcauthmiddleware.adc.models.filters.content.FieldContent;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
@@ -245,7 +248,22 @@ public class AdcAuthController {
     }
   }
 
-  @RequestMapping(value = "/synchronize", method = RequestMethod.POST) // TODO make use of OIDC flow
+  @RequestMapping(value = "/public_fields", method = RequestMethod.GET)
+  public Map<FieldClass, Set<String>> publicFields() {
+
+    var map = new HashMap<FieldClass, Set<String>>();
+
+    for (var adcClass : FieldClass.values()) {
+      var fields = this.csvConfig.getPublicFields(adcClass);
+      if (! fields.isEmpty()) {
+        map.put(adcClass, fields);
+      }
+    }
+
+    return map;
+  }
+
+  @RequestMapping(value = "/synchronize", method = RequestMethod.POST)
   public void synchronize(HttpServletRequest request) throws Exception {
     String bearer = SpringUtils.getBearer(request);
     if (bearer == null) {
@@ -352,7 +370,8 @@ public class AdcAuthController {
 
     if (adcSearch.isFacetsSearch() && !this.appConfig.isFacetsEnabled()) {
       throw SpringUtils.buildHttpException(
-          HttpStatus.NOT_IMPLEMENTED, "Invalid input JSON: 'facets' support for current repository not enabled");
+          HttpStatus.NOT_IMPLEMENTED,
+          "Invalid input JSON: 'facets' support for current repository not enabled");
     }
 
     var fieldTypes = this.csvConfig.getFields(fieldClass);
