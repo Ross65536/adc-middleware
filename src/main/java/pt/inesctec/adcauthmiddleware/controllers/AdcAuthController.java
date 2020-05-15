@@ -347,10 +347,13 @@ public class AdcAuthController {
       ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest,
       Function<String, String> mapperComposition)
       throws Exception {
+    boolean requestFieldsEmpty = adcSearch.isFieldsEmpty();
+    Set<String> requestFields = adcSearch.getFields();
+
     var umaScopes =
-        adcSearch.isFieldsEmpty()
+        requestFieldsEmpty
             ? this.csvConfig.getUmaScopes(fieldClass)
-            : this.csvConfig.getUmaScopes(fieldClass, adcSearch.getFields());
+            : this.csvConfig.getUmaScopes(fieldClass, requestFields);
 
     List<UmaResource> umaResources =
         this.adcQueryUmaFlow(request, adcSearch, resourceId, umaScopes, umaIdsProducer);
@@ -360,6 +363,14 @@ public class AdcAuthController {
 
     var fieldMapper =
         this.buildUmaFieldMapper(umaResources, fieldClass, removeFields).compose(mapperComposition);
+
+    // This will implement ADC "fields" based filtering on the middleware if the backend does't support this feature
+    // This feature probably shouldn't be implemented in the middleware but in the backend itself
+    // Originally added to support scireptor
+    if (!requestFieldsEmpty) {
+      fieldMapper = fieldMapper.andThen(set -> Sets.intersection(set, requestFields));
+    }
+
     return buildFilteredJsonResponse(
         resourceId, responseFilterField, fieldMapper, () -> adcRequest.apply(adcSearch));
   }
