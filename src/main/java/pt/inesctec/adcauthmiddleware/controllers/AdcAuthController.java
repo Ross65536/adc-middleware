@@ -349,6 +349,12 @@ public class AdcAuthController {
 
   private void validateAdcSearch(AdcSearchRequest adcSearch, FieldClass fieldClass)
       throws HttpException {
+
+    if (adcSearch.isFacetsSearch() && !this.appConfig.isFacetsEnabled()) {
+      throw SpringUtils.buildHttpException(
+          HttpStatus.UNPROCESSABLE_ENTITY, "Invalid input JSON: 'facets' support for current repository not enabled");
+    }
+
     var fieldTypes = this.csvConfig.getFields(fieldClass);
     try {
       AdcSearchRequest.validate(adcSearch, fieldTypes);
@@ -373,7 +379,6 @@ public class AdcAuthController {
             .map(
                 uma -> {
                   var scopes = new HashSet<>(uma.getScopes());
-
                   var fields = this.csvConfig.getFields(fieldClass, scopes);
                   return Pair.of(uma.getUmaResourceId(), fields);
                 })

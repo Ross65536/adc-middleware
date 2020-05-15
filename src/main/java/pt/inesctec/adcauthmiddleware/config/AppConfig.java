@@ -12,8 +12,9 @@ import org.springframework.validation.annotation.Validated;
 public class AppConfig {
 
   private String adcCsvConfigPath;
-
-  @NotNull @NotBlank private String synchronizePasswordHash;
+  private boolean facetsEnabled = true;
+  @NotNull @NotBlank
+  private String synchronizePasswordHash;
 
   public String getAdcCsvConfigPath() {
     return adcCsvConfigPath;
@@ -29,5 +30,13 @@ public class AppConfig {
 
   public void setSynchronizePasswordHash(String synchronizePasswordHash) {
     this.synchronizePasswordHash = synchronizePasswordHash;
+  }
+
+  public boolean isFacetsEnabled() {
+    return facetsEnabled;
+  }
+
+  public void setFacetsEnabled(boolean facetsEnabled) {
+    this.facetsEnabled = facetsEnabled;
   }
 }
