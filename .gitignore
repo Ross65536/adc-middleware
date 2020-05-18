@@ -36,3 +36,4 @@ tmp/
 data/*
 !data/config
 .~lock.*
+bin/

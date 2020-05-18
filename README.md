@@ -163,6 +163,14 @@ spring.redis.port=6379
 ```
 
 
+#### Dev run example
+
+```
+docker-compose --file docker-compose.dev.yml up
+./gradlew bootRun --args='--spring.config.location=classpath:/application.properties,./dev.properties'
+```
+
+
 ### Build deployable jar
 
 The jar uses java 11
@@ -312,6 +320,16 @@ PASSWORD=$(xxd -l 32 -c 100000 -p /dev/urandom) # or use a different password
 spring encodepassword -a bcrypt $PASSWORD # $THE_PASSWORD
 # example acceptable password: 'master' for '$2a$10$qr81MrxWblqZlMAt5kf/9.xdBPubtDMuoV3DRKgTk2bu.SPazsaTm'
 ```
+
+#### Public fields 
+
+You can use the public endpoint: 
+
+```
+curl --location --request GET 'localhost:8080/airr/v1/public_fields'
+```
+
+to obtain the public fields for each class of resources.
 
 ## Profilling
 
