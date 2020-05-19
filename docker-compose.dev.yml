@@ -9,18 +9,6 @@ services:
       - ./tmp/keycloak_inner:/keycloak/standalone/data
     ports:
       - 8082:80
-    depends_on:
-      - keycloak_db
-
-
-  keycloak_db:
-    image: postgres:12
-    volumes:
-      - ./tmp/db_keycloak:/var/lib/postgresql/data
-    environment:
-      # default user is 'postgres'
-      POSTGRES_DB: keycloak_db
-      POSTGRES_PASSWORD: password2
 
   redis:
     image: redis
