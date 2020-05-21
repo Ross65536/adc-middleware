@@ -16,7 +16,7 @@ public class Requests {
       throws JsonProcessingException {
     var entity = this.restTemplate.getForEntity(path, String.class);
     assertThat(entity.getStatusCodeValue()).isEqualTo(expectedStatus);
-    return Json.fromJson(entity.getBody(), Map.class);
+    return TestJson.fromJson(entity.getBody(), Map.class);
   }
 
 }

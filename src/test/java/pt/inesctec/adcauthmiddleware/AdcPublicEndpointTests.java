@@ -2,7 +2,6 @@ package pt.inesctec.adcauthmiddleware;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.util.List;
 import org.junit.Before;
@@ -10,44 +9,23 @@ import org.junit.ClassRule;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import pt.inesctec.adcauthmiddleware.utils.Pair;
 import pt.inesctec.adcauthmiddleware.utils.TestMaps;
 import pt.inesctec.adcauthmiddleware.utils.Requests;
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
-import static pt.inesctec.adcauthmiddleware.utils.Json.toJson;
+import static pt.inesctec.adcauthmiddleware.utils.WireMocker.setupGetJsonMock;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AdcPublicEndpointTests {
   private static final int BACKEND_PORT = 8883;
-  private static final String JSON_MIME = "application/json";
 
   @ClassRule
   private static WireMockServer backendMock = new WireMockRule(options().port(BACKEND_PORT));
 
-
   @LocalServerPort private int port;
   @Autowired private Requests requests;
-
-
-  public static void setupGetJsonMock(WireMockServer mock, String url, int status, String json) {
-    mock.stubFor(
-        WireMock.get(url)
-            .withHeader("Accept", containing(JSON_MIME))
-            .willReturn(
-                WireMock.aResponse()
-                    .withStatus(status)
-                    .withBody(json)
-                    .withHeader("Content-Type", JSON_MIME)));
-  }
-
-  public static void setupGetJsonMock(WireMockServer mock, String url, int status, Object body)
-      throws JsonProcessingException {
-    setupGetJsonMock(mock, url, status, toJson(body));
-  }
 
   @Before
   void reset() {
