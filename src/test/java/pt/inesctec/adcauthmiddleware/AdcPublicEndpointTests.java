@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.util.List;
 import java.util.Map;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,50 +21,53 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AdcPublicEndpointTests {
   private static final int BACKEND_PORT = 8883;
+  private static final String JSON_MIME = "application/json";
+
   @ClassRule
   private static WireMockServer backendMock = new WireMockRule(options().port(BACKEND_PORT));
+
   private static ObjectMapper JsonObjectMapper = new ObjectMapper();
 
-  @LocalServerPort
-  private int port;
-  @Autowired
-  private TestRestTemplate restTemplate;
-
+  @LocalServerPort private int port;
+  @Autowired private TestRestTemplate restTemplate;
 
   private static String toJson(Object obj) throws JsonProcessingException {
     return JsonObjectMapper.writeValueAsString(obj);
   }
 
-  private static String JSON_MIME = "application/json";
-
   public static void setupGetJsonMock(WireMockServer mock, String url, int status, String json) {
-    mock.stubFor(WireMock.get(url)
-        .withHeader("Accept",  containing(JSON_MIME))
-        .willReturn(WireMock.aResponse()
-            .withStatus(status)
-            .withBody(json)
-            .withHeader("Content-Type", JSON_MIME)
-        )
-    );
+    mock.stubFor(
+        WireMock.get(url)
+            .withHeader("Accept", containing(JSON_MIME))
+            .willReturn(
+                WireMock.aResponse()
+                    .withStatus(status)
+                    .withBody(json)
+                    .withHeader("Content-Type", JSON_MIME)));
   }
 
-  public static void setupGetJsonMock(WireMockServer mock, String url, int status, Object body) throws JsonProcessingException {
+  public static void setupGetJsonMock(WireMockServer mock, String url, int status, Object body)
+      throws JsonProcessingException {
     setupGetJsonMock(mock, url, status, toJson(body));
   }
 
-  public Map<String, Object> getJsonObj(String path, int expectedStatus) throws JsonProcessingException {
+  public Map<String, Object> getJsonObj(String path, int expectedStatus)
+      throws JsonProcessingException {
     var entity = this.restTemplate.getForEntity(path, String.class);
     assertThat(entity.getStatusCodeValue()).isEqualTo(expectedStatus);
     return JsonObjectMapper.readValue(entity.getBody(), Map.class);
+  }
+
+  @Before
+  void reset() {
+    backendMock.resetAll();
   }
 
   @Test
   void rootOk() throws JsonProcessingException {
     int status = 200;
     String path = "/airr/v1";
-    var info = TestMaps.of(
-        Pair.of("result", "success")
-    );
+    var info = TestMaps.of(Pair.of("result", "success"));
 
     setupGetJsonMock(backendMock, path, status, info);
     backendMock.start();
@@ -75,10 +80,7 @@ class AdcPublicEndpointTests {
   void infoOk() throws JsonProcessingException {
     int status = 200;
     String path = "/airr/v1/info";
-    var info = TestMaps.of(
-        Pair.of("name", "airr"),
-        Pair.of("last_update", null)
-    );
+    var info = TestMaps.of(Pair.of("name", "airr"), Pair.of("last_update", null));
 
     setupGetJsonMock(backendMock, path, status, info);
     backendMock.start();
@@ -91,9 +93,7 @@ class AdcPublicEndpointTests {
   void infoError() throws JsonProcessingException {
     int status = 401;
     String path = "/airr/v1/info";
-    var info = TestMaps.of(
-        Pair.of("result", "error")
-    );
+    var info = TestMaps.of(Pair.of("result", "error"));
 
     setupGetJsonMock(backendMock, path, status, info);
     backendMock.start();
@@ -107,9 +107,7 @@ class AdcPublicEndpointTests {
     // not sure what swagger is suppoed to return
     int status = 200;
     String path = "/airr/v1/swagger";
-    var info = TestMaps.of(
-        Pair.of("result", "success")
-    );
+    var info = TestMaps.of(Pair.of("result", "success"));
 
     setupGetJsonMock(backendMock, path, status, info);
     backendMock.start();
@@ -118,4 +116,13 @@ class AdcPublicEndpointTests {
     assertThat(actualInfo).isEqualTo(info);
   }
 
+  @Test
+  void publicFields() throws JsonProcessingException {
+    // based on file src/test/resources/field-mapping.csv
+    String[] expectedFields = new String[]{"repertoire_id", "study.study_id", "study.study_title"};
+
+    var actualFields = getJsonObj("http://localhost:" + port + "/airr/v1/public_fields", 200);
+    assertThat(actualFields).containsOnlyKeys("Repertoire");
+    assertThat((List<String>) actualFields.get("Repertoire")).containsExactlyInAnyOrder(expectedFields);
+  }
 }
