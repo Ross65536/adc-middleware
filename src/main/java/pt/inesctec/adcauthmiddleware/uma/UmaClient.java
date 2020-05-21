@@ -29,14 +29,21 @@ public class UmaClient {
 
   public UmaClient(UmaConfig config) throws Exception {
     this.umaConfig = config;
-    this.wellKnown = UmaClient.getWellKnown(config.getWellKnownUrl());
 
-    //    this.updateAccessToken();
+
+  }
+
+  private UmaWellKnown getWellKnown() throws Exception {
+    if (this.wellKnown == null) { // lazy loading because of tests
+      this.wellKnown = UmaClient.getWellKnown(this.umaConfig.getWellKnownUrl());
+    }
+
+    return this.wellKnown;
   }
 
   public String requestPermissionsTicket(UmaResource... resources) throws Exception {
     this.updateAccessToken();
-    var uri = Utils.buildUrl(wellKnown.getPermissionEndpoint());
+    var uri = Utils.buildUrl(this.getWellKnown().getPermissionEndpoint());
     var request =
         new HttpRequestBuilderFacade()
             .postJson(uri, resources)
@@ -52,13 +59,13 @@ public class UmaClient {
     }
   }
 
-  public String getIssuer() {
-    return this.wellKnown.getIssuer();
+  public String getIssuer() throws Exception {
+    return this.getWellKnown().getIssuer();
   }
 
   public List<UmaResource> introspectToken(String rptToken) throws Exception {
     this.updateAccessToken();
-    var uri = Utils.buildUrl(wellKnown.getIntrospectionEndpoint());
+    var uri = Utils.buildUrl(this.getWellKnown().getIntrospectionEndpoint());
     var form = ImmutableMap.of("token", rptToken, "token_type_hint", "requesting_party_token");
     var request =
         new HttpRequestBuilderFacade()
@@ -95,7 +102,7 @@ public class UmaClient {
             "client_id", this.umaConfig.getClientId(),
             "client_secret", this.umaConfig.getClientSecret());
 
-    var uri = Utils.buildUrl(wellKnown.getTokenEndpoint());
+    var uri = Utils.buildUrl(this.getWellKnown().getTokenEndpoint());
     AccessToken accessToken = null;
     var request = new HttpRequestBuilderFacade().postForm(uri, body).expectJson().build();
 
@@ -132,7 +139,7 @@ public class UmaClient {
 
     Logger.info("Requesting UMA 2 resource list");
 
-    var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint());
+    var uri = Utils.buildUrl(this.getWellKnown().getResourceRegistrationEndpoint());
     var request =
         new HttpRequestBuilderFacade()
             .getJson(uri)
@@ -152,7 +159,7 @@ public class UmaClient {
 
     Logger.info("Deleting UMA 2 resource: {}", umaId);
 
-    var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint(), umaId);
+    var uri = Utils.buildUrl(this.getWellKnown().getResourceRegistrationEndpoint(), umaId);
     var request =
         new HttpRequestBuilderFacade()
             .delete(uri)
@@ -176,7 +183,7 @@ public class UmaClient {
 
     Logger.info("Creating UMA 2 resource: {}", resource);
 
-    var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint());
+    var uri = Utils.buildUrl(this.getWellKnown().getResourceRegistrationEndpoint());
     var request =
         new HttpRequestBuilderFacade()
             .postJson(uri, resource)
@@ -202,7 +209,7 @@ public class UmaClient {
 
     Logger.info("Updating UMA 2 resource: {} to {}", umaId, resource);
 
-    var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint(), umaId);
+    var uri = Utils.buildUrl(this.getWellKnown().getResourceRegistrationEndpoint(), umaId);
     var request =
         new HttpRequestBuilderFacade()
             .putJson(uri, resource)
@@ -223,7 +230,7 @@ public class UmaClient {
 
     Logger.info("Getting UMA 2 resource: {}", umaId);
 
-    var uri = Utils.buildUrl(wellKnown.getResourceRegistrationEndpoint(), umaId);
+    var uri = Utils.buildUrl(this.getWellKnown().getResourceRegistrationEndpoint(), umaId);
     var request =
         new HttpRequestBuilderFacade()
             .getJson(uri)
