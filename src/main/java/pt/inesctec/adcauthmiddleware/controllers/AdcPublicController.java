@@ -21,6 +21,8 @@ public class AdcPublicController {
 
   @Autowired private AdcClient adcClient;
 
+
+
   @ExceptionHandler(HttpException.class)
   public ResponseEntity<String> httpExceptionForward(HttpException e) {
     Logger.debug("Stacktrace: ", e);

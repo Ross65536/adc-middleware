@@ -65,7 +65,7 @@ Project runs on java 11, with (modified) google java style guide.
     
     You can now make requests to `http://localhost:8080/airr/v1/`. Try with `http://localhost:8080/airr/v1/info` to see if there is a connection to the backend. 
     
-    On boot the middleware server automatically connects to keycloak and the DB.
+    On boot the middleware server automatically connects to the DB.
     
 5. Synchronize middleware cache:
 
@@ -119,7 +119,6 @@ Then configure keycloak:
 A user can then login on `http://localhost:8082/auth/realms/master/account` (for example login as owner to grant accesses to users).
 
 You can use different values for these strings, but you would need to update the configuration variables.
-
 
 
 #### To install, build and run for development:
