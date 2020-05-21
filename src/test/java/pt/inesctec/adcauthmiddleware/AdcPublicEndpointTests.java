@@ -17,7 +17,10 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class AdcAuthMiddlewareApplicationTests {
+class AdcPublicEndpointTests {
+  private static final int BACKEND_PORT = 8883;
+  @ClassRule
+  private static WireMockServer backendMock = new WireMockRule(options().port(BACKEND_PORT));
   private static ObjectMapper JsonObjectMapper = new ObjectMapper();
 
   @LocalServerPort
@@ -25,8 +28,6 @@ class AdcAuthMiddlewareApplicationTests {
   @Autowired
   private TestRestTemplate restTemplate;
 
-  @ClassRule
-  private static WireMockServer backendMock = new WireMockRule(options().port(8883));
 
   private static String toJson(Object obj) throws JsonProcessingException {
     return JsonObjectMapper.writeValueAsString(obj);
