@@ -10,7 +10,7 @@ public final class WireMocker {
   private static final String JSON_MIME = "application/json";
 
 
-  public static void setupGetJsonMock(WireMockServer mock, String url, int status, String json) {
+  public static void wireGetJson(WireMockServer mock, String url, int status, String json) {
     mock.stubFor(
         WireMock.get(url)
             .withHeader("Accept", containing(JSON_MIME))
@@ -21,8 +21,8 @@ public final class WireMocker {
                     .withHeader("Content-Type", JSON_MIME)));
   }
 
-  public static void setupGetJsonMock(WireMockServer mock, String url, int status, Object body)
+  public static void wireGetJson(WireMockServer mock, String url, int status, Object body)
       throws JsonProcessingException {
-    setupGetJsonMock(mock, url, status, toJson(body));
+    wireGetJson(mock, url, status, toJson(body));
   }
 }

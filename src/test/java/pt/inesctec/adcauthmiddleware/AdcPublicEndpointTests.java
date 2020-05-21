@@ -16,7 +16,7 @@ import pt.inesctec.adcauthmiddleware.utils.TestMaps;
 import pt.inesctec.adcauthmiddleware.utils.Requests;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
-import static pt.inesctec.adcauthmiddleware.utils.WireMocker.setupGetJsonMock;
+import static pt.inesctec.adcauthmiddleware.utils.WireMocker.wireGetJson;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AdcPublicEndpointTests {
@@ -38,7 +38,7 @@ class AdcPublicEndpointTests {
     String path = "/airr/v1";
     var info = TestMaps.of(Pair.of("result", "success"));
 
-    setupGetJsonMock(backendMock, path, status, info);
+    wireGetJson(backendMock, path, status, info);
     backendMock.start();
 
     var actualInfo = requests.getJsonObj("http://localhost:" + port + path + "/", status);
@@ -51,7 +51,7 @@ class AdcPublicEndpointTests {
     String path = "/airr/v1/info";
     var info = TestMaps.of(Pair.of("name", "airr"), Pair.of("last_update", null));
 
-    setupGetJsonMock(backendMock, path, status, info);
+    wireGetJson(backendMock, path, status, info);
     backendMock.start();
 
     var actualInfo = requests.getJsonObj("http://localhost:" + port + path, status);
@@ -64,7 +64,7 @@ class AdcPublicEndpointTests {
     String path = "/airr/v1/info";
     var info = TestMaps.of(Pair.of("result", "error"));
 
-    setupGetJsonMock(backendMock, path, status, info);
+    wireGetJson(backendMock, path, status, info);
     backendMock.start();
 
     var actualInfo = requests.getJsonObj("http://localhost:" + port + path + "/", status);
@@ -78,7 +78,7 @@ class AdcPublicEndpointTests {
     String path = "/airr/v1/swagger";
     var info = TestMaps.of(Pair.of("result", "success"));
 
-    setupGetJsonMock(backendMock, path, status, info);
+    wireGetJson(backendMock, path, status, info);
     backendMock.start();
 
     var actualInfo = requests.getJsonObj("http://localhost:" + port + path + "/", status);
