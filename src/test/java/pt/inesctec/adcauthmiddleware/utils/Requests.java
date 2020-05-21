@@ -12,7 +12,7 @@ public class Requests {
   @Autowired
   private TestRestTemplate restTemplate;
 
-  public Map<String, Object> getJsonObj(String path, int expectedStatus)
+  public Map<String, Object> getJsonMap(String path, int expectedStatus)
       throws JsonProcessingException {
     var entity = this.restTemplate.getForEntity(path, String.class);
     assertThat(entity.getStatusCodeValue()).isEqualTo(expectedStatus);

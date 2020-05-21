@@ -41,7 +41,7 @@ class AdcPublicEndpointTests {
     wireGetJson(backendMock, path, status, info);
     backendMock.start();
 
-    var actualInfo = requests.getJsonObj("http://localhost:" + port + path + "/", status);
+    var actualInfo = requests.getJsonMap("http://localhost:" + port + path + "/", status);
     assertThat(actualInfo).isEqualTo(info);
   }
 
@@ -54,7 +54,7 @@ class AdcPublicEndpointTests {
     wireGetJson(backendMock, path, status, info);
     backendMock.start();
 
-    var actualInfo = requests.getJsonObj("http://localhost:" + port + path, status);
+    var actualInfo = requests.getJsonMap("http://localhost:" + port + path, status);
     assertThat(actualInfo).isEqualTo(info);
   }
 
@@ -67,7 +67,7 @@ class AdcPublicEndpointTests {
     wireGetJson(backendMock, path, status, info);
     backendMock.start();
 
-    var actualInfo = requests.getJsonObj("http://localhost:" + port + path + "/", status);
+    var actualInfo = requests.getJsonMap("http://localhost:" + port + path + "/", status);
     assertThat(actualInfo).isEqualTo(info);
   }
 
@@ -81,7 +81,7 @@ class AdcPublicEndpointTests {
     wireGetJson(backendMock, path, status, info);
     backendMock.start();
 
-    var actualInfo = requests.getJsonObj("http://localhost:" + port + path + "/", status);
+    var actualInfo = requests.getJsonMap("http://localhost:" + port + path + "/", status);
     assertThat(actualInfo).isEqualTo(info);
   }
 
@@ -90,7 +90,7 @@ class AdcPublicEndpointTests {
     // based on file src/test/resources/field-mapping.csv
     String[] expectedFields = new String[]{"repertoire_id", "study.study_id", "study.study_title"};
 
-    var actualFields = requests.getJsonObj("http://localhost:" + port + "/airr/v1/public_fields", 200);
+    var actualFields = requests.getJsonMap("http://localhost:" + port + "/airr/v1/public_fields", 200);
     assertThat(actualFields).containsOnlyKeys("Repertoire");
     assertThat((List<String>) actualFields.get("Repertoire")).containsExactlyInAnyOrder(expectedFields);
   }
