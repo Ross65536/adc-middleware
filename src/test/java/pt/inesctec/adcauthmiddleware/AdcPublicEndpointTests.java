@@ -1,12 +1,10 @@
 package pt.inesctec.adcauthmiddleware;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.util.List;
-import java.util.Map;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.jupiter.api.Test;
@@ -14,9 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import pt.inesctec.adcauthmiddleware.utils.Pair;
+import pt.inesctec.adcauthmiddleware.utils.TestMaps;
+import pt.inesctec.adcauthmiddleware.utils.Requests;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
+import static pt.inesctec.adcauthmiddleware.utils.Json.toJson;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AdcPublicEndpointTests {
@@ -26,14 +28,10 @@ class AdcPublicEndpointTests {
   @ClassRule
   private static WireMockServer backendMock = new WireMockRule(options().port(BACKEND_PORT));
 
-  private static ObjectMapper JsonObjectMapper = new ObjectMapper();
 
   @LocalServerPort private int port;
-  @Autowired private TestRestTemplate restTemplate;
+  @Autowired private Requests requests;
 
-  private static String toJson(Object obj) throws JsonProcessingException {
-    return JsonObjectMapper.writeValueAsString(obj);
-  }
 
   public static void setupGetJsonMock(WireMockServer mock, String url, int status, String json) {
     mock.stubFor(
@@ -51,13 +49,6 @@ class AdcPublicEndpointTests {
     setupGetJsonMock(mock, url, status, toJson(body));
   }
 
-  public Map<String, Object> getJsonObj(String path, int expectedStatus)
-      throws JsonProcessingException {
-    var entity = this.restTemplate.getForEntity(path, String.class);
-    assertThat(entity.getStatusCodeValue()).isEqualTo(expectedStatus);
-    return JsonObjectMapper.readValue(entity.getBody(), Map.class);
-  }
-
   @Before
   void reset() {
     backendMock.resetAll();
@@ -72,7 +63,7 @@ class AdcPublicEndpointTests {
     setupGetJsonMock(backendMock, path, status, info);
     backendMock.start();
 
-    var actualInfo = getJsonObj("http://localhost:" + port + path + "/", status);
+    var actualInfo = requests.getJsonObj("http://localhost:" + port + path + "/", status);
     assertThat(actualInfo).isEqualTo(info);
   }
 
@@ -85,7 +76,7 @@ class AdcPublicEndpointTests {
     setupGetJsonMock(backendMock, path, status, info);
     backendMock.start();
 
-    var actualInfo = getJsonObj("http://localhost:" + port + path, status);
+    var actualInfo = requests.getJsonObj("http://localhost:" + port + path, status);
     assertThat(actualInfo).isEqualTo(info);
   }
 
@@ -98,7 +89,7 @@ class AdcPublicEndpointTests {
     setupGetJsonMock(backendMock, path, status, info);
     backendMock.start();
 
-    var actualInfo = getJsonObj("http://localhost:" + port + path + "/", status);
+    var actualInfo = requests.getJsonObj("http://localhost:" + port + path + "/", status);
     assertThat(actualInfo).isEqualTo(info);
   }
 
@@ -112,7 +103,7 @@ class AdcPublicEndpointTests {
     setupGetJsonMock(backendMock, path, status, info);
     backendMock.start();
 
-    var actualInfo = getJsonObj("http://localhost:" + port + path + "/", status);
+    var actualInfo = requests.getJsonObj("http://localhost:" + port + path + "/", status);
     assertThat(actualInfo).isEqualTo(info);
   }
 
@@ -121,7 +112,7 @@ class AdcPublicEndpointTests {
     // based on file src/test/resources/field-mapping.csv
     String[] expectedFields = new String[]{"repertoire_id", "study.study_id", "study.study_title"};
 
-    var actualFields = getJsonObj("http://localhost:" + port + "/airr/v1/public_fields", 200);
+    var actualFields = requests.getJsonObj("http://localhost:" + port + "/airr/v1/public_fields", 200);
     assertThat(actualFields).containsOnlyKeys("Repertoire");
     assertThat((List<String>) actualFields.get("Repertoire")).containsExactlyInAnyOrder(expectedFields);
   }

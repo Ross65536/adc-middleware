@@ -1,0 +1,14 @@
+class,field,protection,access_scope,field_type,description
+Repertoire,repertoire_id,public,,string,"Identifier for the repertoire object. This identifier should be globally unique so that repertoires from multiple studies can be combined together without conflict. The repertoire_id is used to link other AIRR data to a Repertoire. Specifically, the Rearrangements Schema includes repertoire_id for referencing the specific Repertoire for that Rearrangement."
+Repertoire,study.study_id,public,,string,Unique ID assigned by study registry
+Repertoire,study.study_title,public,,string,Descriptive study title
+Repertoire,study.study_type.value,protected,statistics,string,Type of study design
+Repertoire,study.study_type.id,protected,statistics,string,Type of study design (Ontology ID)
+Repertoire,data_processing.data_processing_files,protected,statistics,array_string,Array of file names for data produced by this data processing.
+Repertoire,data_processing.germline_database,protected,statistics,string,Source of germline V(D)J genes with version number or date accessed.
+Repertoire,data_processing.analysis_provenance_id,protected,statistics,string,Identifier for machine-readable PROV model of analysis provenance
+Rearrangement,sequence_id,protected,raw_sequence,string,"Unique query sequence identifier within the file. Most often this will be the input sequence header or a substring thereof, but may also be a custom identifier defined by the tool in cases where query sequences have been combined in some fashion prior to alignment."
+Rearrangement,sequence,protected,raw_sequence,string,"The query nucleotide sequence. Usually, this is the unmodified input sequence, which may be reverse complemented if necessary. In some cases, this field may contain consensus sequences or other types of collapsed input sequences if these steps are performed prior to alignment."
+Rearrangement,sequence_aa,protected,raw_sequence,string,Amino acid translation of the query nucleotide sequence.
+Rearrangement,rearrangement_id,protected,raw_sequence,string,"Identifier for the Rearrangement object. May be identical to sequence_id, but will usually be a universally unique record locator for database applications."
+Rearrangement,repertoire_id,protected,raw_sequence,string,Identifier to the associated repertoire in study metadata.

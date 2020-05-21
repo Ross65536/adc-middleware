@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware;
+package pt.inesctec.adcauthmiddleware.utils;
 
 public class Pair<F, S> {
   public final F first;
