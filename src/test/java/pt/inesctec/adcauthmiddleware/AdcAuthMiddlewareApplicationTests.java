@@ -6,7 +6,6 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.util.Map;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +26,7 @@ class AdcAuthMiddlewareApplicationTests {
   private TestRestTemplate restTemplate;
 
   @ClassRule
-  private static WireMockServer backend = new WireMockRule(options().port(8883));
-
-  @BeforeClass
-  public void init() {
-  }
+  private static WireMockServer backendMock = new WireMockRule(options().port(8883));
 
   private static String toJson(Object obj) throws JsonProcessingException {
     return JsonObjectMapper.writeValueAsString(obj);
@@ -50,22 +45,76 @@ class AdcAuthMiddlewareApplicationTests {
     );
   }
 
+  public static void setupGetJsonMock(WireMockServer mock, String url, int status, Object body) throws JsonProcessingException {
+    setupGetJsonMock(mock, url, status, toJson(body));
+  }
+
+  public Map<String, Object> getJsonObj(String path, int expectedStatus) throws JsonProcessingException {
+    var entity = this.restTemplate.getForEntity(path, String.class);
+    assertThat(entity.getStatusCodeValue()).isEqualTo(expectedStatus);
+    return JsonObjectMapper.readValue(entity.getBody(), Map.class);
+  }
+
   @Test
-  void publicInfo() throws JsonProcessingException {
+  void rootOk() throws JsonProcessingException {
+    int status = 200;
+    String path = "/airr/v1";
+    var info = TestMaps.of(
+        Pair.of("result", "success")
+    );
+
+    setupGetJsonMock(backendMock, path, status, info);
+    backendMock.start();
+
+    var actualInfo = getJsonObj("http://localhost:" + port + path + "/", status);
+    assertThat(actualInfo).isEqualTo(info);
+  }
+
+  @Test
+  void infoOk() throws JsonProcessingException {
     int status = 200;
     String path = "/airr/v1/info";
-    var info = Map.of(
-        "name", "airr",
-        "last_update", 123
+    var info = TestMaps.of(
+        Pair.of("name", "airr"),
+        Pair.of("last_update", null)
     );
-    var respJson = toJson(info);
 
-    setupGetJsonMock(backend, path, status, respJson);
-    backend.start();
+    setupGetJsonMock(backendMock, path, status, info);
+    backendMock.start();
 
-    var entity = this.restTemplate.getForEntity("http://localhost:" + port + path, String.class);
-    assertThat(entity.getStatusCodeValue()).isEqualTo(status);
-    assertThat(entity.getBody()).isEqualTo(respJson);
-
+    var actualInfo = getJsonObj("http://localhost:" + port + path, status);
+    assertThat(actualInfo).isEqualTo(info);
   }
+
+  @Test
+  void infoError() throws JsonProcessingException {
+    int status = 401;
+    String path = "/airr/v1/info";
+    var info = TestMaps.of(
+        Pair.of("result", "error")
+    );
+
+    setupGetJsonMock(backendMock, path, status, info);
+    backendMock.start();
+
+    var actualInfo = getJsonObj("http://localhost:" + port + path + "/", status);
+    assertThat(actualInfo).isEqualTo(info);
+  }
+
+  @Test
+  void swaggerOk() throws JsonProcessingException {
+    // not sure what swagger is suppoed to return
+    int status = 200;
+    String path = "/airr/v1/swagger";
+    var info = TestMaps.of(
+        Pair.of("result", "success")
+    );
+
+    setupGetJsonMock(backendMock, path, status, info);
+    backendMock.start();
+
+    var actualInfo = getJsonObj("http://localhost:" + port + path + "/", status);
+    assertThat(actualInfo).isEqualTo(info);
+  }
+
 }
