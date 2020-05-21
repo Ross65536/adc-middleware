@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import pt.inesctec.adcauthmiddleware.utils.Pair;
+import pt.inesctec.adcauthmiddleware.utils.TestConstants;
 import pt.inesctec.adcauthmiddleware.utils.TestMaps;
 import pt.inesctec.adcauthmiddleware.utils.Requests;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
@@ -19,10 +20,9 @@ import static pt.inesctec.adcauthmiddleware.utils.WireMocker.setupGetJsonMock;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AdcPublicEndpointTests {
-  private static final int BACKEND_PORT = 8883;
 
   @ClassRule
-  private static WireMockServer backendMock = new WireMockRule(options().port(BACKEND_PORT));
+  private static WireMockServer backendMock = new WireMockRule(options().port(TestConstants.BACKEND_PORT));
 
   @LocalServerPort private int port;
   @Autowired private Requests requests;
