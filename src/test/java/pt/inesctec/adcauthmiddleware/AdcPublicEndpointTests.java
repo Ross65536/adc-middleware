@@ -2,11 +2,9 @@ package pt.inesctec.adcauthmiddleware;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import pt.inesctec.adcauthmiddleware.utils.Pair;
-import pt.inesctec.adcauthmiddleware.utils.Requests;
 import pt.inesctec.adcauthmiddleware.utils.TestConstants;
 import pt.inesctec.adcauthmiddleware.utils.TestMaps;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -14,9 +12,8 @@ import static pt.inesctec.adcauthmiddleware.utils.WireMocker.wireGetJson;
 
 class AdcPublicEndpointTests extends TestBase {
 
-  @Autowired private Requests requests;
 
-  @Before
+  @BeforeEach
   void reset() {
     backendMock.resetAll();
   }
