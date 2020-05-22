@@ -25,9 +25,7 @@ dependencies {
 	implementation 'org.springframework.security:spring-security-test'
 	runtimeOnly 'com.h2database:h2:1.4.200'
 	testImplementation('com.github.tomakehurst:wiremock-jre8:2.26.3')
-	testImplementation('org.springframework.boot:spring-boot-starter-test') {
-//		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
-	}
+	testImplementation('org.springframework.boot:spring-boot-starter-test')
 }
 
 checkstyle {

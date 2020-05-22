@@ -27,9 +27,9 @@ public class RepertoireIds {
   }
 
   @JsonProperty("study")
-  public void unpackStudyId(Map<String, String> study) {
-    this.studyId = study.get("study_id");
-    this.studyTitle = study.get("study_title");
+  public void unpackStudyId(Map<String, Object> study) {
+    this.studyId = (String) study.get("study_id");
+    this.studyTitle = (String) study.get("study_title");
   }
 
   public String getStudyTitle() {

@@ -21,12 +21,8 @@ public class TestBase {
   @LocalServerPort
   protected int port;
 
-  protected String buildMiddlewarePath(String path) {
-    return TestConstants.BASE_MIDDLEWARE_PATH + "/" + path;
-  }
-
   protected String buildMiddlewareUrl(String path) {
-    return "http://localhost:" + port + this.buildMiddlewarePath(path);
+    return "http://localhost:" + port + TestConstants.buildAirrPath(path);
   }
 
 }

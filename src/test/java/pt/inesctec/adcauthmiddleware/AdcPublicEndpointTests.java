@@ -6,7 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.inesctec.adcauthmiddleware.utils.Pair;
 import pt.inesctec.adcauthmiddleware.utils.TestConstants;
-import pt.inesctec.adcauthmiddleware.utils.TestMaps;
+import pt.inesctec.adcauthmiddleware.utils.TestCollections;
 import static org.assertj.core.api.Assertions.assertThat;
 import static pt.inesctec.adcauthmiddleware.utils.WireMocker.wireGetJson;
 
@@ -21,7 +21,7 @@ class AdcPublicEndpointTests extends TestBase {
   @Test
   void rootOk() throws JsonProcessingException {
     int status = 200;
-    var info = TestMaps.of(Pair.of("result", "success"));
+    var info = TestCollections.mapOf(Pair.of("result", "success"));
 
     wireGetJson(backendMock, TestConstants.BASE_MIDDLEWARE_PATH, status, info);
     backendMock.start();
@@ -34,9 +34,9 @@ class AdcPublicEndpointTests extends TestBase {
   void infoOk() throws JsonProcessingException {
     int status = 200;
     String path = "info";
-    var info = TestMaps.of(Pair.of("name", "airr"), Pair.of("last_update", null));
+    var info = TestCollections.mapOf(Pair.of("name", "airr"), Pair.of("last_update", null));
 
-    wireGetJson(backendMock, buildMiddlewarePath(path), status, info);
+    wireGetJson(backendMock, TestConstants.buildAirrPath(path), status, info);
     backendMock.start();
 
     var actualInfo = requests.getJsonMap(buildMiddlewareUrl(path), status);
@@ -47,9 +47,9 @@ class AdcPublicEndpointTests extends TestBase {
   void infoError() throws JsonProcessingException {
     int status = 401;
     String path = "info";
-    var info = TestMaps.of(Pair.of("result", "error"));
+    var info = TestCollections.mapOf(Pair.of("result", "error"));
 
-    wireGetJson(backendMock, buildMiddlewarePath(path), status, info);
+    wireGetJson(backendMock, TestConstants.buildAirrPath(path), status, info);
     backendMock.start();
 
     var actualInfo = requests.getJsonMap(buildMiddlewareUrl(path), status);
@@ -61,9 +61,9 @@ class AdcPublicEndpointTests extends TestBase {
     // not sure what swagger is suppoed to return
     int status = 200;
     String path = "swagger";
-    var info = TestMaps.of(Pair.of("result", "success"));
+    var info = TestCollections.mapOf(Pair.of("result", "success"));
 
-    wireGetJson(backendMock, buildMiddlewarePath(path), status, info);
+    wireGetJson(backendMock, TestConstants.buildAirrPath(path), status, info);
     backendMock.start();
 
     var actualInfo = requests.getJsonMap(buildMiddlewareUrl(path), status);
