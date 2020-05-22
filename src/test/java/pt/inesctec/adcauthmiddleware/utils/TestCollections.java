@@ -13,7 +13,8 @@ public final class TestCollections {
     return map;
   }
 
-  public static String getString(Map<String, Object> model, String ... fields) {
+  public static String getString(Map<String, Object> model, String getField) {
+    var fields = getField.split("\\.");
     if (fields.length == 0) {
       throw new IllegalArgumentException("Invalid size");
     }

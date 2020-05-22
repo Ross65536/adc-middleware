@@ -146,12 +146,6 @@ public class DbRepository {
         e -> e.getRepertoireId() != null,
         "Repertoires response must have repertoire_id");
 
-    var rearrangementSearch =
-        new AdcSearchRequest()
-            .addFields(
-                AdcConstants.REARRANGEMENT_REARRANGEMENT_ID_FIELD,
-                AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
-
     // sync studies
     var backendStudyMap =
         CollectionsUtils.toMapKeyByLatest(

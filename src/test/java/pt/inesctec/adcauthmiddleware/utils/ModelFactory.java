@@ -1,5 +1,7 @@
 package pt.inesctec.adcauthmiddleware.utils;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
@@ -18,9 +20,13 @@ public class ModelFactory {
                 Pair.of("url", "https://github.com/airr-community"))));
   }
 
-  public static Map<String, Object> buildRepertoiresDocument(Object info, Object... repertoires) {
+  private static Map<String, Object> buildRepertoiresDocument(Map<String, Object> info, Object... repertoires) {
     return TestCollections.mapOf(
         Pair.of("Info", info), Pair.of("Repertoire", List.of(repertoires)));
+  }
+
+  public static Map<String, Object> buildRepertoiresDocumentWithInfo(Object... repertoires) {
+    return buildRepertoiresDocument(buildInfo(), repertoires);
   }
 
   public static Map<String, Object> buildAdcSearch(String... fields) {
@@ -50,6 +56,15 @@ public class ModelFactory {
             Pair.of("numbo", TestConstants.Random.nextDouble()),
             Pair.of("boolo", TestConstants.Random.nextBoolean())
         ))
+    );
+  }
+
+  public static Map<String, Object> buildUmaResource(String id, Collection<String> scopes) {
+    var uniqueScopes = new HashSet<>(scopes);
+
+    return TestCollections.mapOf(
+        Pair.of("resource_id", id),
+        Pair.of("resource_scopes", uniqueScopes)
     );
   }
 }

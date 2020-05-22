@@ -1,7 +1,11 @@
 package pt.inesctec.adcauthmiddleware.utils;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 /**
  * These constants should match the values in file 'src/test/resources/application.properties', 'src/test/resources/field-mapping.csv'
  */
@@ -19,10 +23,15 @@ public final class TestConstants {
   public static final String UMA_RESOURCE_OWNER="owner";
 
   public static final List<String> UMA_SCOPES = List.of("statistics", "raw_sequence");
+  public static final String REPERTOIRE_PATH_FRAGMENT = "repertoire";
+  public static final String SYNCHRONIZE_PATH_FRAGMENT = "synchronize";
 
 
-  public static String buildAirrPath(String path) {
-    return BASE_MIDDLEWARE_PATH + "/" + path;
+  public static String buildAirrPath(String ... path) {
+    var fullPath = Arrays.stream(path)
+        .map(p -> URLEncoder.encode(p, StandardCharsets.UTF_8))
+        .collect(Collectors.joining("/"));
+    return BASE_MIDDLEWARE_PATH + "/" + fullPath;
   }
 
   // from https://stackoverflow.com/a/14623245/6711421

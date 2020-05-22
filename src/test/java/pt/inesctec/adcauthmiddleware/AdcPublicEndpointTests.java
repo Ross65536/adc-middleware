@@ -5,8 +5,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.inesctec.adcauthmiddleware.utils.Pair;
-import pt.inesctec.adcauthmiddleware.utils.TestConstants;
 import pt.inesctec.adcauthmiddleware.utils.TestCollections;
+import pt.inesctec.adcauthmiddleware.utils.TestConstants;
 import static org.assertj.core.api.Assertions.assertThat;
 import static pt.inesctec.adcauthmiddleware.utils.WireMocker.wireGetJson;
 

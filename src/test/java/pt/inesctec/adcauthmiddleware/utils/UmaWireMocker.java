@@ -49,9 +49,9 @@ public class UmaWireMocker {
     return accessToken;
   }
 
-  public static String wireCreateResource(WireMockServer umaMock, Map<String, Object> repertoire, String bearer) throws JsonProcessingException {
-    var studyId = TestCollections.getString(repertoire, "study", "study_id");
-    var studyTitle = TestCollections.getString(repertoire, "study", "study_title");
+  public static String wireCreateResource(WireMockServer umaMock, Map<String, Object> repertoire, String expectedBearer) throws JsonProcessingException {
+    var studyId = TestCollections.getString(repertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+    var studyTitle = TestCollections.getString(repertoire, AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD);
     var name = String.format("study ID: %s; title: %s", studyId, studyTitle);
     var createdId = studyId + "-" + TestConstants.Random.nextInt(100);
 
@@ -67,9 +67,19 @@ public class UmaWireMocker {
         "_id", createdId
     );
 
-    WireMocker.wirePostJson(umaMock, UMA_RESOURCE_REGISTRATION_PATH, 200, response, expected, "Bearer " + bearer);
+    WireMocker.wirePostJson(umaMock, UMA_RESOURCE_REGISTRATION_PATH, 200, response, expected, "Bearer " + expectedBearer);
 
     return createdId;
+  }
+
+  public static String wireGetTicket(WireMockServer umaMock, String expectedBearer, Map<String, Object> ... resources) throws JsonProcessingException {
+    var ticket = TestConstants.generateHexString(30);
+
+    var response = Map.of("ticket", ticket);
+
+    WireMocker.wirePostJson(umaMock, UMA_PERMISSION_PATH, 200, response, List.of(resources), "Bearer " + expectedBearer);
+
+    return ticket;
   }
 
   private static String buildBaseUrl(WireMockServer umaMock) {
