@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.utils.Pair;
 import pt.inesctec.adcauthmiddleware.utils.TestCollections;
 import pt.inesctec.adcauthmiddleware.utils.TestConstants;
@@ -26,7 +27,7 @@ class AdcPublicEndpointTests extends TestBase {
     wireGetJson(backendMock, TestConstants.BASE_MIDDLEWARE_PATH, status, info);
     backendMock.start();
 
-    var actualInfo = requests.getJsonMap(buildMiddlewareUrl("/"), status);
+    var actualInfo = requests.getJsonMap(buildMiddlewareUrl() + "/", status);
     assertThat(actualInfo).isEqualTo(info);
   }
 
@@ -73,7 +74,7 @@ class AdcPublicEndpointTests extends TestBase {
   @Test
   void publicFields() throws JsonProcessingException {
     // based on file src/test/resources/field-mapping.csv
-    String[] expectedFields = new String[]{"repertoire_id", "study.study_id", "study.study_title"};
+    String[] expectedFields = new String[]{AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD};
 
     var actualFields = requests.getJsonMap(buildMiddlewareUrl("public_fields"), 200);
     assertThat(actualFields).containsOnlyKeys("Repertoire");
