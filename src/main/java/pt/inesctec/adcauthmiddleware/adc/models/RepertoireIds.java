@@ -4,10 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 import javax.validation.constraints.NotNull;
+import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RepertoireIds {
-  @JsonProperty("repertoire_id")
+  @JsonProperty(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD)
   private String repertoireId;
 
   @NotNull private String studyId;

@@ -3,14 +3,15 @@ package pt.inesctec.adcauthmiddleware.adc.models;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.validation.constraints.NotNull;
+import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RearrangementIds {
-  @JsonProperty("repertoire_id")
+  @JsonProperty(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD)
   @NotNull
   private String repertoireId;
 
-  @JsonProperty("rearrangement_id")
+  @JsonProperty(AdcConstants.REARRANGEMENT_REARRANGEMENT_ID_FIELD)
   private String rearrangementId;
 
   public String getRepertoireId() {

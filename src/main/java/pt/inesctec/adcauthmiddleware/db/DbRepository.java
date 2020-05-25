@@ -104,7 +104,7 @@ public class DbRepository {
 
     var repertoireId = rearrangements.get(0).getRepertoireId();
     if (repertoireId == null) {
-      Logger.error("Response's rearrangement can't have a null rearrangement_id");
+      Logger.error("Response's rearrangement can't have a null " + AdcConstants.REARRANGEMENT_REARRANGEMENT_ID_FIELD);
       return null;
     }
 
@@ -144,7 +144,7 @@ public class DbRepository {
     CollectionsUtils.assertList(
         backendRepertoires,
         e -> e.getRepertoireId() != null,
-        "Repertoires response must have repertoire_id");
+        "Repertoires response must have a " + AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
 
     // sync studies
     var backendStudyMap =
