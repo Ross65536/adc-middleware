@@ -19,15 +19,13 @@ public class Requests {
 
   @Autowired private TestRestTemplate restTemplate;
 
-  public Map<String, Object> getJsonMap(String path, int expectedStatus)
-      throws JsonProcessingException {
+  public Map<String, Object> getJsonMap(String path, int expectedStatus) {
     var entity = this.restTemplate.getForEntity(path, String.class);
     assertThat(entity.getStatusCodeValue()).isEqualTo(expectedStatus);
     return TestJson.fromJson(entity.getBody(), Map.class);
   }
 
-  public Map<String, Object> getJsonMap(String path, int expectedStatus, String token)
-      throws JsonProcessingException {
+  public Map<String, Object> getJsonMap(String path, int expectedStatus, String token) {
     HttpEntity<String> entity = new HttpEntity<>(buildAuthorizationHeader(token));
 
     var respEntity = restTemplate.exchange(path, HttpMethod.GET, entity, String.class);
@@ -77,6 +75,15 @@ public class Requests {
 
   public Map<String, Object> postJson(String url, String json, int expectedStatus) {
     HttpHeaders headers = new HttpHeaders();
+    return postJson(url, json, expectedStatus, headers);
+  }
+
+  public Map<String, Object> postJson(String url, Object request, int expectedStatus, String token) {
+    var headers = buildAuthorizationHeader(token);
+    return postJson(url, TestJson.toJson(request), expectedStatus, headers);
+  }
+
+  private Map<String, Object> postJson(String url, String json, int expectedStatus, HttpHeaders headers) {
     headers.set(WireMocker.CONTENT_TYPE_HEADER, WireMocker.JSON_MIME);
     headers.set(WireMocker.ACCEPT_HEADER, WireMocker.JSON_MIME);
     HttpEntity<String> entity = new HttpEntity<>(json, headers);

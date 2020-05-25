@@ -29,6 +29,7 @@ public final class TestConstants {
   public static final String REPERTOIRE_PATH_FRAGMENT = "repertoire";
   public static final String REARRANGEMENT_PATH_FRAGMENT = "rearrangement";
   public static final String SYNCHRONIZE_PATH_FRAGMENT = "synchronize";
+  public static final String REPERTOIRE_PATH = TestConstants.buildAirrPath(TestConstants.REPERTOIRE_PATH_FRAGMENT);
 
   public static String buildAirrPath(String... path) {
     var fullPath =

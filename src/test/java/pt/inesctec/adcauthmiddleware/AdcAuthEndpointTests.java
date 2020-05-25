@@ -3,6 +3,8 @@ package pt.inesctec.adcauthmiddleware;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.collect.Sets;
+import com.rits.cloning.Cloner;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +34,8 @@ public class AdcAuthEndpointTests extends TestBase {
   private String secondRepertoireUmaId;
   private String accessToken;
 
+  private static final Set<String> RepertoirePublicFields = Set.of(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD);
+
   @BeforeAll
   public void init() throws JsonProcessingException {
 
@@ -47,11 +51,7 @@ public class AdcAuthEndpointTests extends TestBase {
         ModelFactory.buildRepertoiresDocumentWithInfo(firstRepertoire, secondRepertoire);
 
     WireMocker.wirePostJson(
-        backendMock,
-        TestConstants.buildAirrPath(TestConstants.REPERTOIRE_PATH_FRAGMENT),
-        200,
-        repertoiresResponse,
-        searchRequest);
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, searchRequest);
     backendMock.start();
 
     UmaWireMocker.wireUmaWellKnown(umaMock);
@@ -148,7 +148,7 @@ public class AdcAuthEndpointTests extends TestBase {
         200,
         ModelFactory.buildRepertoiresDocumentWithInfo(
             firstRepertoire)); // add mock for returning the resource to check that the resource is
-                               // not actually returned
+    // not actually returned
 
     var token = UmaWireMocker.wireTokenIntrospectionExpired(umaMock);
     this.requests.getJsonMap(
@@ -292,75 +292,224 @@ public class AdcAuthEndpointTests extends TestBase {
     checker.accept(400, "{\"fields\":1}");
     checker.accept(400, "{\"fields\":\"repertoire_id\"}");
 
-    checker.accept(400, TestJson.toJson(Map.of(
-        "filters", Map.of(
-            "op", "zxY"
-        )
-    )));
-    checker.accept(400, TestJson.toJson(Map.of(
-        "filters", Map.of(
-            "op", "=",
-            "content", List.of()
-        )
-    )));
+    checker.accept(400, TestJson.toJson(Map.of("filters", Map.of("op", "zxY"))));
+    checker.accept(
+        400, TestJson.toJson(Map.of("filters", Map.of("op", "=", "content", List.of()))));
 
-    checker.accept(422, TestJson.toJson(Map.of(
-        "fields", List.of(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD),
-        "facets", AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD
-    )));
+    checker.accept(
+        422,
+        TestJson.toJson(
+            Map.of(
+                "fields",
+                List.of(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD),
+                "facets",
+                AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD)));
 
-    checker.accept(422, TestJson.toJson(Map.of(
-        "filters", Map.of(
-            "op", "=",
-            "content", Map.of(
-                "field", "nont existent field xYZ",
-                "value", "1"
-            )
-        )
-    )));
+    checker.accept(
+        422,
+        TestJson.toJson(
+            Map.of(
+                "filters",
+                Map.of(
+                    "op",
+                    "=",
+                    "content",
+                    Map.of(
+                        "field", "nont existent field xYZ",
+                        "value", "1")))));
 
-    checker.accept(422, TestJson.toJson(Map.of(
-        "filters", Map.of(
-            "op", "=",
-            "content", Map.of(
-                "field", AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD,
-                "value", false
-            )
-        )
-    )));
+    checker.accept(
+        422,
+        TestJson.toJson(
+            Map.of(
+                "filters",
+                Map.of(
+                    "op",
+                    "=",
+                    "content",
+                    Map.of(
+                        "field", AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD, "value", false)))));
   }
 
   @Test
-  public void repertoireSearchTicket() throws JsonProcessingException {
+  public void repertoireSearchTicketAll() throws JsonProcessingException {
     var repertoireIdFields = Set.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
     var request = ModelFactory.buildAdcFilters(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
-    var ticketRequest = TestCollections.mapMerge(
-        request,
-        ModelFactory.buildAdcFields(repertoireIdFields)
-    );
+    var ticketRequest =
+        TestCollections.mapMerge(request, ModelFactory.buildAdcFields(repertoireIdFields));
 
-    var repertoiresResponse = ModelFactory.buildRepertoiresDocumentWithInfo(
-        TestCollections.mapSubset(firstRepertoire, repertoireIdFields),
-        TestCollections.mapSubset(secondRepertoire, repertoireIdFields)
-    );
+    var repertoiresResponse =
+        ModelFactory.buildRepertoiresDocumentWithInfo(
+            TestCollections.mapSubset(firstRepertoire, repertoireIdFields),
+            TestCollections.mapSubset(secondRepertoire, repertoireIdFields));
 
     WireMocker.wirePostJson(
-        backendMock,
-        TestConstants.buildAirrPath(TestConstants.REPERTOIRE_PATH_FRAGMENT),
-        200,
-        repertoiresResponse,
-        ticketRequest);
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, ticketRequest);
 
     var ticket =
         UmaWireMocker.wireGetTicket(
             umaMock,
             this.accessToken,
             ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_SCOPES),
-            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, TestConstants.UMA_SCOPES)
-        ); // repertoires have all the scopes
+            ModelFactory.buildUmaResource(
+                this.secondRepertoireUmaId,
+                TestConstants.UMA_SCOPES)); // repertoires have all the scopes
 
     this.requests.postJsonTicket(
-        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), TestJson.toJson(request), ticket);
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
+        TestJson.toJson(request),
+        ticket);
   }
+
+  @Test
+  public void repertoireSearchTicketSingle() throws JsonProcessingException {
+    var repertoireIdFields = Set.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+
+    var request = ModelFactory.buildAdcFilters(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var ticketRequest =
+        TestCollections.mapMerge(request, ModelFactory.buildAdcFields(repertoireIdFields));
+
+    var repertoiresResponse =
+        ModelFactory.buildRepertoiresDocumentWithInfo(
+            TestCollections.mapSubset(firstRepertoire, repertoireIdFields));
+
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, ticketRequest);
+
+    var ticket =
+        UmaWireMocker.wireGetTicket(
+            umaMock,
+            this.accessToken,
+            ModelFactory.buildUmaResource(
+                this.firstRepertoireUmaId,
+                TestConstants.UMA_SCOPES)); // repertoires have all the scopes
+
+    this.requests.postJsonTicket(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
+        TestJson.toJson(request),
+        ticket);
+  }
+
+  @Test
+  public void repertoireSearchPublic() throws JsonProcessingException {
+    Set<String> fields = Set.of(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+    var request = ModelFactory.buildAdcFields(fields);
+
+    var repertoiresResponse =
+        ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire, this.secondRepertoire);
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
+
+    var actual =
+        this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
+            TestJson.toJson(request),
+            200);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(
+        TestCollections.mapSubset(this.firstRepertoire, fields),
+        TestCollections.mapSubset(this.secondRepertoire, fields)
+    ));
+  }
+
+  @Test
+  public void repertoireSearchAllAccess() throws JsonProcessingException {
+    var request = Map.of();
+
+    var repertoiresResponse =
+        ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire, this.secondRepertoire);
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
+
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_SCOPES),
+            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, TestConstants.UMA_SCOPES)
+        );
+
+    var actual =
+        this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
+            request,
+            200, token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire, this.secondRepertoire));
+  }
+
+  @Test
+  public void repertoireSearchAllAccessFullAdcQueryFieldFilter() throws JsonProcessingException {
+    var fields = Set.of("data_processing.numbo");
+    Map<String, Object> queryExtras = Map.of(
+    "from", 1,
+    "size", 1,
+    "format", "json"
+    );
+
+    Map<String, Object> queryFilters = ModelFactory.buildAdcFilters(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var request = TestCollections.mapMerge(
+        ModelFactory.buildAdcFields(fields),
+        queryFilters,
+        queryExtras
+    );
+
+    var backendRequest = TestCollections.mapMerge(
+        ModelFactory.buildAdcFields(Set.of("data_processing.numbo", AdcConstants.REPERTOIRE_STUDY_ID_FIELD)),
+        queryFilters,
+        queryExtras
+    );
+
+    var repertoiresResponse =
+        ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire, this.secondRepertoire);
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, backendRequest);
+
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE)),
+            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE))
+        );
+
+    var actual =
+        this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
+            request,
+            200, token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(
+        TestCollections.mapSubset(this.firstRepertoire, fields),
+        TestCollections.mapSubset(this.secondRepertoire, fields)
+    ));
+  }
+
+  @Test
+  public void repertoireSearchPartialAccessDeny() throws JsonProcessingException {
+    var request = Map.of();
+
+    var repertoiresResponse =
+        ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire, this.secondRepertoire);
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
+
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE))
+        );
+
+    var actual =
+        this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
+            request,
+            200, token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(
+        TestCollections.mapSubset(this.firstRepertoire, Set.of("study", "data_processing.data_processing_files", "repertoire_id")),
+        TestCollections.mapSubset(this.secondRepertoire, RepertoirePublicFields)
+    ));
+  }
+
+
 }
