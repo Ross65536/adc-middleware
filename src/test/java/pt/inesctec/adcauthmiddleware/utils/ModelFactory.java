@@ -96,10 +96,21 @@ public class ModelFactory {
   public static Map<String, Object> buildAdcFilters(String field) {
     return Map.of(
         "filters", Map.of(
-          "op", "=",
-          "content", Map.of(
-              "field", field,
-              "value", TestConstants.generateHexString(4)
-    )));
+            "op", "and",
+            "content", List.of(
+                Map.of(
+                "op", "=",
+                "content", Map.of(
+                    "field", field,
+                    "value", TestConstants.generateHexString(4)
+                )),
+                Map.of(
+                    "op", "!=",
+                    "content", Map.of(
+                        "field", field,
+                        "value", TestConstants.generateHexString(4)
+                    ))
+            )
+      ));
   }
 }
