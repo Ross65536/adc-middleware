@@ -157,6 +157,34 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
+  public void singleRepertoireMismatchedRptToken() throws JsonProcessingException {
+    var repertoireId =
+        TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+
+    WireMocker.wireGetJson(
+        backendMock,
+        TestConstants.buildAirrPath(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId),
+        200,
+        ModelFactory.buildRepertoiresDocumentWithInfo(firstRepertoire));
+
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(
+                this.secondRepertoireUmaId,
+                TestConstants.UMA_SCOPES)); // access token for different repertoire provided
+    var actual =
+        this.requests.getJsonMap(
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId),
+            200,
+            token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(
+        TestCollections.mapSubset(this.firstRepertoire, RepertoirePublicFields)
+    ));
+  }
+
+  @Test
   public void singleRepertoireOneScopeFiltering() throws JsonProcessingException {
     var repertoireId =
         TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
