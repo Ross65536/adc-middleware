@@ -2,6 +2,7 @@ package pt.inesctec.adcauthmiddleware;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
@@ -77,7 +78,8 @@ class AdcPublicEndpointTests extends TestBase {
     String[] expectedFields = new String[]{AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD};
 
     var actualFields = requests.getJsonMap(buildMiddlewareUrl("public_fields"), 200);
-    assertThat(actualFields).containsOnlyKeys("Repertoire");
+    assertThat(actualFields).containsOnlyKeys("Repertoire", "Rearrangement");
     assertThat((List<String>) actualFields.get("Repertoire")).containsExactlyInAnyOrder(expectedFields);
+    assertThat((List<String>) actualFields.get("Rearrangement")).hasSize(0);
   }
 }

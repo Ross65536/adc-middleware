@@ -254,9 +254,7 @@ public class AdcAuthController {
 
     for (var adcClass : FieldClass.values()) {
       var fields = this.csvConfig.getPublicFields(adcClass);
-      if (! fields.isEmpty()) {
-        map.put(adcClass, fields);
-      }
+      map.put(adcClass, fields);
     }
 
     return map;
