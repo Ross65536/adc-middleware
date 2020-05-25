@@ -16,8 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class Requests {
   private static final String WWW_AUTHENTICATE_HEADER = "WWW-Authenticate";
 
-  @Autowired
-  private TestRestTemplate restTemplate;
+  @Autowired private TestRestTemplate restTemplate;
 
   public Map<String, Object> getJsonMap(String path, int expectedStatus)
       throws JsonProcessingException {
@@ -28,7 +27,7 @@ public class Requests {
 
   public Map<String, Object> getJsonMap(String path, int expectedStatus, String token)
       throws JsonProcessingException {
-    HttpEntity<String> entity = buildAuthorizationHeader(token);
+    HttpEntity<String> entity = new HttpEntity<>(buildAuthorizationHeader(token));
 
     var respEntity = restTemplate.exchange(path, HttpMethod.GET, entity, String.class);
     assertThat(respEntity.getStatusCodeValue()).isEqualTo(expectedStatus);
@@ -53,16 +52,26 @@ public class Requests {
   }
 
   public void postEmpty(String url, String bearer, int expectedStatus) {
-    HttpEntity<String> entity = buildAuthorizationHeader(bearer);
+    HttpEntity<String> entity = new HttpEntity<>(buildAuthorizationHeader(bearer));
 
     var restEntity = this.restTemplate.postForEntity(url, entity, String.class);
     assertThat(restEntity.getStatusCodeValue()).isEqualTo(expectedStatus);
   }
 
-  private HttpEntity<String> buildAuthorizationHeader(String bearer) {
+  public Map<String, Object> postJson(String url, String json, int expectedStatus) {
     HttpHeaders headers = new HttpHeaders();
-    headers.set("Authorization", "Bearer " + bearer);
-    return new HttpEntity<>(headers);
+    headers.set(WireMocker.CONTENT_TYPE_HEADER, WireMocker.JSON_MIME);
+    headers.set(WireMocker.ACCEPT_HEADER, WireMocker.JSON_MIME);
+    HttpEntity<String> entity = new HttpEntity<>(json, headers);
+
+    var restEntity = this.restTemplate.postForEntity(url, entity, String.class);
+    assertThat(restEntity.getStatusCodeValue()).isEqualTo(expectedStatus);
+    return TestJson.fromJson(restEntity.getBody(), Map.class);
   }
 
+  private HttpHeaders buildAuthorizationHeader(String bearer) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Authorization", "Bearer " + bearer);
+    return headers;
+  }
 }

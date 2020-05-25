@@ -14,10 +14,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static pt.inesctec.adcauthmiddleware.utils.TestJson.toJson;
 
 public final class WireMocker {
-  private static final String JSON_MIME = "application/json";
+  public static final String JSON_MIME = "application/json";
   private static final String URL_ENCODED_MIME = "application/x-www-form-urlencoded";
-  private static final String ACCEPT_HEADER = "Accept";
-  private static final String CONTENT_TYPE_HEADER = "Content-Type";
+  public static final String ACCEPT_HEADER = "Accept";
+  public static final String CONTENT_TYPE_HEADER = "Content-Type";
   private static final String AUTHORIZATION_HEADER = "Authorization";
 
   public static void wireGetJson(WireMockServer mock, String matchUrl, int respStatus, Object respBody)
