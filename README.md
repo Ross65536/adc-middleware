@@ -272,6 +272,12 @@ spring.redis.host=localhost
 spring.redis.port=6379
 ```
 
+To use simple in-memory cache set:
+
+```
+spring.cache.type=simple
+```
+
 
 #### CSV field config
 
