@@ -29,6 +29,11 @@ public class ModelFactory {
     return buildRepertoiresDocument(buildInfo(), repertoires);
   }
 
+  public static Object buildRearrangementsDocumentWithInfo(Object ... rearrangements) {
+    return TestCollections.mapOf(
+        Pair.of("Info", buildInfo()), Pair.of("Rearrangement", List.of(rearrangements)));
+  }
+
   public static Map<String, Object> buildAdcSearch(String... fields) {
     return TestCollections.mapOf(Pair.of("fields", List.of(fields)));
   }
@@ -39,10 +44,10 @@ public class ModelFactory {
   public static Map<String, Object> buildRepertoire(String id) {
     var stringPrefix = id + "-";
     return TestCollections.mapOf(
-        Pair.of(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, id),
+        Pair.of(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD, "r" + id),
         Pair.of(
             "study", TestCollections.mapOf(
-                Pair.of("study_id", id),
+                Pair.of("study_id", "s" + id),
                 Pair.of("study_title", stringPrefix + TestConstants.generateHexString(8)),
                 Pair.of("study_type", TestCollections.mapOf(
                         Pair.of("value", stringPrefix + TestConstants.generateHexString(2)),
@@ -56,6 +61,17 @@ public class ModelFactory {
             Pair.of("numbo", TestConstants.Random.nextDouble()),
             Pair.of("boolo", TestConstants.Random.nextBoolean())
         ))
+    );
+  }
+
+  public static Map<String, Object> buildRearrangement(String repertoireId, String rearrangementId) {
+    var stringPrefix = rearrangementId + "-";
+    return TestCollections.mapOf(
+        Pair.of(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, repertoireId),
+        Pair.of(AdcConstants.REARRANGEMENT_REARRANGEMENT_ID_FIELD, "r" + rearrangementId),
+        Pair.of("sequence", stringPrefix + TestConstants.generateHexString(10)),
+        Pair.of("sequence_id", stringPrefix + TestConstants.generateHexString(10)),
+        Pair.of("sequence_aa", stringPrefix + TestConstants.generateHexString(10))
     );
   }
 

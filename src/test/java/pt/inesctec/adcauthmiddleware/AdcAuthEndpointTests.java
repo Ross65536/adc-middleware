@@ -3,7 +3,9 @@ package pt.inesctec.adcauthmiddleware;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,13 +63,13 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void synchronizeOk() {
+  public void synchronize() {
     // empty because the synchronization is done in init()
     // if tests fail check logs that resources are created, since they can fail to create without failing the synchronize
   }
 
   @Test
-  public void singleRepertoireTicketOk() throws JsonProcessingException {
+  public void singleRepertoireTicket() throws JsonProcessingException {
     var repertoireId = TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
 
     var ticket = UmaWireMocker.wireGetTicket(umaMock, this.accessToken, ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_SCOPES)); // repertoires have all the scopes
@@ -76,18 +78,95 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void singleRepertoireAllScopesOk() throws JsonProcessingException {
+  public void notFoundSingleRepertoire() throws JsonProcessingException {
+    var repertoireId = TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD) + "2324";
+
+    this.requests.getJsonMap(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId), 404);
+  }
+
+  @Test
+  public void singleRepertoireAllAccess() throws JsonProcessingException {
     var repertoireId = TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
 
     WireMocker.wireGetJson(backendMock, TestConstants.buildAirrPath(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId), 200, ModelFactory.buildRepertoiresDocumentWithInfo(firstRepertoire));
 
     var token = UmaWireMocker.wireTokenIntrospection(umaMock, ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_SCOPES)); // repertoires have all the scopes
-
     var actual = this.requests.getJsonMap(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId), 200, token);
 
     assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire));
   }
 
+  @Test
+  public void singleRepertoireExpiredRptToken() throws JsonProcessingException {
+    var repertoireId = TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
 
+    WireMocker.wireGetJson(backendMock, TestConstants.buildAirrPath(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId), 200, ModelFactory.buildRepertoiresDocumentWithInfo(firstRepertoire)); // add mock for returning the resource to check that the resource is not actually returned
+
+    var token = UmaWireMocker.wireTokenIntrospectionExpired(umaMock);
+    this.requests.getJsonMap(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId), 401, token);
+  }
+
+  @Test
+  public void singleRepertoireOneScopeFiltering() throws JsonProcessingException {
+    var repertoireId = TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+
+    WireMocker.wireGetJson(backendMock, TestConstants.buildAirrPath(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId), 200, ModelFactory.buildRepertoiresDocumentWithInfo(firstRepertoire));
+
+    var token = UmaWireMocker.wireTokenIntrospection(umaMock, ModelFactory.buildUmaResource(this.firstRepertoireUmaId, List.of(TestConstants.UMA_STATISTICS_SCOPE)));
+    var actual = this.requests.getJsonMap(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId), 200, token);
+
+    var expected = TestCollections.mapSubset(this.firstRepertoire, Set.of("repertoire_id", "study", "data_processing.data_processing_files"));
+    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(expected));
+  }
+
+  @Test
+  public void singleRepertoirePublicFiltering() throws JsonProcessingException {
+    var repertoireId = TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+
+    WireMocker.wireGetJson(backendMock, TestConstants.buildAirrPath(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId), 200, ModelFactory.buildRepertoiresDocumentWithInfo(firstRepertoire));
+
+    var token = UmaWireMocker.wireTokenIntrospection(umaMock, ModelFactory.buildUmaResource(this.firstRepertoireUmaId, List.of()));
+    var actual = this.requests.getJsonMap(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId), 200, token);
+
+    var expected = TestCollections.mapSubset(this.firstRepertoire, Set.of("repertoire_id", "study.study_id", "study.study_title"));
+    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(expected));
+  }
+
+
+  @Test
+  public void singleRearrangementTicket() throws JsonProcessingException {
+    var repertoireId = TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    String rearrangementId = "1";
+    var rearrangement = ModelFactory.buildRearrangement(repertoireId, rearrangementId);
+
+    WireMocker.wireGetJson(backendMock, TestConstants.buildAirrPath(TestConstants.REARRANGEMENT_PATH_FRAGMENT, rearrangementId), 200, ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement));
+
+    var ticket = UmaWireMocker.wireGetTicket(umaMock, this.accessToken, ModelFactory.buildUmaResource(this.firstRepertoireUmaId, List.of(TestConstants.UMA_SEQUENCE_SCOPE)));
+
+    this.requests.getJsonUmaTicket(this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT, rearrangementId), ticket);
+  }
+
+  @Test
+  public void singleRearrangementAllAccess() throws JsonProcessingException {
+    var repertoireId = TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    String rearrangementId = "1";
+    var rearrangement = ModelFactory.buildRearrangement(repertoireId, rearrangementId);
+
+    WireMocker.wireGetJson(backendMock, TestConstants.buildAirrPath(TestConstants.REARRANGEMENT_PATH_FRAGMENT, rearrangementId), 200, ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement));
+
+    var token = UmaWireMocker.wireTokenIntrospection(umaMock, ModelFactory.buildUmaResource(this.firstRepertoireUmaId, List.of(TestConstants.UMA_SEQUENCE_SCOPE)));
+    var actual = this.requests.getJsonMap(this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT, rearrangementId), 200, token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement));
+  }
+
+  @Test
+  public void notFoundSingleRearrangement() throws JsonProcessingException {
+    String rearrangementId = "1";
+
+    WireMocker.wireGetJson(backendMock, TestConstants.buildAirrPath(TestConstants.REARRANGEMENT_PATH_FRAGMENT, rearrangementId), 200, ModelFactory.buildRearrangementsDocumentWithInfo());
+
+    this.requests.getJsonMap(this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT, rearrangementId), 404);
+  }
 
 }

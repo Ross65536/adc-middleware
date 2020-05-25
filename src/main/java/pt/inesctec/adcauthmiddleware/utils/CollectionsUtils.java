@@ -67,7 +67,7 @@ public final class CollectionsUtils {
           innermostMap.put(key3, e);
         });
 
-    return topMap;
+    return Collections.unmodifiableMap(topMap);
   }
 
   public static <E> E[] popFront(E[] elems) {

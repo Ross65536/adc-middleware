@@ -102,6 +102,23 @@ public class UmaWireMocker {
     return rptToken;
   }
 
+  public static String wireTokenIntrospectionExpired(WireMockServer umaMock) throws JsonProcessingException {
+    var response = Map.of(
+        "active", false
+    );
+
+    var rptToken = TestConstants.generateHexString(30);
+    var expectedForm = Map.of(
+        "token", rptToken,
+        "token_type_hint", "requesting_party_token"
+    );
+
+    var basic = HttpHeaders.encodeBasicAuth(TestConstants.UMA_CLIENT_ID, TestConstants.UMA_CLIENT_SECRET, Charsets.UTF_8); // keycloak specific inadequacy
+    WireMocker.wireExpectFormReturnJson(umaMock, UMA_INTROSPECTION_PATH, 200, response, expectedForm, "Basic " + basic);
+
+    return rptToken;
+  }
+
   private static String buildBaseUrl(WireMockServer umaMock) {
     return "http://localhost:" + umaMock.getOptions().portNumber();
   }

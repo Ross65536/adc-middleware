@@ -26,6 +26,7 @@ dependencies {
 	runtimeOnly 'com.h2database:h2:1.4.200'
 	testImplementation('com.github.tomakehurst:wiremock-jre8:2.26.3')
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
+	testImplementation('io.github.kostaskougios:cloning:1.10.3')
 }
 
 checkstyle {
