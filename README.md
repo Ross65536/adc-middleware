@@ -8,6 +8,10 @@ Middleware server for handling UMA authorization and access control.
 
 Project runs on java 11, with (modified) google java style guide.
 
+Features:
+- Support for all of the AIRR ADC API functionalities except for `tsv` format on POST endpoints
+- Response fields filtering based on provided token access level
+- Emission of UMA tickets restricted to the fields requested
 
 ## Deployment
 
@@ -304,7 +308,9 @@ Repertoire,study.study_type.value,protected,statistics,string,Type of study desi
 
 The CSV can include other columns after these which are ignored.
 
-#### Synchronization
+## Notes
+
+### Synchronization
 
 The middleware needs to synchronize with the backend periodically. No automatic synchronization is performed so you must invoke synchronization when data in the resource server changes, namely when: a repertoire or rearrangement ir added, deleted or updated (study, repertoire_id and rearrangement_id fields).
 
@@ -315,7 +321,7 @@ curl --location --request POST "$MIDDLEWARE_HOST/airr/v1/synchronize" --header "
 ```
 
 
-##### Generating password
+#### Generating password
 
 You need to hash a BCrypt password with 10 rounds to use the synchronization endpoint
 
@@ -326,7 +332,7 @@ spring encodepassword -a bcrypt $PASSWORD # $THE_PASSWORD
 # example acceptable password: 'master' for '$2a$10$qr81MrxWblqZlMAt5kf/9.xdBPubtDMuoV3DRKgTk2bu.SPazsaTm'
 ```
 
-#### Public fields 
+### Public fields 
 
 You can use the public endpoint: 
 
@@ -335,6 +341,113 @@ curl --location --request GET 'localhost:8080/airr/v1/public_fields'
 ```
 
 to obtain the public fields for each class of resources.
+
+### Minimal AIRR ADC compliance necessary
+
+To be able to make use of this middleware the backend **MUST** implement the following AIRR ADC API endpoints (the URL base-path is configurable):
+
+1. GET /repertoire/{repertoire_id}
+2. GET /rearrangement/{rearrangement_id} 
+3. POST /repertoire
+4. POST /rearrangement
+
+For endpoints 3. and 4. the backend must be able to accept a string body (that can be discarded).
+
+The following public endpoints are not mandatory and access to them can be disabled in the middleware:
+
+- GET /
+- GET /info
+- GET /swagger
+
+The `Repertoire`s responses (1. and 3.) must be of (minimal) format:
+```yaml
+{
+  "Info": {
+    // put arbitrary data here, that can pass to the user unfiltered
+  },
+  "Repertoire": { // can put any extra fields in here
+    "repertoire_id": "123adc", // string type, must be the id in endpoint 1.
+    "study": {
+      "study_id": "12", // string type, multiple repertoires can have the same study, in which case the study id MUST be the same
+      "study_title": "Research thingy" // string type, while this is optional it is used for UI purposes for keycloak 
+    }
+  }
+}
+```
+
+The `Rearrangement`s responses (2. and 4.) must be of (minimal) format:
+```yaml
+{
+  "Info": {
+    // put arbitrary data here, that can pass to the user unfiltered
+  },
+  "Rearrangement": { // can put any extra fields in here
+    "repertoire_id": "123adc", // string type, must be the id of the repertoire to which this rearrangement belongs to
+    "rearrangement_id": "234" // string type, must be the id in endpoint 2.
+  }
+}
+```
+
+Any extra fields used for Repertoire or Rearrangement can be used if they are set in the CSV config file.
+
+#### Facets 
+
+To use facets the backend **MUST** support the ADC `filters` query feature, otherwise this feature **MUST** be disabled in the middleware's config.
+
+More specifically the `in` `filters` operator must be supported (and the `and` operator for chaining with user requests). If a user makes a Repertoires search request like:
+
+```yaml
+{
+    "filters":{
+        "op":"=",
+        "content": {
+            "field": "rearrangement_id",
+            "value": "5e53dead4d808a03178c7891"
+        } 
+  }
+}
+```
+
+The middleware modifies the request and sends:
+```yaml
+{
+	"filters":{
+        "op": "and",
+        "content": [
+          {
+            "op":"=",
+            "content": {
+              "field": "rearrangement_id",
+              "value": "5e53dead4d808a03178c7891"
+            } 
+          },
+          {
+            "op":"in",
+            "content": {
+              "field": "study_id",
+              "value": ["123", "456"] // example values
+            }
+          }
+        ]   
+    }
+}
+```
+
+Likewise for Rearrangements but with the `repertoire_id` value for `in`'s `field`.
+
+It is assumed that like in the AIRR ADC API, an empty `in`:
+```yaml
+{
+    "op":"in",
+    "content": {
+      "field": "study_id",
+      "value": []
+    }
+}
+```
+would make the backend return an empty `Facet` response. 
+
+If there are values for the array sent the ids **MUST** be matched against the response, otherwise an information leak is created. 
 
 ## Profilling
 
