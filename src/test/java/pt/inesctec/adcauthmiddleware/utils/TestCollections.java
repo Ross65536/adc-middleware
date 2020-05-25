@@ -14,6 +14,16 @@ public final class TestCollections {
     return map;
   }
 
+  public static Map<String, Object> mapMerge(Map<String, Object> ... maps) {
+    Map<String, Object> ret = new HashMap<>();
+
+    for (var map : maps) {
+      ret.putAll(map);
+    }
+
+    return ret;
+  }
+
   public static String getString(Map<String, Object> model, String getField) {
     Object field = getField(model, getField);
     return (String) field;

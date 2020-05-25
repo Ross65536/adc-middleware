@@ -9,6 +9,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,6 +41,10 @@ public class Requests {
     var entity = this.restTemplate.getForEntity(path, String.class);
     assertThat(entity.getStatusCodeValue()).isEqualTo(401);
 
+    checkTicket(expectedTicket, entity);
+  }
+
+  private void checkTicket(String expectedTicket, ResponseEntity<String> entity) {
     var authorizations = entity.getHeaders().get(WWW_AUTHENTICATE_HEADER);
     assertThat(authorizations).isNotNull().hasSize(1);
     var authorization = authorizations.get(0);
@@ -49,6 +54,18 @@ public class Requests {
 
     String actualTicket = matches.group(1);
     assertThat(actualTicket).isEqualTo(expectedTicket);
+  }
+
+  public void postJsonTicket(String url, String json, String expectedTicket) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set(WireMocker.CONTENT_TYPE_HEADER, WireMocker.JSON_MIME);
+    headers.set(WireMocker.ACCEPT_HEADER, WireMocker.JSON_MIME);
+    HttpEntity<String> entity = new HttpEntity<>(json, headers);
+
+    var restEntity = this.restTemplate.postForEntity(url, entity, String.class);
+    assertThat(restEntity.getStatusCodeValue()).isEqualTo(401);
+
+    checkTicket(expectedTicket, restEntity);
   }
 
   public void postEmpty(String url, String bearer, int expectedStatus) {

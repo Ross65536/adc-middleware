@@ -36,7 +36,7 @@ public class AdcAuthEndpointTests extends TestBase {
   public void init() throws JsonProcessingException {
 
     var searchRequest =
-        ModelFactory.buildAdcSearch(
+        ModelFactory.buildAdcFields(
             AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD,
             AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
             AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD);
@@ -277,7 +277,7 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void adcSearchSchemaValidation() {
+  public void adcSearchInputValidation() {
     BiConsumer<Integer, String> checker =
         (status, json) -> {
           this.requests.postJson(
@@ -328,5 +328,39 @@ public class AdcAuthEndpointTests extends TestBase {
             )
         )
     )));
+  }
+
+  @Test
+  public void repertoireSearchTicket() throws JsonProcessingException {
+    var repertoireIdFields = Set.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+
+    var request = ModelFactory.buildAdcFilters(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var ticketRequest = TestCollections.mapMerge(
+        request,
+        ModelFactory.buildAdcFields(repertoireIdFields)
+    );
+
+    var repertoiresResponse = ModelFactory.buildRepertoiresDocumentWithInfo(
+        TestCollections.mapSubset(firstRepertoire, repertoireIdFields),
+        TestCollections.mapSubset(secondRepertoire, repertoireIdFields)
+    );
+
+    WireMocker.wirePostJson(
+        backendMock,
+        TestConstants.buildAirrPath(TestConstants.REPERTOIRE_PATH_FRAGMENT),
+        200,
+        repertoiresResponse,
+        ticketRequest);
+
+    var ticket =
+        UmaWireMocker.wireGetTicket(
+            umaMock,
+            this.accessToken,
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_SCOPES),
+            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, TestConstants.UMA_SCOPES)
+        ); // repertoires have all the scopes
+
+    this.requests.postJsonTicket(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), TestJson.toJson(request), ticket);
   }
 }

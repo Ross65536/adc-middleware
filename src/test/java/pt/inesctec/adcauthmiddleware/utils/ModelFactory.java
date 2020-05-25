@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 
 public class ModelFactory {
@@ -34,8 +35,12 @@ public class ModelFactory {
         Pair.of("Info", buildInfo()), Pair.of("Rearrangement", List.of(rearrangements)));
   }
 
-  public static Map<String, Object> buildAdcSearch(String... fields) {
+  public static Map<String, Object> buildAdcFields(String... fields) {
     return TestCollections.mapOf(Pair.of("fields", List.of(fields)));
+  }
+
+  public static Map<String, Object> buildAdcFields(Set<String> fields) {
+    return TestCollections.mapOf(Pair.of("fields", fields));
   }
 
   /**
@@ -82,5 +87,15 @@ public class ModelFactory {
         Pair.of("resource_id", id),
         Pair.of("resource_scopes", uniqueScopes)
     );
+  }
+
+  public static Map<String, Object> buildAdcFilters(String field) {
+    return Map.of(
+        "filters", Map.of(
+          "op", "=",
+          "content", Map.of(
+              "field", field,
+              "value", TestConstants.generateHexString(4)
+    )));
   }
 }
