@@ -7,7 +7,6 @@ import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TokenIntrospection {
   private boolean active;
-  private long exp;
   private List<UmaResource> permissions;
 
   public boolean isActive() {
@@ -16,14 +15,6 @@ public class TokenIntrospection {
 
   public void setActive(boolean active) {
     this.active = active;
-  }
-
-  public long getExp() {
-    return exp;
-  }
-
-  public void setExp(long exp) {
-    this.exp = exp;
   }
 
   public List<UmaResource> getPermissions() {

@@ -15,6 +15,7 @@ import pt.inesctec.adcauthmiddleware.utils.TestConstants;
 import pt.inesctec.adcauthmiddleware.utils.UmaWireMocker;
 import pt.inesctec.adcauthmiddleware.utils.WireMocker;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AdcAuthEndpointTests extends TestBase {
@@ -69,11 +70,24 @@ public class AdcAuthEndpointTests extends TestBase {
   public void singleRepertoireTicketOk() throws JsonProcessingException {
     var repertoireId = TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
 
-    WireMocker.wireGetJson(backendMock, TestConstants.buildAirrPath(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId), 200, ModelFactory.buildRepertoiresDocumentWithInfo(firstRepertoire));
-
-    var ticket = UmaWireMocker.wireGetTicket(umaMock, this.accessToken, ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_SCOPES));
+    var ticket = UmaWireMocker.wireGetTicket(umaMock, this.accessToken, ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_SCOPES)); // repertoires have all the scopes
 
     this.requests.getJsonUmaTicket(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId), ticket);
   }
+
+  @Test
+  public void singleRepertoireAllScopesOk() throws JsonProcessingException {
+    var repertoireId = TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+
+    WireMocker.wireGetJson(backendMock, TestConstants.buildAirrPath(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId), 200, ModelFactory.buildRepertoiresDocumentWithInfo(firstRepertoire));
+
+    var token = UmaWireMocker.wireTokenIntrospection(umaMock, ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_SCOPES)); // repertoires have all the scopes
+
+    var actual = this.requests.getJsonMap(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId), 200, token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire));
+  }
+
+
 
 }

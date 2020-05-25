@@ -2,8 +2,10 @@ package pt.inesctec.adcauthmiddleware.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.google.common.base.Charsets;
 import java.util.List;
 import java.util.Map;
+import org.springframework.http.HttpHeaders;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 
 public class UmaWireMocker {
@@ -80,6 +82,24 @@ public class UmaWireMocker {
     WireMocker.wirePostJson(umaMock, UMA_PERMISSION_PATH, 200, response, List.of(resources), "Bearer " + expectedBearer);
 
     return ticket;
+  }
+
+  public static String wireTokenIntrospection(WireMockServer umaMock, Map<String, Object> ... resources) throws JsonProcessingException {
+    var response = Map.of(
+        "active", true,
+        "permissions", resources
+    );
+
+    var rptToken = TestConstants.generateHexString(30);
+    var expectedForm = Map.of(
+        "token", rptToken,
+        "token_type_hint", "requesting_party_token"
+    );
+
+    var basic = HttpHeaders.encodeBasicAuth(TestConstants.UMA_CLIENT_ID, TestConstants.UMA_CLIENT_SECRET, Charsets.UTF_8); // keycloak specific inadequacy
+    WireMocker.wireExpectFormReturnJson(umaMock, UMA_INTROSPECTION_PATH, 200, response, expectedForm, "Basic " + basic);
+
+    return rptToken;
   }
 
   private static String buildBaseUrl(WireMockServer umaMock) {

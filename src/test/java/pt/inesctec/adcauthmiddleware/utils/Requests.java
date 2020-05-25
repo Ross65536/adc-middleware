@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,6 +24,15 @@ public class Requests {
     var entity = this.restTemplate.getForEntity(path, String.class);
     assertThat(entity.getStatusCodeValue()).isEqualTo(expectedStatus);
     return TestJson.fromJson(entity.getBody(), Map.class);
+  }
+
+  public Map<String, Object> getJsonMap(String path, int expectedStatus, String token)
+      throws JsonProcessingException {
+    HttpEntity<String> entity = buildAuthorizationHeader(token);
+
+    var respEntity = restTemplate.exchange(path, HttpMethod.GET, entity, String.class);
+    assertThat(respEntity.getStatusCodeValue()).isEqualTo(expectedStatus);
+    return TestJson.fromJson(respEntity.getBody(), Map.class);
   }
 
   private static final Pattern TicketPattern = Pattern.compile("^.*ticket=\"(.*)\"$");
@@ -43,12 +53,16 @@ public class Requests {
   }
 
   public void postEmpty(String url, String bearer, int expectedStatus) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("Authorization", "Bearer " + bearer);
-    HttpEntity<String> entity = new HttpEntity<>(headers);
+    HttpEntity<String> entity = buildAuthorizationHeader(bearer);
 
     var restEntity = this.restTemplate.postForEntity(url, entity, String.class);
     assertThat(restEntity.getStatusCodeValue()).isEqualTo(expectedStatus);
+  }
+
+  private HttpEntity<String> buildAuthorizationHeader(String bearer) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Authorization", "Bearer " + bearer);
+    return new HttpEntity<>(headers);
   }
 
 }

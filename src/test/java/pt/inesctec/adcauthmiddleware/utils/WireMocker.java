@@ -86,6 +86,32 @@ public final class WireMocker {
             .withHeader(CONTENT_TYPE_HEADER, containing(URL_ENCODED_MIME))
             .withHeader(ACCEPT_HEADER, containing(JSON_MIME));
 
+    addFormEncodedChecks(expectedBody, post);
+
+    mock.stubFor(post.willReturn(jsonResponse(respStatus, responseBody)));
+  }
+
+  public static void wireExpectFormReturnJson(
+      WireMockServer mock,
+      String matchUrl,
+      int respStatus,
+      Object responseBody,
+      Map<String, String> expectedBody,
+      String expectedAuthorization)
+      throws JsonProcessingException {
+
+    MappingBuilder post =
+        WireMock.post(matchUrl)
+            .withHeader(CONTENT_TYPE_HEADER, containing(URL_ENCODED_MIME))
+            .withHeader(ACCEPT_HEADER, containing(JSON_MIME))
+            .withHeader(AUTHORIZATION_HEADER, equalTo(expectedAuthorization));
+
+    addFormEncodedChecks(expectedBody, post);
+
+    mock.stubFor(post.willReturn(jsonResponse(respStatus, responseBody)));
+  }
+
+  private static void addFormEncodedChecks(Map<String, String> expectedBody, MappingBuilder post) {
     for (var entry : expectedBody.entrySet()) {
       String encodedPair =
           URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8)
@@ -93,8 +119,6 @@ public final class WireMocker {
               + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8);
       post.withRequestBody(containing(encodedPair));
     }
-
-    mock.stubFor(post.willReturn(jsonResponse(respStatus, responseBody)));
   }
 
   private static ResponseDefinitionBuilder jsonResponse(int respStatus, Object response) throws JsonProcessingException {
