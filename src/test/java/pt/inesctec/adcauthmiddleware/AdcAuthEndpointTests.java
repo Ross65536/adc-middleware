@@ -3,6 +3,7 @@ package pt.inesctec.adcauthmiddleware;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -492,7 +493,7 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void repertoireSearchAllAccessFullAdcQueryFieldFilter() throws JsonProcessingException {
+  public void repertoireSearchAllAccessFullAdcQueryFieldFilterWithOversizedRpt() throws JsonProcessingException {
     var fields = Set.of(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
     Map<String, Object> queryExtras = Map.of(
     "from", 1,
@@ -514,7 +515,7 @@ public class AdcAuthEndpointTests extends TestBase {
     );
 
     var repertoiresResponse =
-        ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire, this.secondRepertoire);
+        ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire);
     WireMocker.wirePostJson(
         backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, backendRequest);
 
@@ -532,9 +533,30 @@ public class AdcAuthEndpointTests extends TestBase {
             200, token);
 
     assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(
-        TestCollections.mapSubset(this.firstRepertoire, fields),
-        TestCollections.mapSubset(this.secondRepertoire, fields)
+        TestCollections.mapSubset(this.firstRepertoire, fields)
     ));
+  }
+
+  @Test
+  public void repertoireSearchUnknownResponseFields() throws JsonProcessingException {
+    var request = Map.of();
+
+    var backendRepertoire = new HashMap<>(this.firstRepertoire);
+    backendRepertoire.put("field-xyz-unknown", 1); // would fail equality assert below if piped to requester
+    var repertoiresResponse = ModelFactory.buildRepertoiresDocumentWithInfo(backendRepertoire);
+    WireMocker.wirePostJson(backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
+
+    var token = UmaWireMocker.wireTokenIntrospection(
+        umaMock, ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_SCOPES)
+    );
+
+    var actual =
+        this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
+            request,
+            200, token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire));
   }
 
   @Test
