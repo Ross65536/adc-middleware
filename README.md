@@ -9,7 +9,7 @@ Middleware server for handling UMA authorization and access control.
 Project runs on java 11, with (modified) google java style guide.
 
 Features:
-- Support for all of the AIRR ADC API functionalities except for `tsv` format on POST endpoints
+- Support for all of the AIRR ADC API functionalities except for: `tsv` format on POST endpoints, `include_fields` ADC query field and deprecation of Rearrangement's `rearrangement_id` in favour of `sequence_id`. 
 - Response fields filtering based on provided token access level
 - Emission of UMA tickets restricted to the fields requested
 
@@ -145,12 +145,13 @@ file `dev.properties` (You need to update `uma.clientSecret`):
 adc.resourceServerUrl=http://localhost:80/airr/v1
 server.port=8080
 
+# password 'master'
 app.synchronizePasswordHash=$2a$10$qr81MrxWblqZlMAt5kf/9.xdBPubtDMuoV3DRKgTk2bu.SPazsaTm
 
 # UMA
 uma.wellKnownUrl=http://localhost:8082/auth/realms/master/.well-known/uma2-configuration
 uma.clientId=adc-middleware
-uma.clientSecret=<the generate client secret rom keycloak>
+uma.clientSecret=<the generated client secret from keycloak>
 uma.resourceOwner=owner
 
 # Postgres
