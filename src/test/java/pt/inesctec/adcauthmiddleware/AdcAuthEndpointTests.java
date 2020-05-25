@@ -3,8 +3,6 @@ package pt.inesctec.adcauthmiddleware;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.collect.Sets;
-import com.rits.cloning.Cloner;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AdcAuthEndpointTests extends TestBase {
 
+  private static final Set<String> RepertoireIdFields = Set.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
   private static WireMockServer umaMock = new WireMockRule(options().port(TestConstants.UMA_PORT));
 
   private Map<String, Object> firstRepertoire;
@@ -35,6 +34,7 @@ public class AdcAuthEndpointTests extends TestBase {
   private String accessToken;
 
   private static final Set<String> RepertoirePublicFields = Set.of(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD);
+
 
   @BeforeAll
   public void init() throws JsonProcessingException {
@@ -364,15 +364,14 @@ public class AdcAuthEndpointTests extends TestBase {
 
   @Test
   public void repertoireSearchTicketSingle() throws JsonProcessingException {
-    var repertoireIdFields = Set.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
     var request = ModelFactory.buildAdcFilters(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
     var ticketRequest =
-        TestCollections.mapMerge(request, ModelFactory.buildAdcFields(repertoireIdFields));
+        TestCollections.mapMerge(request, ModelFactory.buildAdcFields(RepertoireIdFields));
 
     var repertoiresResponse =
         ModelFactory.buildRepertoiresDocumentWithInfo(
-            TestCollections.mapSubset(firstRepertoire, repertoireIdFields));
+            TestCollections.mapSubset(firstRepertoire, RepertoireIdFields));
 
     WireMocker.wirePostJson(
         backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, ticketRequest);
@@ -384,6 +383,60 @@ public class AdcAuthEndpointTests extends TestBase {
             ModelFactory.buildUmaResource(
                 this.firstRepertoireUmaId,
                 TestConstants.UMA_SCOPES)); // repertoires have all the scopes
+
+    this.requests.postJsonTicket(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
+        TestJson.toJson(request),
+        ticket);
+  }
+
+  @Test
+  public void repertoireSearchTicketScopeLimit() throws JsonProcessingException {
+    // based on fields limits to 'raw_sequence' scope
+    var request = ModelFactory.buildAdcFields(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
+    var ticketRequest = ModelFactory.buildAdcFields(RepertoireIdFields);
+
+    var repertoiresResponse =
+        ModelFactory.buildRepertoiresDocumentWithInfo(
+            TestCollections.mapSubset(firstRepertoire, RepertoireIdFields));
+
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, ticketRequest);
+
+    var ticket =
+        UmaWireMocker.wireGetTicket(
+            umaMock,
+            this.accessToken,
+            ModelFactory.buildUmaResource(
+                this.firstRepertoireUmaId,
+                Set.of(TestConstants.UMA_SEQUENCE_SCOPE)));
+
+    this.requests.postJsonTicket(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
+        TestJson.toJson(request),
+        ticket);
+  }
+
+  @Test
+  public void repertoireFacetsTicketScopeLimit() throws JsonProcessingException {
+    // based on facets limits to 'raw_sequence' scope
+    var request = ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
+    var ticketRequest = ModelFactory.buildAdcFields(RepertoireIdFields);
+
+    var repertoiresResponse =
+        ModelFactory.buildRepertoiresDocumentWithInfo(
+            TestCollections.mapSubset(firstRepertoire, RepertoireIdFields));
+
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, ticketRequest);
+
+    var ticket =
+        UmaWireMocker.wireGetTicket(
+            umaMock,
+            this.accessToken,
+            ModelFactory.buildUmaResource(
+                this.firstRepertoireUmaId,
+                Set.of(TestConstants.UMA_SEQUENCE_SCOPE)));
 
     this.requests.postJsonTicket(
         this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
@@ -440,7 +493,7 @@ public class AdcAuthEndpointTests extends TestBase {
 
   @Test
   public void repertoireSearchAllAccessFullAdcQueryFieldFilter() throws JsonProcessingException {
-    var fields = Set.of("data_processing.numbo");
+    var fields = Set.of(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
     Map<String, Object> queryExtras = Map.of(
     "from", 1,
     "size", 1,
@@ -455,7 +508,7 @@ public class AdcAuthEndpointTests extends TestBase {
     );
 
     var backendRequest = TestCollections.mapMerge(
-        ModelFactory.buildAdcFields(Set.of("data_processing.numbo", AdcConstants.REPERTOIRE_STUDY_ID_FIELD)),
+        ModelFactory.buildAdcFields(Set.of(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD)),
         queryFilters,
         queryExtras
     );

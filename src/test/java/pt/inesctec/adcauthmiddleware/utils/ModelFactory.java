@@ -43,6 +43,10 @@ public class ModelFactory {
     return TestCollections.mapOf(Pair.of("fields", fields));
   }
 
+  public static Map<String, Object> buildAdcFacets(String field) {
+    return TestCollections.mapOf(Pair.of("facets", field));
+  }
+
   /**
    * Repertoire id and study id are set to param 'id'
    */
