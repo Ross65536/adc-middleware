@@ -36,7 +36,8 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
-import pt.inesctec.adcauthmiddleware.adc.ResourceJsonMapper;
+import pt.inesctec.adcauthmiddleware.adc.jsonfilter.ResourceJsonMapper;
+import pt.inesctec.adcauthmiddleware.adc.jsonfilter.SimpleJsonFilter;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
@@ -318,6 +319,7 @@ public class AdcAuthController {
       ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest)
       throws Exception {
     var umaScopes = this.csvConfig.getUmaScopes(fieldClass, List.of(adcSearch.getFacets()));
+    boolean filterResponse = false;
     if (!umaScopes.isEmpty()) { // non public facets field
       var resourceIds =
           this.adcQueryUmaFlow(request, adcSearch, resourceId, umaScopes, resourceIdSearch).stream()
@@ -329,10 +331,11 @@ public class AdcAuthController {
               .collect(Collectors.toList());
 
       adcSearch.withFieldIn(resourceId, resourceIds);
+      filterResponse = resourceIds.isEmpty(); // will only perform whitelist filtering if rpt grants access to nothing, for partial access the backend must perform the filtering
     }
 
     var is = SpringUtils.catchForwardingError(() -> adcRequest.apply(adcSearch));
-    return SpringUtils.buildJsonStream(is);
+    return SpringUtils.buildJsonStream(new SimpleJsonFilter(is, AdcConstants.ADC_FACETS, filterResponse));
   }
 
   private ResponseEntity<StreamingResponseBody> adcSearchRequest(
