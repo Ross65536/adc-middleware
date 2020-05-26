@@ -27,10 +27,10 @@ public class RepertoireIds {
     return studyId;
   }
 
-  @JsonProperty("study")
+  @JsonProperty(AdcConstants.REPERTOIRE_STUDY_BASE)
   public void unpackStudyId(Map<String, Object> study) {
-    this.studyId = (String) study.get("study_id");
-    this.studyTitle = (String) study.get("study_title");
+    this.studyId = (String) study.get(AdcConstants.REPERTOIRE_STUDY_ID_BASE);
+    this.studyTitle = (String) study.get(AdcConstants.REPERTOIRE_STUDY_TITLE_BASE);
   }
 
   public String getStudyTitle() {

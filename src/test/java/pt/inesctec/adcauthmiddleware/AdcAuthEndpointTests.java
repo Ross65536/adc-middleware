@@ -29,6 +29,7 @@ public class AdcAuthEndpointTests extends TestBase {
   private static final Set<String> RepertoireIdFields = Set.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
   private static final Set<String> RearrangementIdFields = Set.of(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
   private static WireMockServer umaMock = new WireMockRule(options().port(TestConstants.UMA_PORT));
+  Set<String> RepertoireStatisticsScopeFields = Set.of(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_BASE, "data_processing.data_processing_files");
 
   private Map<String, Object> firstRepertoire;
   private Map<String, Object> secondRepertoire;
@@ -211,7 +212,7 @@ public class AdcAuthEndpointTests extends TestBase {
     var expected =
         TestCollections.mapSubset(
             this.firstRepertoire,
-            Set.of("repertoire_id", "study", "data_processing.data_processing_files"));
+            RepertoireStatisticsScopeFields);
     assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(expected));
   }
 
@@ -237,7 +238,7 @@ public class AdcAuthEndpointTests extends TestBase {
 
     var expected =
         TestCollections.mapSubset(
-            this.firstRepertoire, Set.of("repertoire_id", "study.study_id", "study.study_title"));
+            this.firstRepertoire, Set.of(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD));
     assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(expected));
   }
 
@@ -321,7 +322,7 @@ public class AdcAuthEndpointTests extends TestBase {
     checker.accept(400, "[1]");
     checker.accept(400, "{\"a\":1}");
     checker.accept(400, "{\"fields\":1}");
-    checker.accept(400, "{\"fields\":\"repertoire_id\"}");
+    checker.accept(400, TestJson.toJson(Map.of("fields", AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD)));
 
     checker.accept(400, TestJson.toJson(Map.of("filters", Map.of("op", "zxY"))));
     checker.accept(
@@ -638,7 +639,7 @@ public class AdcAuthEndpointTests extends TestBase {
             200, token);
 
     assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(
-        TestCollections.mapSubset(this.firstRepertoire, Set.of("study", "data_processing.data_processing_files", "repertoire_id")),
+        TestCollections.mapSubset(this.firstRepertoire, RepertoireStatisticsScopeFields),
         TestCollections.mapSubset(this.secondRepertoire, RepertoirePublicFields)
     ));
   }

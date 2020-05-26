@@ -60,9 +60,9 @@ public class ModelFactory {
     return TestCollections.mapOf(
         Pair.of(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD, "r" + id),
         Pair.of(
-            "study", TestCollections.mapOf(
-                Pair.of("study_id", "s" + id),
-                Pair.of("study_title", stringPrefix + TestConstants.generateHexString(8)),
+            AdcConstants.REPERTOIRE_STUDY_BASE, TestCollections.mapOf(
+                Pair.of(AdcConstants.REPERTOIRE_STUDY_ID_BASE, "s" + id),
+                Pair.of(AdcConstants.REPERTOIRE_STUDY_TITLE_BASE, stringPrefix + TestConstants.generateHexString(8)),
                 Pair.of("study_type", TestCollections.mapOf(
                         Pair.of("value", stringPrefix + TestConstants.generateHexString(2)),
                         Pair.of("inty", TestConstants.Random.nextInt())))
