@@ -70,9 +70,8 @@ public final class CollectionsUtils {
     return Collections.unmodifiableMap(topMap);
   }
 
-  public static <K> Set<K> toSet(K ... values) {
-    return Arrays.stream(values)
-        .collect(Collectors.toSet());
+  public static <K> Set<K> toSet(K... values) {
+    return Arrays.stream(values).collect(Collectors.toSet());
   }
 
   public static <E> E[] popFront(E[] elems) {
