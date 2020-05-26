@@ -295,6 +295,34 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
+  public void singleRearrangementMismatchedRptToken() throws JsonProcessingException {
+    var repertoireId =
+        TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    String rearrangementId = "1";
+    var rearrangement = ModelFactory.buildRearrangement(repertoireId, rearrangementId);
+
+    WireMocker.wireGetJson(
+        backendMock,
+        TestConstants.buildAirrPath(TestConstants.REARRANGEMENT_PATH_FRAGMENT, rearrangementId),
+        200,
+        ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement));
+
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(
+                this.secondRepertoireUmaId, List.of(TestConstants.UMA_SEQUENCE_SCOPE)));
+
+    var actual =
+        this.requests.getJsonMap(
+            this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT, rearrangementId),
+            200,
+            token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildRearrangementsDocumentWithInfo());
+  }
+
+  @Test
   public void notFoundSingleRearrangement() throws JsonProcessingException {
     String rearrangementId = "1";
 
