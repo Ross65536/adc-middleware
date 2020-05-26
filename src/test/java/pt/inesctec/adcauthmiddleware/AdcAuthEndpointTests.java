@@ -22,6 +22,7 @@ import pt.inesctec.adcauthmiddleware.utils.WireMocker;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
 
+// cache must be disabled for these tests
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AdcAuthEndpointTests extends TestBase {
 
@@ -612,6 +613,118 @@ public class AdcAuthEndpointTests extends TestBase {
         TestCollections.mapSubset(this.firstRepertoire, Set.of("study", "data_processing.data_processing_files", "repertoire_id")),
         TestCollections.mapSubset(this.secondRepertoire, RepertoirePublicFields)
     ));
+  }
+
+  @Test
+  public void rearrangementSearchAllAccess() throws JsonProcessingException {
+    var repertoireId1 = TestCollections.getString(this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var repertoireId2 = TestCollections.getString(this.secondRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var request = Map.of();
+
+    Map<String, Object> rearrangement1 = ModelFactory.buildRearrangement(repertoireId1, "1");
+    Map<String, Object> rearrangement2 = ModelFactory.buildRearrangement(repertoireId2, "2");
+    var rearrangementResponse = ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2);
+
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REARRANGEMENT_PATH, 200, rearrangementResponse, request);
+
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_SCOPES),
+            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, TestConstants.UMA_SCOPES)
+        );
+
+    var actual =
+        this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT),
+            request,
+            200, token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2));
+  }
+
+  @Test
+  public void rearrangementSearchAllAccessSameRepertoire() throws JsonProcessingException {
+    var repertoireId = TestCollections.getString(this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var request = Map.of();
+
+    Map<String, Object> rearrangement1 = ModelFactory.buildRearrangement(repertoireId, "1");
+    Map<String, Object> rearrangement2 = ModelFactory.buildRearrangement(repertoireId, "2");
+    var rearrangementResponse = ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2);
+
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REARRANGEMENT_PATH, 200, rearrangementResponse, request);
+
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE))
+        );
+
+    var actual =
+        this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT),
+            request,
+            200, token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2));
+  }
+
+  @Test
+  public void rearrangementSearchPartialAccessDeny() throws JsonProcessingException {
+    var repertoireId1 = TestCollections.getString(this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var repertoireId2 = TestCollections.getString(this.secondRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var request = Map.of();
+
+    Map<String, Object> rearrangement1 = ModelFactory.buildRearrangement(repertoireId1, "1");
+    Map<String, Object> rearrangement2 = ModelFactory.buildRearrangement(repertoireId2, "2");
+    var rearrangementResponse = ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2);
+
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REARRANGEMENT_PATH, 200, rearrangementResponse, request);
+
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE)),
+            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE)) // should deny
+        );
+
+    var actual =
+        this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT),
+            request,
+            200, token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1));
+  }
+
+  @Test
+  public void rearrangementSearchPartialFullAccessDeny() throws JsonProcessingException {
+    var repertoireId1 = TestCollections.getString(this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var repertoireId2 = TestCollections.getString(this.secondRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var request = Map.of();
+
+    Map<String, Object> rearrangement1 = ModelFactory.buildRearrangement(repertoireId1, "1");
+    Map<String, Object> rearrangement2 = ModelFactory.buildRearrangement(repertoireId2, "2");
+    var rearrangementResponse = ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2);
+
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REARRANGEMENT_PATH, 200, rearrangementResponse, request);
+
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock
+        );
+
+    var actual =
+        this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT),
+            request,
+            200, token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildRearrangementsDocumentWithInfo());
   }
 
 
