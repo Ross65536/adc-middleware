@@ -49,6 +49,7 @@ import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
+import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingProducer;
 
@@ -202,7 +203,7 @@ public class AdcAuthController {
           FieldClass.REPERTOIRE,
           AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
           this::getRepertoireStudyIds,
-          (umaId) -> Set.of(this.dbRepository.getUmaStudyId(umaId)),
+          (umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId)),
           this.adcClient::searchRepertoiresAsStream);
     } else {
       return this.adcSearchRequest(
@@ -327,14 +328,16 @@ public class AdcAuthController {
               .map(resource -> umaIdGetter.apply(resource.getUmaResourceId()))
               .filter(Objects::nonNull)
               .flatMap(Collection::stream)
+              .filter(Objects::nonNull)
               .distinct()
               .collect(Collectors.toList());
 
       adcSearch.withFieldIn(resourceId, resourceIds);
-      filterResponse = resourceIds.isEmpty(); // will only perform whitelist filtering if rpt grants access to nothing, for partial access the backend must perform the filtering
+      filterResponse = resourceIds.isEmpty();
     }
 
     var is = SpringUtils.catchForwardingError(() -> adcRequest.apply(adcSearch));
+    // will only perform whitelist filtering if rpt grants access to nothing, for partial access the backend must perform the filtering
     return SpringUtils.buildJsonStream(new SimpleJsonFilter(is, AdcConstants.ADC_FACETS, filterResponse));
   }
 

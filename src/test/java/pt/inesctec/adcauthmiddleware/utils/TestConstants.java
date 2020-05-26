@@ -32,6 +32,7 @@ public final class TestConstants {
   public static final String REPERTOIRE_PATH = TestConstants.buildAirrPath(TestConstants.REPERTOIRE_PATH_FRAGMENT);
   public static final String REARRANGEMENT_PATH = TestConstants.buildAirrPath(TestConstants.REARRANGEMENT_PATH_FRAGMENT);
   public static final String REPERTOIRE_PRIVATE_SEQUENCE_FIELD = "data_processing.numbo";
+  public static final String REARRANGEMENT_PRIVATE_FIELD = "sequence_aa";
 
   public static String buildAirrPath(String... path) {
     var fullPath =
