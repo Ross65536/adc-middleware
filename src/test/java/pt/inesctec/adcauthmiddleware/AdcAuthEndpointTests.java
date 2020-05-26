@@ -758,7 +758,7 @@ public class AdcAuthEndpointTests extends TestBase {
   @Test
   public void repertoireFacetsAllAccess() throws JsonProcessingException {
     var request = ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
-    var facet = ModelFactory.buildFacet(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+    var facet = ModelFactory.buildFacet(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
 
     var backendRequest = TestCollections.mapMerge(
       request,
@@ -785,6 +785,19 @@ public class AdcAuthEndpointTests extends TestBase {
             this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
             request,
             200, token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildFacetsDocumentWithInfo(facet));
+  }
+
+  @Test
+  public void repertoireFacetsPublicAccess() throws JsonProcessingException {
+    var request = ModelFactory.buildAdcFacets(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+    var facet = ModelFactory.buildFacet(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+
+    var repertoiresResponse = ModelFactory.buildFacetsDocumentWithInfo(facet);
+    WireMocker.wirePostJson(backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
+
+    var actual = this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200);
 
     assertThat(actual).isEqualTo(ModelFactory.buildFacetsDocumentWithInfo(facet));
   }
@@ -818,7 +831,7 @@ public class AdcAuthEndpointTests extends TestBase {
   @Test
   public void repertoireFacetsDenyAccessWhitelisting() throws JsonProcessingException {
     var request = ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
-    List<Map<String, Object>> facet = ModelFactory.buildFacet(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+    List<Map<String, Object>> facet = ModelFactory.buildFacet(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
 
     var backendRequest = TestCollections.mapMerge(
         request,

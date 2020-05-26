@@ -78,6 +78,10 @@ public class Requests {
     return postJson(url, json, expectedStatus, headers);
   }
 
+  public Map<String, Object> postJson(String url, Object json, int expectedStatus) {
+    return postJson(url, TestJson.toJson(json), expectedStatus);
+  }
+
   public Map<String, Object> postJson(String url, Object request, int expectedStatus, String token) {
     var headers = buildAuthorizationHeader(token);
     return postJson(url, TestJson.toJson(request), expectedStatus, headers);
@@ -92,6 +96,7 @@ public class Requests {
     assertThat(restEntity.getStatusCodeValue()).isEqualTo(expectedStatus);
     return TestJson.fromJson(restEntity.getBody(), Map.class);
   }
+
 
   private HttpHeaders buildAuthorizationHeader(String bearer) {
     HttpHeaders headers = new HttpHeaders();
