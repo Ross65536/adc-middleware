@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.Set;
 
 public final class TestCollections {
+  /**
+   * Use this instead of Map.of() when you need to insert null values
+   */
   public static <K, V> Map<K, V> mapOf(Pair<K, V>... pairs) {
     var map = new HashMap();
     for (var pair : pairs) {

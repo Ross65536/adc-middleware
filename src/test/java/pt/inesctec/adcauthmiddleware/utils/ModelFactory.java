@@ -35,6 +35,11 @@ public class ModelFactory {
         Pair.of("Info", buildInfo()), Pair.of("Rearrangement", List.of(rearrangements)));
   }
 
+  public static Object buildFacetsDocumentWithInfo(List<Map<String, Object>> facet) {
+    return TestCollections.mapOf(
+        Pair.of("Info", buildInfo()), Pair.of("Facet", facet));
+  }
+
   public static Map<String, Object> buildAdcFields(String... fields) {
     return TestCollections.mapOf(Pair.of("fields", List.of(fields)));
   }
@@ -84,6 +89,23 @@ public class ModelFactory {
     );
   }
 
+  public static List<Map<String, Object>> buildFacet(String field) {
+    return List.of(
+        Map.of(
+            field, TestConstants.generateHexString(10),
+            "count", TestConstants.Random.nextInt(20) + 1
+        ),
+        Map.of(
+            field, TestConstants.generateHexString(10),
+            "count", TestConstants.Random.nextInt(20) + 1
+        ),
+        Map.of(
+            field, TestConstants.generateHexString(10),
+            "count", TestConstants.Random.nextInt(20) + 1
+        )
+    );
+  }
+
   public static Map<String, Object> buildUmaResource(String id, Collection<String> scopes) {
     var uniqueScopes = new HashSet<>(scopes);
 
@@ -112,5 +134,15 @@ public class ModelFactory {
                     ))
             )
       ));
+  }
+
+  public static Map<String, Object> buildAdcFacetsFilter(String field, List<String> values) {
+    return Map.of(
+        "filters", Map.of(
+            "op", "in",
+            "content", Map.of(
+              "field", field,
+              "value", values
+                )));
   }
 }

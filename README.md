@@ -363,9 +363,6 @@ The following public endpoints are not mandatory and access to them can be disab
 The `Repertoire`s responses (1. and 3.) must be of (minimal) format:
 ```yaml
 {
-  "Info": {
-    // put arbitrary data here, that can pass to the user unfiltered
-  },
   "Repertoire": { // can put any extra fields in here
     "repertoire_id": "123adc", // string type, must be the id in endpoint 1.
     "study": {
@@ -379,9 +376,6 @@ The `Repertoire`s responses (1. and 3.) must be of (minimal) format:
 The `Rearrangement`s responses (2. and 4.) must be of (minimal) format:
 ```yaml
 {
-  "Info": {
-    // put arbitrary data here, that can pass to the user unfiltered
-  },
   "Rearrangement": { // can put any extra fields in here
     "repertoire_id": "123adc", // string type, must be the id of the repertoire to which this rearrangement belongs to
     "rearrangement_id": "234" // string type, must be the id in endpoint 2.
