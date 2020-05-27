@@ -25,7 +25,7 @@ public final class TestConstants {
 
   public static final String UMA_STATISTICS_SCOPE = "statistics";
   public static final String UMA_SEQUENCE_SCOPE = "raw_sequence";
-  public static final List<String> UMA_SCOPES = List.of(UMA_STATISTICS_SCOPE, UMA_SEQUENCE_SCOPE);
+  public static final List<String> UMA_ALL_SCOPES = List.of(UMA_STATISTICS_SCOPE, UMA_SEQUENCE_SCOPE);
   public static final String REPERTOIRE_PATH_FRAGMENT = "repertoire";
   public static final String REARRANGEMENT_PATH_FRAGMENT = "rearrangement";
   public static final String SYNCHRONIZE_PATH_FRAGMENT = "synchronize";

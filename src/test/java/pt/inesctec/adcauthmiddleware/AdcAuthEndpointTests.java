@@ -43,7 +43,7 @@ public class AdcAuthEndpointTests extends TestBase {
 
 
   @BeforeAll
-  public void init() throws JsonProcessingException {
+  public void init() {
 
     var searchRequest =
         ModelFactory.buildAdcFields(
@@ -76,7 +76,7 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @BeforeEach
-  public void reset() throws JsonProcessingException {
+  public void reset() {
     backendMock.resetMappings();
     umaMock.resetMappings();
     this.accessToken = UmaWireMocker.wireTokenEndpoint(umaMock);
@@ -100,7 +100,7 @@ public class AdcAuthEndpointTests extends TestBase {
             this.accessToken,
             ModelFactory.buildUmaResource(
                 this.firstRepertoireUmaId,
-                TestConstants.UMA_SCOPES)); // repertoires have all the scopes
+                TestConstants.UMA_ALL_SCOPES)); // repertoires have all the scopes
 
     this.requests.getJsonUmaTicket(
         this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId), ticket);
@@ -132,7 +132,7 @@ public class AdcAuthEndpointTests extends TestBase {
             umaMock,
             ModelFactory.buildUmaResource(
                 this.firstRepertoireUmaId,
-                TestConstants.UMA_SCOPES)); // repertoires have all the scopes
+                TestConstants.UMA_ALL_SCOPES)); // repertoires have all the scopes
     var actual =
         this.requests.getJsonMap(
             this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId),
@@ -177,7 +177,7 @@ public class AdcAuthEndpointTests extends TestBase {
             umaMock,
             ModelFactory.buildUmaResource(
                 this.secondRepertoireUmaId,
-                TestConstants.UMA_SCOPES)); // access token for different repertoire provided
+                TestConstants.UMA_ALL_SCOPES)); // access token for different repertoire provided
     var actual =
         this.requests.getJsonMap(
             this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId),
@@ -424,10 +424,10 @@ public class AdcAuthEndpointTests extends TestBase {
         UmaWireMocker.wireGetTicket(
             umaMock,
             this.accessToken,
-            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_SCOPES),
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES),
             ModelFactory.buildUmaResource(
                 this.secondRepertoireUmaId,
-                TestConstants.UMA_SCOPES)); // repertoires have all the scopes
+                TestConstants.UMA_ALL_SCOPES)); // repertoires have all the scopes
 
     this.requests.postJsonTicket(
         this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
@@ -455,7 +455,7 @@ public class AdcAuthEndpointTests extends TestBase {
             this.accessToken,
             ModelFactory.buildUmaResource(
                 this.firstRepertoireUmaId,
-                TestConstants.UMA_SCOPES)); // repertoires have all the scopes
+                TestConstants.UMA_ALL_SCOPES)); // repertoires have all the scopes
 
     this.requests.postJsonTicket(
         this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
@@ -605,8 +605,8 @@ public class AdcAuthEndpointTests extends TestBase {
     var token =
         UmaWireMocker.wireTokenIntrospection(
             umaMock,
-            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_SCOPES),
-            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, TestConstants.UMA_SCOPES)
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES),
+            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, TestConstants.UMA_ALL_SCOPES)
         );
 
     var actual =
@@ -675,7 +675,7 @@ public class AdcAuthEndpointTests extends TestBase {
     WireMocker.wirePostJson(backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
 
     var token = UmaWireMocker.wireTokenIntrospection(
-        umaMock, ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_SCOPES)
+        umaMock, ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES)
     );
 
     var actual =
@@ -784,8 +784,8 @@ public class AdcAuthEndpointTests extends TestBase {
     var token =
         UmaWireMocker.wireTokenIntrospection(
             umaMock,
-            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_SCOPES),
-            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, TestConstants.UMA_SCOPES)
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES),
+            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, TestConstants.UMA_ALL_SCOPES)
         );
 
     var actual =
@@ -901,8 +901,8 @@ public class AdcAuthEndpointTests extends TestBase {
     var token =
         UmaWireMocker.wireTokenIntrospection(
             umaMock,
-            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_SCOPES),
-            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, TestConstants.UMA_SCOPES)
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES),
+            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, TestConstants.UMA_ALL_SCOPES)
         );
 
     var actual =

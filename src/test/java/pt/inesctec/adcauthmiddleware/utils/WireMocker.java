@@ -1,6 +1,5 @@
 package pt.inesctec.adcauthmiddleware.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
@@ -20,16 +19,14 @@ public final class WireMocker {
   public static final String CONTENT_TYPE_HEADER = "Content-Type";
   private static final String AUTHORIZATION_HEADER = "Authorization";
 
-  public static void wireGetJson(WireMockServer mock, String matchUrl, int respStatus, Object respBody)
-      throws JsonProcessingException {
+  public static void wireGetJson(WireMockServer mock, String matchUrl, int respStatus, Object respBody) {
     mock.stubFor(
         WireMock.get(matchUrl)
             .withHeader(ACCEPT_HEADER, containing(JSON_MIME))
             .willReturn(jsonResponse(respStatus, respBody)));
   }
 
-  public static void wireGetJson(WireMockServer mock, String matchUrl, int respStatus, Object respBody, String expectedAuthorization)
-      throws JsonProcessingException {
+  public static void wireGetJson(WireMockServer mock, String matchUrl, int respStatus, Object respBody, String expectedAuthorization) {
     mock.stubFor(
         WireMock.get(matchUrl)
             .withHeader(ACCEPT_HEADER, containing(JSON_MIME))
@@ -42,8 +39,7 @@ public final class WireMocker {
       String matchUrl,
       int respStatus,
       Object responseBody,
-      Object expectedBody)
-      throws JsonProcessingException {
+      Object expectedBody) {
     var expectedJson = toJson(expectedBody);
 
     mock.stubFor(
@@ -60,8 +56,7 @@ public final class WireMocker {
       int respStatus,
       Object responseBody,
       Object expectedBody,
-      String expectedAuthorization)
-      throws JsonProcessingException {
+      String expectedAuthorization) {
     var expectedJson = toJson(expectedBody);
 
     mock.stubFor(
@@ -78,8 +73,7 @@ public final class WireMocker {
       String matchUrl,
       int respStatus,
       Object responseBody,
-      Map<String, String> expectedBody)
-      throws JsonProcessingException {
+      Map<String, String> expectedBody) {
 
     MappingBuilder post =
         WireMock.post(matchUrl)
@@ -97,8 +91,7 @@ public final class WireMocker {
       int respStatus,
       Object responseBody,
       Map<String, String> expectedBody,
-      String expectedAuthorization)
-      throws JsonProcessingException {
+      String expectedAuthorization) {
 
     MappingBuilder post =
         WireMock.post(matchUrl)
@@ -121,7 +114,7 @@ public final class WireMocker {
     }
   }
 
-  private static ResponseDefinitionBuilder jsonResponse(int respStatus, Object response) throws JsonProcessingException {
+  private static ResponseDefinitionBuilder jsonResponse(int respStatus, Object response) {
     var json = toJson(response);
 
     return WireMock.aResponse()
