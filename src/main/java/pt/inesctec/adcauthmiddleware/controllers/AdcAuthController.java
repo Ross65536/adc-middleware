@@ -364,8 +364,11 @@ public class AdcAuthController {
     List<UmaResource> umaResources =
         this.adcQueryUmaFlow(request, adcSearch, resourceId, umaScopes, umaIdsProducer);
 
-    var isAddedField = adcSearch.tryAddField(resourceId); // modifies function argument
-    Set<String> removeFields = isAddedField ? ImmutableSet.of(resourceId) : EmptySet;
+    var idFieldAlreadyRequested = requestFields.contains(resourceId);
+    if (!idFieldAlreadyRequested) {
+      adcSearch.addField(resourceId);
+    }
+    Set<String> removeFields = idFieldAlreadyRequested ? EmptySet : ImmutableSet.of(resourceId);
 
     var fieldMapper =
         this.buildUmaFieldMapper(umaResources, fieldClass, removeFields).compose(mapperComposition);

@@ -102,19 +102,6 @@ public class AdcSearchRequest {
     return this.fields == null || this.fields.isEmpty();
   }
 
-  public boolean tryAddField(String field) {
-    if (this.isFieldsEmpty()) {
-      return false;
-    }
-
-    if (this.fields.contains(field)) {
-      return false;
-    }
-
-    this.fields.add(field);
-    return true;
-  }
-
   public AdcSearchRequest addFields(String... fields) {
     Arrays.stream(fields).forEach(this::addField);
 
