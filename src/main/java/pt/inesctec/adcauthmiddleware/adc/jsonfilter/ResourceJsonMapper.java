@@ -142,6 +142,11 @@ public class ResourceJsonMapper extends BaseJsonMapper {
 
           i++;
         }
+
+        if (childArr.isEmpty()) {
+          node.remove(fieldName);
+        }
+
       } else  {
         Logger.error("Invalid CSV config, expected " + fieldName + " field to be JSON object or array");
         node.remove(fieldName);

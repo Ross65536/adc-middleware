@@ -364,7 +364,7 @@ public class AdcAuthController {
     List<UmaResource> umaResources =
         this.adcQueryUmaFlow(request, adcSearch, resourceId, umaScopes, umaIdsProducer);
 
-    var idFieldAlreadyRequested = requestFields.contains(resourceId);
+    var idFieldAlreadyRequested = requestFields.contains(resourceId) || requestFieldsEmpty;
     if (!idFieldAlreadyRequested) {
       adcSearch.addField(resourceId);
     }

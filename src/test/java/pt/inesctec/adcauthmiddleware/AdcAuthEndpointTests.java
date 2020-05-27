@@ -673,6 +673,60 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
+  public void repertoireSearchArrayPartialAccessDeny() throws JsonProcessingException {
+    var request = Map.of();
+
+    var repertoirePublic = TestCollections.mapSubset(this.firstRepertoire, RepertoirePublicFields);
+    final List<String> files = List.of(TestConstants.generateHexString(10));
+    var responseRepertoire1 = TestCollections.mapMerge(
+        repertoirePublic,
+        Map.of("data_processing", List.of(
+          Map.of(
+              "data_processing_files", files,
+              "numbo", TestConstants.Random.nextInt(20)
+          ), Map.of( // should be removed
+              "numbo", TestConstants.Random.nextInt(20)
+          )
+    )));
+
+    var responseRepertoire2 = TestCollections.mapMerge(
+        repertoirePublic,
+        Map.of("data_processing", List.of( // should filter this out
+            Map.of(
+                "numbo", TestConstants.Random.nextInt(20),
+                "bool", false
+            )
+        )));
+
+    var expectedRepertoire1 = TestCollections.mapMerge(
+        repertoirePublic,
+        Map.of("data_processing", List.of(
+            Map.of(
+                "data_processing_files", files
+            )
+        )));
+
+    var repertoiresResponse =
+        ModelFactory.buildRepertoiresDocumentWithInfo(responseRepertoire1, responseRepertoire2);
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
+
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE))
+        );
+
+    var actual =
+        this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
+            request,
+            200, token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(expectedRepertoire1, repertoirePublic));
+  }
+
+  @Test
   public void rearrangementSearchAllAccess() throws JsonProcessingException {
     var repertoireId1 = TestCollections.getString(this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
     var repertoireId2 = TestCollections.getString(this.secondRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
