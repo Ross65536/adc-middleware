@@ -169,7 +169,7 @@ spring.redis.port=6379
 
 #### Dev run example
 
-```
+```shell script
 docker-compose --file docker-compose.dev.yml up
 ./gradlew bootRun --args='--spring.config.location=classpath:/application.properties,./dev.properties'
 ```

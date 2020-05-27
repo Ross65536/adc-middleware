@@ -3,6 +3,7 @@ package pt.inesctec.adcauthmiddleware.adc.jsonfilter;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -48,8 +49,6 @@ public class ResourceJsonMapper extends BaseJsonMapper {
     generator.writeEndArray();
   }
 
-  private static final String SEPARATOR = "\\.";
-
   private static Optional<String> getFieldRecursive(ObjectNode obj, String[] fieldParts) {
     if (fieldParts.length == 0) {
       return Optional.empty();
@@ -78,6 +77,8 @@ public class ResourceJsonMapper extends BaseJsonMapper {
 
     return Optional.of(fieldNode.textValue());
   }
+
+  private static final String SEPARATOR = "\\.";
 
   private static Map<String, Set<String>> reduceFieldsLevel(Set<String> fields) {
     var map = new HashMap<String, Set<String>>();
@@ -115,14 +116,34 @@ public class ResourceJsonMapper extends BaseJsonMapper {
       }
 
       var childNode = node.get(fieldName);
-      if (!childNode.isObject()) {
-        Logger.error("Invalid CSV config, expected " + fieldName + " field to be object");
-        continue;
-      }
+      if (childNode.isObject()) {
+        var childObj = (ObjectNode) childNode;
+        ResourceJsonMapper.unsetObjectFieldsRecursive(childObj, fieldRemainders);
+        if (childObj.isEmpty()) {
+          node.remove(fieldName);
+        }
+      } else if (childNode.isArray()) {
+        var childArr = (ArrayNode) childNode;
 
-      var childObj = (ObjectNode) childNode;
-      ResourceJsonMapper.unsetObjectFieldsRecursive(childObj, fieldRemainders);
-      if (childObj.isEmpty()) {
+        for (int i = 0; i < childArr.size();) {
+          var elem = childArr.get(i);
+          if (! elem.isObject()) {
+            Logger.error(String.format("Invalid CSV config, expected %s.%s array element to be JSON object", fieldName, i));
+            childArr.remove(i);
+            continue;
+          }
+
+          var elemObj = (ObjectNode) elem;
+          ResourceJsonMapper.unsetObjectFieldsRecursive(elemObj, fieldRemainders);
+          if (elemObj.isEmpty()) {
+            childArr.remove(i);
+            continue;
+          }
+
+          i++;
+        }
+      } else  {
+        Logger.error("Invalid CSV config, expected " + fieldName + " field to be JSON object or array");
         node.remove(fieldName);
       }
     }
