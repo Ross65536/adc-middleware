@@ -1,239 +1,239 @@
-class,field,protection,access_scope,field_type,description
-Repertoire,repertoire_id,public,,string,"Identifier for the repertoire object. This identifier should be globally unique so that repertoires from multiple studies can be combined together without conflict. The repertoire_id is used to link other AIRR data to a Repertoire. Specifically, the Rearrangements Schema includes repertoire_id for referencing the specific Repertoire for that Rearrangement."
-Repertoire,repertoire_name,public,,string,Short generic display name for the repertoire
-Repertoire,repertoire_description,public,,string,Generic repertoire description
-Repertoire,study.study_id,public,,string,Unique ID assigned by study registry
-Repertoire,study.study_title,public,,string,Descriptive study title
-Repertoire,study.study_type.value,protected,statistics,string,Type of study design
-Repertoire,study.study_type.id,protected,statistics,string,Type of study design (Ontology ID)
-Repertoire,study.study_description,protected,statistics,string,Generic study description
-Repertoire,study.inclusion_exclusion_criteria,protected,statistics,string,List of criteria for inclusion/exclusion for the study
-Repertoire,study.grants,protected,statistics,string,Funding agencies and grant numbers
-Repertoire,study.collected_by,protected,statistics,string,"Full contact information of the data collector, i.e. the person who is legally responsible for data collection and release. This should include an e-mail address."
-Repertoire,study.lab_name,protected,statistics,string,Department of data collector
-Repertoire,study.lab_address,protected,statistics,string,Institution and institutional address of data collector
-Repertoire,study.submitted_by,protected,statistics,string,"Full contact information of the data depositor, i.e. the person submitting the data to a repository. This is supposed to be a short-lived and technical role until the submission is relased."
-Repertoire,study.pub_ids,protected,statistics,string,Publications describing the rationale and/or outcome of the study
-Repertoire,study.keywords_study,protected,statistics,array_string,Keywords describing properties of one or more data sets in a study
-Repertoire,subject.subject_id,protected,statistics,string,"Subject ID assigned by submitter, unique within study"
-Repertoire,subject.synthetic,protected,statistics,boolean,TRUE for libraries in which the diversity has been synthetically generated (e.g. phage display)
-Repertoire,subject.organism.value,protected,statistics,string,Binomial designation of subject's species
-Repertoire,subject.organism.id,protected,statistics,string,Binomial designation of subject's species (Ontology ID)
-Repertoire,subject.sex,protected,statistics,string,Biological sex of subject
-Repertoire,subject.age_min,protected,statistics,number,Specific age or lower boundary of age range.
-Repertoire,subject.age_max,protected,statistics,number,Upper boundary of age range or equal to age_min for specific age. This field should only be null if age_min is null.
-Repertoire,subject.age_unit.value,protected,statistics,string,Unit of age range
-Repertoire,subject.age_unit.id,protected,statistics,string,Unit of age range (Ontology ID)
-Repertoire,subject.age_event,protected,statistics,string,"Event in the study schedule to which `Age` refers. For NCBI BioSample this MUST be `sampling`. For other implementations submitters need to be aware that there is currently no mechanism to encode to potential delta between `Age event` and `Sample collection time`, hence the chosen events should be in temporal proximity."
-Repertoire,subject.age,protected,statistics,string,DEPRECATED
-Repertoire,subject.ancestry_population,protected,statistics,string,Broad geographic origin of ancestry (continent)
-Repertoire,subject.ethnicity,protected,statistics,string,Ethnic group of subject (defined as cultural/language-based membership)
-Repertoire,subject.race,protected,statistics,string,Racial group of subject (as defined by NIH)
-Repertoire,subject.strain_name,protected,statistics,string,Non-human designation of the strain or breed of animal used
-Repertoire,subject.linked_subjects,protected,statistics,string,Subject ID to which `Relation type` refers
-Repertoire,subject.link_type,protected,statistics,string,"Relation between subject and `linked_subjects`, can be genetic or environmental (e.g.exposure)"
-Repertoire,subject.diagnosis.study_group_description,protected,statistics,string,Designation of study arm to which the subject is assigned to
-Repertoire,subject.diagnosis.disease_diagnosis,protected,statistics,string,Diagnosis of subject
-Repertoire,subject.diagnosis.disease_length,protected,statistics,string,Time duration between initial diagnosis and current intervention
-Repertoire,subject.diagnosis.disease_stage,protected,statistics,string,Stage of disease at current intervention
-Repertoire,subject.diagnosis.prior_therapies,protected,statistics,string,List of all relevant previous therapies applied to subject for treatment of `Diagnosis`
-Repertoire,subject.diagnosis.immunogen,protected,statistics,string,"Antigen, vaccine or drug applied to subject at this intervention"
-Repertoire,subject.diagnosis.intervention,protected,statistics,string,Description of intervention
-Repertoire,subject.diagnosis.medical_history,protected,statistics,string,Medical history of subject that is relevant to assess the course of disease and/or treatment
-Repertoire,sample.sample_id,protected,raw_sequence,string,"Sample ID assigned by submitter, unique within study"
-Repertoire,sample.sample_type,protected,raw_sequence,string,"The way the sample was obtained, e.g. fine-needle aspirate, organ harvest, peripheral venous puncture"
-Repertoire,sample.tissue,protected,raw_sequence,string,"The actual tissue sampled, e.g. lymph node, liver, peripheral blood"
-Repertoire,sample.anatomic_site,protected,raw_sequence,string,"The anatomic location of the tissue, e.g. Inguinal, femur"
-Repertoire,sample.disease_state_sample,protected,raw_sequence,string,Histopathologic evaluation of the sample
-Repertoire,sample.collection_time_point_relative,protected,raw_sequence,string,"Time point at which sample was taken, relative to `Collection time event`"
-Repertoire,sample.collection_time_point_reference,protected,raw_sequence,string,Event in the study schedule to which `Sample collection time` relates to
-Repertoire,sample.biomaterial_provider,protected,raw_sequence,string,Name and address of the entity providing the sample
-Repertoire,sample.tissue_processing,protected,raw_sequence,string,Enzymatic digestion and/or physical methods used to isolate cells from sample
-Repertoire,sample.cell_subset.value,protected,raw_sequence,string,Commonly-used designation of isolated cell population
-Repertoire,sample.cell_subset.id,protected,raw_sequence,string,Commonly-used designation of isolated cell population (Ontology ID)
-Repertoire,sample.cell_phenotype,protected,raw_sequence,string,List of cellular markers and their expression levels used to isolate the cell population
-Repertoire,sample.cell_species.value,protected,raw_sequence,string,"Binomial designation of the species from which the analyzed cells originate. Typically, this value should be identical to `organism`, if which case it SHOULD NOT be set explicitly. Howver, there are valid experimental setups in which the two might differ, e.g. chimeric animal models. If set, this key will overwrite the `organism` information for all lower layers of the schema."
-Repertoire,sample.cell_species.id,protected,raw_sequence,string,"Binomial designation of the species from which the analyzed cells originate. Typically, this value should be identical to `organism`, if which case it SHOULD NOT be set explicitly. Howver, there are valid experimental setups in which the two might differ, e.g. chimeric animal models. If set, this key will overwrite the `organism` information for all lower layers of the schema. (Ontology ID)"
-Repertoire,sample.single_cell,protected,raw_sequence,boolean,TRUE if single cells were isolated into separate compartments
-Repertoire,sample.cell_number,protected,raw_sequence,integer,Total number of cells that went into the experiment
-Repertoire,sample.cells_per_reaction,protected,raw_sequence,integer,Number of cells for each biological replicate
-Repertoire,sample.cell_storage,protected,raw_sequence,boolean,TRUE if cells were cryo-preserved between isolation and further processing
-Repertoire,sample.cell_quality,protected,raw_sequence,string,Relative amount of viable cells after preparation and (if applicable) thawing
-Repertoire,sample.cell_isolation,protected,raw_sequence,string,Description of the procedure used for marker-based isolation or enrich cells
-Repertoire,sample.cell_processing_protocol,protected,raw_sequence,string,Description of the methods applied to the sample including cell preparation/ isolation/enrichment and nucleic acid extraction. This should closely mirror the Materials and methods section in the manuscript
-Repertoire,sample.template_class,protected,raw_sequence,string,The class of nucleic acid that was used as primary starting material for the following procedures
-Repertoire,sample.template_quality,protected,raw_sequence,string,Description and results of the quality control performed on the template material
-Repertoire,sample.template_amount,protected,raw_sequence,string,Amount of template that went into the process
-Repertoire,sample.library_generation_method,protected,raw_sequence,string,Generic type of library generation
-Repertoire,sample.library_generation_protocol,protected,raw_sequence,string,Description of processes applied to substrate to obtain a library that is ready for sequencing
-Repertoire,sample.library_generation_kit_version,protected,raw_sequence,string,"When using a library generation protocol from a commercial provider, provide the protocol version number"
-Repertoire,sample.pcr_target.pcr_target_locus,protected,raw_sequence,string,"Designation of the target locus. Note that this field uses a controlled vocubulary that is meant to provide a generic classification of the locus, not necessarily the correct designation according to a specific nomenclature."
-Repertoire,sample.pcr_target.forward_pcr_primer_target_location,protected,raw_sequence,string,Position of the most distal nucleotide templated by the forward primer or primer mix
-Repertoire,sample.pcr_target.reverse_pcr_primer_target_location,protected,raw_sequence,string,Position of the most proximal nucleotide templated by the reverse primer or primer mix
-Repertoire,sample.complete_sequences,protected,raw_sequence,string,"To be considered `complete`, the procedure used for library construction MUST generate sequences that 1) include the first V gene codon that encodes the mature polypeptide chain (i.e. after the leader sequence) and 2) include the last complete codon of the J gene (i.e. 1 bp 5' of the J->C splice site) and 3) provide sequence information for all positions between 1) and 2). To be considered `complete & untemplated`, the sections of the sequences defined in points 1) to 3) of the previous sentence MUST be untemplated, i.e. MUST NOT overlap with the primers used in library preparation."
-Repertoire,sample.physical_linkage,protected,raw_sequence,string,Describes the mode of linkage if a method was used which physically links nucleic acids derived from distinct loci in a single-cell context.
-Repertoire,sample.sequencing_run_id,protected,raw_sequence,string,ID of sequencing run assigned by the sequencing facility
-Repertoire,sample.total_reads_passing_qc_filter,protected,raw_sequence,integer,Number of usable reads for analysis
-Repertoire,sample.sequencing_platform,protected,raw_sequence,string,Designation of sequencing instrument used
-Repertoire,sample.sequencing_facility,protected,raw_sequence,string,Name and address of sequencing facility
-Repertoire,sample.sequencing_run_date,protected,raw_sequence,string,Date of sequencing run
-Repertoire,sample.sequencing_kit,protected,raw_sequence,string,"Name, manufacturer, order and lot numbers of sequencing kit"
-Repertoire,sample.sequencing_files.file_type,protected,raw_sequence,string,File format for the raw reads or sequences
-Repertoire,sample.sequencing_files.filename,protected,raw_sequence,string,File name for the raw reads or sequences. The first file in paired-read sequencing
-Repertoire,sample.sequencing_files.read_direction,protected,raw_sequence,string,Read direction for the raw reads or sequences. The first file in paired-read sequencing
-Repertoire,sample.sequencing_files.read_length,protected,raw_sequence,integer,Read length in bases for the first file in paired-read sequencing
-Repertoire,sample.sequencing_files.paired_filename,protected,raw_sequence,string,File name for the second file in paired-read sequencing
-Repertoire,sample.sequencing_files.paired_read_direction,protected,raw_sequence,string,Read direction for the second file in paired-read sequencing
-Repertoire,sample.sequencing_files.paired_read_length,protected,raw_sequence,integer,Read length in bases for the second file in paired-read sequencing
-Repertoire,data_processing.data_processing_id,protected,statistics,string,Identifier for the data processing object.
-Repertoire,data_processing.primary_annotation,protected,statistics,boolean,"If true, indicates this is the primary or default data processing for the repertoire and its rearrangments. If false, indicates this is a secondary or additional data processing."
-Repertoire,data_processing.software_versions,protected,statistics,string,"Version number and / or date, include company pipelines"
-Repertoire,data_processing.paired_reads_assembly,protected,statistics,string,How paired end reads were assembled into a single receptor sequence
-Repertoire,data_processing.quality_thresholds,protected,statistics,string,How sequences were removed from (4) based on base quality scores
-Repertoire,data_processing.primer_match_cutoffs,protected,statistics,string,"How primers were identified in the sequences, were they removed/masked/etc?"
-Repertoire,data_processing.collapsing_method,protected,statistics,string,The method used for combining multiple sequences from (4) into a single sequence in (5)
-Repertoire,data_processing.data_processing_protocols,protected,statistics,string,General description of how QC is performed
-Repertoire,data_processing.data_processing_files,protected,statistics,array_string,Array of file names for data produced by this data processing.
-Repertoire,data_processing.germline_database,protected,statistics,string,Source of germline V(D)J genes with version number or date accessed.
-Repertoire,data_processing.analysis_provenance_id,protected,statistics,string,Identifier for machine-readable PROV model of analysis provenance
-Rearrangement,sequence_id,protected,raw_sequence,string,"Unique query sequence identifier within the file. Most often this will be the input sequence header or a substring thereof, but may also be a custom identifier defined by the tool in cases where query sequences have been combined in some fashion prior to alignment."
-Rearrangement,sequence,protected,raw_sequence,string,"The query nucleotide sequence. Usually, this is the unmodified input sequence, which may be reverse complemented if necessary. In some cases, this field may contain consensus sequences or other types of collapsed input sequences if these steps are performed prior to alignment."
-Rearrangement,sequence_aa,protected,raw_sequence,string,Amino acid translation of the query nucleotide sequence.
-Rearrangement,rev_comp,protected,raw_sequence,boolean,"True if the alignment is on the opposite strand (reverse complemented) with respect to the query sequence. If True then all output data, such as alignment coordinates and sequences, are based on the reverse complement of 'sequence'."
-Rearrangement,productive,protected,raw_sequence,boolean,True if the V(D)J sequence is predicted to be productive.
-Rearrangement,vj_in_frame,protected,raw_sequence,boolean,True if the V and J gene alignments are in-frame.
-Rearrangement,stop_codon,protected,raw_sequence,boolean,True if the aligned sequence contains a stop codon.
-Rearrangement,complete_vdj,protected,raw_sequence,boolean,"True if the sequence alignment spans the entire V(D)J region. Meaning, sequence_alignment includes both the first V gene codon that encodes the mature polypeptide chain (i.e., after the leader sequence) and the last complete codon of the J gene (i.e., before the J-C splice site). This does not require an absence of deletions within the internal FWR and CDR regions of the alignment."
-Rearrangement,locus,protected,raw_sequence,string,"Gene locus (chain type). Note that this field uses a controlled vocabulary that is meant to provide a generic classification of the locus, not necessarily the correct designation according to a specific nomenclature."
-Rearrangement,v_call,protected,raw_sequence,string,"V gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHV4-59*01 if using IMGT/GENE-DB)."
-Rearrangement,d_call,protected,raw_sequence,string,"First or only D gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHD3-10*01 if using IMGT/GENE-DB)."
-Rearrangement,d2_call,protected,raw_sequence,string,"Second D gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHD3-10*01 if using IMGT/GENE-DB)."
-Rearrangement,j_call,protected,raw_sequence,string,"J gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHJ4*02 if using IMGT/GENE-DB)."
-Rearrangement,c_call,protected,raw_sequence,string,"Constant region gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHG1*01 if using IMGT/GENE-DB)."
-Rearrangement,sequence_alignment,protected,raw_sequence,string,"Aligned portion of query sequence, including any indel corrections or numbering spacers, such as IMGT-gaps. Typically, this will include only the V(D)J region, but that is not a requirement."
-Rearrangement,sequence_alignment_aa,protected,raw_sequence,string,Amino acid translation of the aligned query sequence.
-Rearrangement,germline_alignment,protected,raw_sequence,string,"Assembled, aligned, full-length inferred germline sequence spanning the same region as the sequence_alignment field (typically the V(D)J region) and including the same set of corrections and spacers (if any)."
-Rearrangement,germline_alignment_aa,protected,raw_sequence,string,Amino acid translation of the assembled germline sequence.
-Rearrangement,junction,protected,raw_sequence,string,"Junction region nucleotide sequence, where the junction is defined as the CDR3 plus the two flanking conserved codons."
-Rearrangement,junction_aa,protected,raw_sequence,string,Amino acid translation of the junction.
-Rearrangement,np1,protected,raw_sequence,string,Nucleotide sequence of the combined N/P region between the V gene and first D gene alignment or between the V gene and J gene alignments.
-Rearrangement,np1_aa,protected,raw_sequence,string,Amino acid translation of the np1 field.
-Rearrangement,np2,protected,raw_sequence,string,Nucleotide sequence of the combined N/P region between either the first D gene and J gene alignments or the first D gene and second D gene alignments.
-Rearrangement,np2_aa,protected,raw_sequence,string,Amino acid translation of the np2 field.
-Rearrangement,np3,protected,raw_sequence,string,Nucleotide sequence of the combined N/P region between the second D gene and J gene alignments.
-Rearrangement,np3_aa,protected,raw_sequence,string,Amino acid translation of the np3 field.
-Rearrangement,cdr1,protected,raw_sequence,string,Nucleotide sequence of the aligned CDR1 region.
-Rearrangement,cdr1_aa,protected,raw_sequence,string,Amino acid translation of the cdr1 field.
-Rearrangement,cdr2,protected,raw_sequence,string,Nucleotide sequence of the aligned CDR2 region.
-Rearrangement,cdr2_aa,protected,raw_sequence,string,Amino acid translation of the cdr2 field.
-Rearrangement,cdr3,protected,raw_sequence,string,Nucleotide sequence of the aligned CDR3 region.
-Rearrangement,cdr3_aa,protected,raw_sequence,string,Amino acid translation of the cdr3 field.
-Rearrangement,fwr1,protected,raw_sequence,string,Nucleotide sequence of the aligned FWR1 region.
-Rearrangement,fwr1_aa,protected,raw_sequence,string,Amino acid translation of the fwr1 field.
-Rearrangement,fwr2,protected,raw_sequence,string,Nucleotide sequence of the aligned FWR2 region.
-Rearrangement,fwr2_aa,protected,raw_sequence,string,Amino acid translation of the fwr2 field.
-Rearrangement,fwr3,protected,raw_sequence,string,Nucleotide sequence of the aligned FWR3 region.
-Rearrangement,fwr3_aa,protected,raw_sequence,string,Amino acid translation of the fwr3 field.
-Rearrangement,fwr4,protected,raw_sequence,string,Nucleotide sequence of the aligned FWR4 region.
-Rearrangement,fwr4_aa,protected,raw_sequence,string,Amino acid translation of the fwr4 field.
-Rearrangement,v_score,protected,raw_sequence,number,Alignment score for the V gene.
-Rearrangement,v_identity,protected,raw_sequence,number,Fractional identity for the V gene alignment.
-Rearrangement,v_support,protected,raw_sequence,number,"V gene alignment E-value, p-value, likelihood, probability or other similar measure of support for the V gene assignment as defined by the alignment tool."
-Rearrangement,v_cigar,protected,raw_sequence,string,CIGAR string for the V gene alignment.
-Rearrangement,d_score,protected,raw_sequence,number,Alignment score for the first or only D gene alignment.
-Rearrangement,d_identity,protected,raw_sequence,number,Fractional identity for the first or only D gene alignment.
-Rearrangement,d_support,protected,raw_sequence,number,"D gene alignment E-value, p-value, likelihood, probability or other similar measure of support for the first or only D gene as defined by the alignment tool."
-Rearrangement,d_cigar,protected,raw_sequence,string,CIGAR string for the first or only D gene alignment.
-Rearrangement,d2_score,protected,raw_sequence,number,Alignment score for the second D gene alignment.
-Rearrangement,d2_identity,protected,raw_sequence,number,Fractional identity for the second D gene alignment.
-Rearrangement,d2_support,protected,raw_sequence,number,"D gene alignment E-value, p-value, likelihood, probability or other similar measure of support for the second D gene as defined by the alignment tool."
-Rearrangement,d2_cigar,protected,raw_sequence,string,CIGAR string for the second D gene alignment.
-Rearrangement,j_score,protected,raw_sequence,number,Alignment score for the J gene alignment.
-Rearrangement,j_identity,protected,raw_sequence,number,Fractional identity for the J gene alignment.
-Rearrangement,j_support,protected,raw_sequence,number,"J gene alignment E-value, p-value, likelihood, probability or other similar measure of support for the J gene assignment as defined by the alignment tool."
-Rearrangement,j_cigar,protected,raw_sequence,string,CIGAR string for the J gene alignment.
-Rearrangement,c_score,protected,raw_sequence,number,Alignment score for the C gene alignment.
-Rearrangement,c_identity,protected,raw_sequence,number,Fractional identity for the C gene alignment.
-Rearrangement,c_support,protected,raw_sequence,number,"C gene alignment E-value, p-value, likelihood, probability or other similar measure of support for the C gene assignment as defined by the alignment tool."
-Rearrangement,c_cigar,protected,raw_sequence,string,CIGAR string for the C gene alignment.
-Rearrangement,v_sequence_start,protected,raw_sequence,integer,Start position of the V gene in the query sequence (1-based closed interval).
-Rearrangement,v_sequence_end,protected,raw_sequence,integer,End position of the V gene in the query sequence (1-based closed interval).
-Rearrangement,v_germline_start,protected,raw_sequence,integer,Alignment start position in the V gene reference sequence (1-based closed interval).
-Rearrangement,v_germline_end,protected,raw_sequence,integer,Alignment end position in the V gene reference sequence (1-based closed interval).
-Rearrangement,v_alignment_start,protected,raw_sequence,integer,Start position of the V gene alignment in both the sequence_alignment and germline_alignment fields (1-based closed interval).
-Rearrangement,v_alignment_end,protected,raw_sequence,integer,End position of the V gene alignment in both the sequence_alignment and germline_alignment fields (1-based closed interval).
-Rearrangement,d_sequence_start,protected,raw_sequence,integer,Start position of the first or only D gene in the query sequence. (1-based closed interval).
-Rearrangement,d_sequence_end,protected,raw_sequence,integer,End position of the first or only D gene in the query sequence. (1-based closed interval).
-Rearrangement,d_germline_start,protected,raw_sequence,integer,Alignment start position in the D gene reference sequence for the first or only D gene (1-based closed interval).
-Rearrangement,d_germline_end,protected,raw_sequence,integer,Alignment end position in the D gene reference sequence for the first or only D gene (1-based closed interval).
-Rearrangement,d_alignment_start,protected,raw_sequence,integer,Start position of the first or only D gene in both the sequence_alignment and germline_alignment fields (1-based closed interval).
-Rearrangement,d_alignment_end,protected,raw_sequence,integer,End position of the first or only D gene in both the sequence_alignment and germline_alignment fields (1-based closed interval).
-Rearrangement,d2_sequence_start,protected,raw_sequence,integer,Start position of the second D gene in the query sequence (1-based closed interval).
-Rearrangement,d2_sequence_end,protected,raw_sequence,integer,End position of the second D gene in the query sequence (1-based closed interval).
-Rearrangement,d2_germline_start,protected,raw_sequence,integer,Alignment start position in the second D gene reference sequence (1-based closed interval).
-Rearrangement,d2_germline_end,protected,raw_sequence,integer,Alignment end position in the second D gene reference sequence (1-based closed interval).
-Rearrangement,d2_alignment_start,protected,raw_sequence,integer,Start position of the second D gene alignment in both the sequence_alignment and germline_alignment fields (1-based closed interval).
-Rearrangement,d2_alignment_end,protected,raw_sequence,integer,End position of the second D gene alignment in both the sequence_alignment and germline_alignment fields (1-based closed interval).
-Rearrangement,j_sequence_start,protected,raw_sequence,integer,Start position of the J gene in the query sequence (1-based closed interval).
-Rearrangement,j_sequence_end,protected,raw_sequence,integer,End position of the J gene in the query sequence (1-based closed interval).
-Rearrangement,j_germline_start,protected,raw_sequence,integer,Alignment start position in the J gene reference sequence (1-based closed interval).
-Rearrangement,j_germline_end,protected,raw_sequence,integer,Alignment end position in the J gene reference sequence (1-based closed interval).
-Rearrangement,j_alignment_start,protected,raw_sequence,integer,Start position of the J gene alignment in both the sequence_alignment and germline_alignment fields (1-based closed interval).
-Rearrangement,j_alignment_end,protected,raw_sequence,integer,End position of the J gene alignment in both the sequence_alignment and germline_alignment fields (1-based closed interval).
-Rearrangement,cdr1_start,protected,raw_sequence,integer,CDR1 start position in the query sequence (1-based closed interval).
-Rearrangement,cdr1_end,protected,raw_sequence,integer,CDR1 end position in the query sequence (1-based closed interval).
-Rearrangement,cdr2_start,protected,raw_sequence,integer,CDR2 start position in the query sequence (1-based closed interval).
-Rearrangement,cdr2_end,protected,raw_sequence,integer,CDR2 end position in the query sequence (1-based closed interval).
-Rearrangement,cdr3_start,protected,raw_sequence,integer,CDR3 start position in the query sequence (1-based closed interval).
-Rearrangement,cdr3_end,protected,raw_sequence,integer,CDR3 end position in the query sequence (1-based closed interval).
-Rearrangement,fwr1_start,protected,raw_sequence,integer,FWR1 start position in the query sequence (1-based closed interval).
-Rearrangement,fwr1_end,protected,raw_sequence,integer,FWR1 end position in the query sequence (1-based closed interval).
-Rearrangement,fwr2_start,protected,raw_sequence,integer,FWR2 start position in the query sequence (1-based closed interval).
-Rearrangement,fwr2_end,protected,raw_sequence,integer,FWR2 end position in the query sequence (1-based closed interval).
-Rearrangement,fwr3_start,protected,raw_sequence,integer,FWR3 start position in the query sequence (1-based closed interval).
-Rearrangement,fwr3_end,protected,raw_sequence,integer,FWR3 end position in the query sequence (1-based closed interval).
-Rearrangement,fwr4_start,protected,raw_sequence,integer,FWR4 start position in the query sequence (1-based closed interval).
-Rearrangement,fwr4_end,protected,raw_sequence,integer,FWR4 end position in the query sequence (1-based closed interval).
-Rearrangement,v_sequence_alignment,protected,raw_sequence,string,"Aligned portion of query sequence assigned to the V gene, including any indel corrections or numbering spacers."
-Rearrangement,v_sequence_alignment_aa,protected,raw_sequence,string,Amino acid translation of the v_sequence_alignment field.
-Rearrangement,d_sequence_alignment,protected,raw_sequence,string,"Aligned portion of query sequence assigned to the first or only D gene, including any indel corrections or numbering spacers."
-Rearrangement,d_sequence_alignment_aa,protected,raw_sequence,string,Amino acid translation of the d_sequence_alignment field.
-Rearrangement,d2_sequence_alignment,protected,raw_sequence,string,"Aligned portion of query sequence assigned to the second D gene, including any indel corrections or numbering spacers."
-Rearrangement,d2_sequence_alignment_aa,protected,raw_sequence,string,Amino acid translation of the d2_sequence_alignment field.
-Rearrangement,j_sequence_alignment,protected,raw_sequence,string,"Aligned portion of query sequence assigned to the J gene, including any indel corrections or numbering spacers."
-Rearrangement,j_sequence_alignment_aa,protected,raw_sequence,string,Amino acid translation of the j_sequence_alignment field.
-Rearrangement,c_sequence_alignment,protected,raw_sequence,string,"Aligned portion of query sequence assigned to the constant region, including any indel corrections or numbering spacers."
-Rearrangement,c_sequence_alignment_aa,protected,raw_sequence,string,Amino acid translation of the c_sequence_alignment field.
-Rearrangement,v_germline_alignment,protected,raw_sequence,string,Aligned V gene germline sequence spanning the same region as the v_sequence_alignment field and including the same set of corrections and spacers (if any).
-Rearrangement,v_germline_alignment_aa,protected,raw_sequence,string,Amino acid translation of the v_germline_alignment field.
-Rearrangement,d_germline_alignment,protected,raw_sequence,string,Aligned D gene germline sequence spanning the same region as the d_sequence_alignment field and including the same set of corrections and spacers (if any).
-Rearrangement,d_germline_alignment_aa,protected,raw_sequence,string,Amino acid translation of the d_germline_alignment field.
-Rearrangement,d2_germline_alignment,protected,raw_sequence,string,Aligned D gene germline sequence spanning the same region as the d2_sequence_alignment field and including the same set of corrections and spacers (if any).
-Rearrangement,d2_germline_alignment_aa,protected,raw_sequence,string,Amino acid translation of the d2_germline_alignment field.
-Rearrangement,j_germline_alignment,protected,raw_sequence,string,Aligned J gene germline sequence spanning the same region as the j_sequence_alignment field and including the same set of corrections and spacers (if any).
-Rearrangement,j_germline_alignment_aa,protected,raw_sequence,string,Amino acid translation of the j_germline_alignment field.
-Rearrangement,c_germline_alignment,protected,raw_sequence,string,Aligned constant region germline sequence spanning the same region as the c_sequence_alignment field and including the same set of corrections and spacers (if any).
-Rearrangement,c_germline_alignment_aa,protected,raw_sequence,string,Amino acid translation of the c_germline_aligment field.
-Rearrangement,junction_length,protected,raw_sequence,integer,Number of nucleotides in the junction sequence.
-Rearrangement,junction_aa_length,protected,raw_sequence,integer,Number of amino acids in the junction sequence.
-Rearrangement,np1_length,protected,raw_sequence,integer,Number of nucleotides between the V gene and first D gene alignments or between the V gene and J gene alignments.
-Rearrangement,np2_length,protected,raw_sequence,integer,Number of nucleotides between either the first D gene and J gene alignments or the first D gene and second D gene alignments.
-Rearrangement,np3_length,protected,raw_sequence,integer,Number of nucleotides between the second D gene and J gene alignments.
-Rearrangement,n1_length,protected,raw_sequence,integer,Number of untemplated nucleotides 5' of the first or only D gene alignment.
-Rearrangement,n2_length,protected,raw_sequence,integer,Number of untemplated nucleotides 3' of the first or only D gene alignment.
-Rearrangement,n3_length,protected,raw_sequence,integer,Number of untemplated nucleotides 3' of the second D gene alignment.
-Rearrangement,p3v_length,protected,raw_sequence,integer,Number of palindromic nucleotides 3' of the V gene alignment.
-Rearrangement,p5d_length,protected,raw_sequence,integer,Number of palindromic nucleotides 5' of the first or only D gene alignment.
-Rearrangement,p3d_length,protected,raw_sequence,integer,Number of palindromic nucleotides 3' of the first or only D gene alignment.
-Rearrangement,p5d2_length,protected,raw_sequence,integer,Number of palindromic nucleotides 5' of the second D gene alignment.
-Rearrangement,p3d2_length,protected,raw_sequence,integer,Number of palindromic nucleotides 3' of the second D gene alignment.
-Rearrangement,p5j_length,protected,raw_sequence,integer,Number of palindromic nucleotides 5' of the J gene alignment.
-Rearrangement,consensus_count,protected,raw_sequence,integer,"Number of reads contributing to the (UMI) consensus for this sequence. For example, the sum of the number of reads for all UMIs that contribute to the query sequence."
-Rearrangement,duplicate_count,protected,raw_sequence,integer,"Copy number or number of duplicate observations for the query sequence. For example, the number of UMIs sharing an identical sequence or the number of identical observations of this sequence absent UMIs."
-Rearrangement,cell_id,protected,raw_sequence,string,Identifier defining the cell of origin for the query sequence.
-Rearrangement,clone_id,protected,raw_sequence,string,Clonal cluster assignment for the query sequence.
-Rearrangement,rearrangement_id,protected,raw_sequence,string,"Identifier for the Rearrangement object. May be identical to sequence_id, but will usually be a universally unique record locator for database applications."
-Rearrangement,repertoire_id,protected,raw_sequence,string,Identifier to the associated repertoire in study metadata.
-Rearrangement,sample_processing_id,protected,raw_sequence,string,Identifier to the sample processing object in the repertoire metadata for this rearrangement. If the repertoire has a single sample then this field may be empty or missing. If the repertoire has multiple samples then this field may be empty or missing if the sample cannot be differentiated or the relationship is not maintained by the data processing.
-Rearrangement,data_processing_id,protected,raw_sequence,string,Identifier to the data processing object in the repertoire metadata for this rearrangement. If this field is empty than the primary data processing object is assumed.
-Rearrangement,germline_database,protected,raw_sequence,string,Source of germline V(D)J genes with version number or date accessed.
+class,field,protection,access_scope,field_type,include_fields,description
+Repertoire,repertoire_id,public,,string,airr-core,"Identifier for the repertoire object. This identifier should be globally unique so that repertoires from multiple studies can be combined together without conflict. The repertoire_id is used to link other AIRR data to a Repertoire. Specifically, the Rearrangements Schema includes repertoire_id for referencing the specific Repertoire for that Rearrangement."
+Repertoire,repertoire_name,public,,string,airr-schema,Short generic display name for the repertoire
+Repertoire,repertoire_description,public,,string,airr-schema,Generic repertoire description
+Repertoire,study.study_id,public,,string,miairr,Unique ID assigned by study registry
+Repertoire,study.study_title,public,,string,miairr,Descriptive study title
+Repertoire,study.study_type.value,protected,statistics,string,miairr,Type of study design
+Repertoire,study.study_type.id,protected,statistics,string,miairr,Type of study design (Ontology ID)
+Repertoire,study.study_description,protected,statistics,string,airr-schema,Generic study description
+Repertoire,study.inclusion_exclusion_criteria,protected,statistics,string,miairr,List of criteria for inclusion/exclusion for the study
+Repertoire,study.grants,protected,statistics,string,miairr,Funding agencies and grant numbers
+Repertoire,study.collected_by,protected,statistics,string,miairr,"Full contact information of the data collector, i.e. the person who is legally responsible for data collection and release. This should include an e-mail address."
+Repertoire,study.lab_name,protected,statistics,string,airr-core,Department of data collector
+Repertoire,study.lab_address,protected,statistics,string,airr-core,Institution and institutional address of data collector
+Repertoire,study.submitted_by,protected,statistics,string,miairr,"Full contact information of the data depositor, i.e. the person submitting the data to a repository. This is supposed to be a short-lived and technical role until the submission is relased."
+Repertoire,study.pub_ids,protected,statistics,string,miairr,Publications describing the rationale and/or outcome of the study
+Repertoire,study.keywords_study,protected,statistics,array_string,miairr,Keywords describing properties of one or more data sets in a study
+Repertoire,subject.subject_id,protected,statistics,string,miairr,"Subject ID assigned by submitter, unique within study"
+Repertoire,subject.synthetic,protected,statistics,boolean,miairr,TRUE for libraries in which the diversity has been synthetically generated (e.g. phage display)
+Repertoire,subject.organism.value,protected,statistics,string,airr-schema,Binomial designation of subject's species
+Repertoire,subject.organism.id,protected,statistics,string,airr-schema,Binomial designation of subject's species (Ontology ID)
+Repertoire,subject.sex,protected,statistics,string,miairr,Biological sex of subject
+Repertoire,subject.age_min,protected,statistics,number,miairr,Specific age or lower boundary of age range.
+Repertoire,subject.age_max,protected,statistics,number,miairr,Upper boundary of age range or equal to age_min for specific age. This field should only be null if age_min is null.
+Repertoire,subject.age_unit.value,protected,statistics,string,miairr,Unit of age range
+Repertoire,subject.age_unit.id,protected,statistics,string,miairr,Unit of age range (Ontology ID)
+Repertoire,subject.age_event,protected,statistics,string,miairr,"Event in the study schedule to which `Age` refers. For NCBI BioSample this MUST be `sampling`. For other implementations submitters need to be aware that there is currently no mechanism to encode to potential delta between `Age event` and `Sample collection time`, hence the chosen events should be in temporal proximity."
+Repertoire,subject.age,protected,statistics,string,airr-schema,DEPRECATED
+Repertoire,subject.ancestry_population,protected,statistics,string,miairr,Broad geographic origin of ancestry (continent)
+Repertoire,subject.ethnicity,protected,statistics,string,miairr,Ethnic group of subject (defined as cultural/language-based membership)
+Repertoire,subject.race,protected,statistics,string,miairr,Racial group of subject (as defined by NIH)
+Repertoire,subject.strain_name,protected,statistics,string,miairr,Non-human designation of the strain or breed of animal used
+Repertoire,subject.linked_subjects,protected,statistics,string,miairr,Subject ID to which `Relation type` refers
+Repertoire,subject.link_type,protected,statistics,string,miairr,"Relation between subject and `linked_subjects`, can be genetic or environmental (e.g.exposure)"
+Repertoire,subject.diagnosis.study_group_description,protected,statistics,string,miairr,Designation of study arm to which the subject is assigned to
+Repertoire,subject.diagnosis.disease_diagnosis,protected,statistics,string,miairr,Diagnosis of subject
+Repertoire,subject.diagnosis.disease_length,protected,statistics,string,miairr,Time duration between initial diagnosis and current intervention
+Repertoire,subject.diagnosis.disease_stage,protected,statistics,string,miairr,Stage of disease at current intervention
+Repertoire,subject.diagnosis.prior_therapies,protected,statistics,string,miairr,List of all relevant previous therapies applied to subject for treatment of `Diagnosis`
+Repertoire,subject.diagnosis.immunogen,protected,statistics,string,miairr,"Antigen, vaccine or drug applied to subject at this intervention"
+Repertoire,subject.diagnosis.intervention,protected,statistics,string,miairr,Description of intervention
+Repertoire,subject.diagnosis.medical_history,protected,statistics,string,miairr,Medical history of subject that is relevant to assess the course of disease and/or treatment
+Repertoire,sample.sample_id,protected,raw_sequence,string,miairr,"Sample ID assigned by submitter, unique within study"
+Repertoire,sample.sample_type,protected,raw_sequence,string,miairr,"The way the sample was obtained, e.g. fine-needle aspirate, organ harvest, peripheral venous puncture"
+Repertoire,sample.tissue,protected,raw_sequence,string,miairr,"The actual tissue sampled, e.g. lymph node, liver, peripheral blood"
+Repertoire,sample.anatomic_site,protected,raw_sequence,string,miairr,"The anatomic location of the tissue, e.g. Inguinal, femur"
+Repertoire,sample.disease_state_sample,protected,raw_sequence,string,miairr,Histopathologic evaluation of the sample
+Repertoire,sample.collection_time_point_relative,protected,raw_sequence,string,miairr,"Time point at which sample was taken, relative to `Collection time event`"
+Repertoire,sample.collection_time_point_reference,protected,raw_sequence,string,miairr,Event in the study schedule to which `Sample collection time` relates to
+Repertoire,sample.biomaterial_provider,protected,raw_sequence,string,miairr,Name and address of the entity providing the sample
+Repertoire,sample.tissue_processing,protected,raw_sequence,string,miairr,Enzymatic digestion and/or physical methods used to isolate cells from sample
+Repertoire,sample.cell_subset.value,protected,raw_sequence,string,miairr,Commonly-used designation of isolated cell population
+Repertoire,sample.cell_subset.id,protected,raw_sequence,string,miairr,Commonly-used designation of isolated cell population (Ontology ID)
+Repertoire,sample.cell_phenotype,protected,raw_sequence,string,miairr,List of cellular markers and their expression levels used to isolate the cell population
+Repertoire,sample.cell_species.value,protected,raw_sequence,string,airr-schema,"Binomial designation of the species from which the analyzed cells originate. Typically, this value should be identical to `organism`, if which case it SHOULD NOT be set explicitly. Howver, there are valid experimental setups in which the two might differ, e.g. chimeric animal models. If set, this key will overwrite the `organism` information for all lower layers of the schema."
+Repertoire,sample.cell_species.id,protected,raw_sequence,string,airr-schema,"Binomial designation of the species from which the analyzed cells originate. Typically, this value should be identical to `organism`, if which case it SHOULD NOT be set explicitly. Howver, there are valid experimental setups in which the two might differ, e.g. chimeric animal models. If set, this key will overwrite the `organism` information for all lower layers of the schema. (Ontology ID)"
+Repertoire,sample.single_cell,protected,raw_sequence,boolean,miairr,TRUE if single cells were isolated into separate compartments
+Repertoire,sample.cell_number,protected,raw_sequence,integer,miairr,Total number of cells that went into the experiment
+Repertoire,sample.cells_per_reaction,protected,raw_sequence,integer,miairr,Number of cells for each biological replicate
+Repertoire,sample.cell_storage,protected,raw_sequence,boolean,miairr,TRUE if cells were cryo-preserved between isolation and further processing
+Repertoire,sample.cell_quality,protected,raw_sequence,string,miairr,Relative amount of viable cells after preparation and (if applicable) thawing
+Repertoire,sample.cell_isolation,protected,raw_sequence,string,miairr,Description of the procedure used for marker-based isolation or enrich cells
+Repertoire,sample.cell_processing_protocol,protected,raw_sequence,string,miairr,Description of the methods applied to the sample including cell preparation/ isolation/enrichment and nucleic acid extraction. This should closely mirror the Materials and methods section in the manuscript
+Repertoire,sample.template_class,protected,raw_sequence,string,miairr,The class of nucleic acid that was used as primary starting material for the following procedures
+Repertoire,sample.template_quality,protected,raw_sequence,string,miairr,Description and results of the quality control performed on the template material
+Repertoire,sample.template_amount,protected,raw_sequence,string,miairr,Amount of template that went into the process
+Repertoire,sample.library_generation_method,protected,raw_sequence,string,miairr,Generic type of library generation
+Repertoire,sample.library_generation_protocol,protected,raw_sequence,string,miairr,Description of processes applied to substrate to obtain a library that is ready for sequencing
+Repertoire,sample.library_generation_kit_version,protected,raw_sequence,string,miairr,"When using a library generation protocol from a commercial provider, provide the protocol version number"
+Repertoire,sample.pcr_target.pcr_target_locus,protected,raw_sequence,string,miairr,"Designation of the target locus. Note that this field uses a controlled vocubulary that is meant to provide a generic classification of the locus, not necessarily the correct designation according to a specific nomenclature."
+Repertoire,sample.pcr_target.forward_pcr_primer_target_location,protected,raw_sequence,string,miairr,Position of the most distal nucleotide templated by the forward primer or primer mix
+Repertoire,sample.pcr_target.reverse_pcr_primer_target_location,protected,raw_sequence,string,miairr,Position of the most proximal nucleotide templated by the reverse primer or primer mix
+Repertoire,sample.complete_sequences,protected,raw_sequence,string,miairr,"To be considered `complete`, the procedure used for library construction MUST generate sequences that 1) include the first V gene codon that encodes the mature polypeptide chain (i.e. after the leader sequence) and 2) include the last complete codon of the J gene (i.e. 1 bp 5' of the J->C splice site) and 3) provide sequence information for all positions between 1) and 2). To be considered `complete & untemplated`, the sections of the sequences defined in points 1) to 3) of the previous sentence MUST be untemplated, i.e. MUST NOT overlap with the primers used in library preparation."
+Repertoire,sample.physical_linkage,protected,raw_sequence,string,miairr,Describes the mode of linkage if a method was used which physically links nucleic acids derived from distinct loci in a single-cell context.
+Repertoire,sample.sequencing_run_id,protected,raw_sequence,string,miairr,ID of sequencing run assigned by the sequencing facility
+Repertoire,sample.total_reads_passing_qc_filter,protected,raw_sequence,integer,miairr,Number of usable reads for analysis
+Repertoire,sample.sequencing_platform,protected,raw_sequence,string,miairr,Designation of sequencing instrument used
+Repertoire,sample.sequencing_facility,protected,raw_sequence,string,miairr,Name and address of sequencing facility
+Repertoire,sample.sequencing_run_date,protected,raw_sequence,string,miairr,Date of sequencing run
+Repertoire,sample.sequencing_kit,protected,raw_sequence,string,miairr,"Name, manufacturer, order and lot numbers of sequencing kit"
+Repertoire,sample.sequencing_files.file_type,protected,raw_sequence,string,miairr,File format for the raw reads or sequences
+Repertoire,sample.sequencing_files.filename,protected,raw_sequence,string,miairr,File name for the raw reads or sequences. The first file in paired-read sequencing
+Repertoire,sample.sequencing_files.read_direction,protected,raw_sequence,string,miairr,Read direction for the raw reads or sequences. The first file in paired-read sequencing
+Repertoire,sample.sequencing_files.read_length,protected,raw_sequence,integer,miairr,Read length in bases for the first file in paired-read sequencing
+Repertoire,sample.sequencing_files.paired_filename,protected,raw_sequence,string,miairr,File name for the second file in paired-read sequencing
+Repertoire,sample.sequencing_files.paired_read_direction,protected,raw_sequence,string,miairr,Read direction for the second file in paired-read sequencing
+Repertoire,sample.sequencing_files.paired_read_length,protected,raw_sequence,integer,miairr,Read length in bases for the second file in paired-read sequencing
+Repertoire,data_processing.data_processing_id,protected,statistics,string,airr-core,Identifier for the data processing object.
+Repertoire,data_processing.primary_annotation,protected,statistics,boolean,airr-core,"If true, indicates this is the primary or default data processing for the repertoire and its rearrangments. If false, indicates this is a secondary or additional data processing."
+Repertoire,data_processing.software_versions,protected,statistics,string,miairr,"Version number and / or date, include company pipelines"
+Repertoire,data_processing.paired_reads_assembly,protected,statistics,string,miairr,How paired end reads were assembled into a single receptor sequence
+Repertoire,data_processing.quality_thresholds,protected,statistics,string,miairr,How sequences were removed from (4) based on base quality scores
+Repertoire,data_processing.primer_match_cutoffs,protected,statistics,string,miairr,"How primers were identified in the sequences, were they removed/masked/etc?"
+Repertoire,data_processing.collapsing_method,protected,statistics,string,miairr,The method used for combining multiple sequences from (4) into a single sequence in (5)
+Repertoire,data_processing.data_processing_protocols,protected,statistics,string,miairr,General description of how QC is performed
+Repertoire,data_processing.data_processing_files,protected,statistics,array_string,airr-schema,Array of file names for data produced by this data processing.
+Repertoire,data_processing.germline_database,protected,statistics,string,miairr,Source of germline V(D)J genes with version number or date accessed.
+Repertoire,data_processing.analysis_provenance_id,protected,statistics,string,airr-schema,Identifier for machine-readable PROV model of analysis provenance
+Rearrangement,sequence_id,protected,raw_sequence,string,airr-core,"Unique query sequence identifier within the file. Most often this will be the input sequence header or a substring thereof, but may also be a custom identifier defined by the tool in cases where query sequences have been combined in some fashion prior to alignment."
+Rearrangement,sequence,protected,raw_sequence,string,airr-core,"The query nucleotide sequence. Usually, this is the unmodified input sequence, which may be reverse complemented if necessary. In some cases, this field may contain consensus sequences or other types of collapsed input sequences if these steps are performed prior to alignment."
+Rearrangement,sequence_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the query nucleotide sequence.
+Rearrangement,rev_comp,protected,raw_sequence,boolean,airr-core,"True if the alignment is on the opposite strand (reverse complemented) with respect to the query sequence. If True then all output data, such as alignment coordinates and sequences, are based on the reverse complement of 'sequence'."
+Rearrangement,productive,protected,raw_sequence,boolean,airr-core,True if the V(D)J sequence is predicted to be productive.
+Rearrangement,vj_in_frame,protected,raw_sequence,boolean,airr-schema,True if the V and J gene alignments are in-frame.
+Rearrangement,stop_codon,protected,raw_sequence,boolean,airr-schema,True if the aligned sequence contains a stop codon.
+Rearrangement,complete_vdj,protected,raw_sequence,boolean,airr-schema,"True if the sequence alignment spans the entire V(D)J region. Meaning, sequence_alignment includes both the first V gene codon that encodes the mature polypeptide chain (i.e., after the leader sequence) and the last complete codon of the J gene (i.e., before the J-C splice site). This does not require an absence of deletions within the internal FWR and CDR regions of the alignment."
+Rearrangement,locus,protected,raw_sequence,string,airr-schema,"Gene locus (chain type). Note that this field uses a controlled vocabulary that is meant to provide a generic classification of the locus, not necessarily the correct designation according to a specific nomenclature."
+Rearrangement,v_call,protected,raw_sequence,string,miairr,"V gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHV4-59*01 if using IMGT/GENE-DB)."
+Rearrangement,d_call,protected,raw_sequence,string,miairr,"First or only D gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHD3-10*01 if using IMGT/GENE-DB)."
+Rearrangement,d2_call,protected,raw_sequence,string,airr-schema,"Second D gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHD3-10*01 if using IMGT/GENE-DB)."
+Rearrangement,j_call,protected,raw_sequence,string,miairr,"J gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHJ4*02 if using IMGT/GENE-DB)."
+Rearrangement,c_call,protected,raw_sequence,string,miairr,"Constant region gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHG1*01 if using IMGT/GENE-DB)."
+Rearrangement,sequence_alignment,protected,raw_sequence,string,airr-core,"Aligned portion of query sequence, including any indel corrections or numbering spacers, such as IMGT-gaps. Typically, this will include only the V(D)J region, but that is not a requirement."
+Rearrangement,sequence_alignment_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the aligned query sequence.
+Rearrangement,germline_alignment,protected,raw_sequence,string,airr-core,"Assembled, aligned, full-length inferred germline sequence spanning the same region as the sequence_alignment field (typically the V(D)J region) and including the same set of corrections and spacers (if any)."
+Rearrangement,germline_alignment_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the assembled germline sequence.
+Rearrangement,junction,protected,raw_sequence,string,miairr,"Junction region nucleotide sequence, where the junction is defined as the CDR3 plus the two flanking conserved codons."
+Rearrangement,junction_aa,protected,raw_sequence,string,miairr,Amino acid translation of the junction.
+Rearrangement,np1,protected,raw_sequence,string,airr-schema,Nucleotide sequence of the combined N/P region between the V gene and first D gene alignment or between the V gene and J gene alignments.
+Rearrangement,np1_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the np1 field.
+Rearrangement,np2,protected,raw_sequence,string,airr-schema,Nucleotide sequence of the combined N/P region between either the first D gene and J gene alignments or the first D gene and second D gene alignments.
+Rearrangement,np2_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the np2 field.
+Rearrangement,np3,protected,raw_sequence,string,airr-schema,Nucleotide sequence of the combined N/P region between the second D gene and J gene alignments.
+Rearrangement,np3_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the np3 field.
+Rearrangement,cdr1,protected,raw_sequence,string,airr-schema,Nucleotide sequence of the aligned CDR1 region.
+Rearrangement,cdr1_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the cdr1 field.
+Rearrangement,cdr2,protected,raw_sequence,string,airr-schema,Nucleotide sequence of the aligned CDR2 region.
+Rearrangement,cdr2_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the cdr2 field.
+Rearrangement,cdr3,protected,raw_sequence,string,airr-schema,Nucleotide sequence of the aligned CDR3 region.
+Rearrangement,cdr3_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the cdr3 field.
+Rearrangement,fwr1,protected,raw_sequence,string,airr-schema,Nucleotide sequence of the aligned FWR1 region.
+Rearrangement,fwr1_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the fwr1 field.
+Rearrangement,fwr2,protected,raw_sequence,string,airr-schema,Nucleotide sequence of the aligned FWR2 region.
+Rearrangement,fwr2_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the fwr2 field.
+Rearrangement,fwr3,protected,raw_sequence,string,airr-schema,Nucleotide sequence of the aligned FWR3 region.
+Rearrangement,fwr3_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the fwr3 field.
+Rearrangement,fwr4,protected,raw_sequence,string,airr-schema,Nucleotide sequence of the aligned FWR4 region.
+Rearrangement,fwr4_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the fwr4 field.
+Rearrangement,v_score,protected,raw_sequence,number,airr-schema,Alignment score for the V gene.
+Rearrangement,v_identity,protected,raw_sequence,number,airr-schema,Fractional identity for the V gene alignment.
+Rearrangement,v_support,protected,raw_sequence,number,airr-schema,"V gene alignment E-value, p-value, likelihood, probability or other similar measure of support for the V gene assignment as defined by the alignment tool."
+Rearrangement,v_cigar,protected,raw_sequence,string,airr-core,CIGAR string for the V gene alignment.
+Rearrangement,d_score,protected,raw_sequence,number,airr-schema,Alignment score for the first or only D gene alignment.
+Rearrangement,d_identity,protected,raw_sequence,number,airr-schema,Fractional identity for the first or only D gene alignment.
+Rearrangement,d_support,protected,raw_sequence,number,airr-schema,"D gene alignment E-value, p-value, likelihood, probability or other similar measure of support for the first or only D gene as defined by the alignment tool."
+Rearrangement,d_cigar,protected,raw_sequence,string,airr-core,CIGAR string for the first or only D gene alignment.
+Rearrangement,d2_score,protected,raw_sequence,number,airr-schema,Alignment score for the second D gene alignment.
+Rearrangement,d2_identity,protected,raw_sequence,number,airr-schema,Fractional identity for the second D gene alignment.
+Rearrangement,d2_support,protected,raw_sequence,number,airr-schema,"D gene alignment E-value, p-value, likelihood, probability or other similar measure of support for the second D gene as defined by the alignment tool."
+Rearrangement,d2_cigar,protected,raw_sequence,string,airr-schema,CIGAR string for the second D gene alignment.
+Rearrangement,j_score,protected,raw_sequence,number,airr-schema,Alignment score for the J gene alignment.
+Rearrangement,j_identity,protected,raw_sequence,number,airr-schema,Fractional identity for the J gene alignment.
+Rearrangement,j_support,protected,raw_sequence,number,airr-schema,"J gene alignment E-value, p-value, likelihood, probability or other similar measure of support for the J gene assignment as defined by the alignment tool."
+Rearrangement,j_cigar,protected,raw_sequence,string,airr-core,CIGAR string for the J gene alignment.
+Rearrangement,c_score,protected,raw_sequence,number,airr-schema,Alignment score for the C gene alignment.
+Rearrangement,c_identity,protected,raw_sequence,number,airr-schema,Fractional identity for the C gene alignment.
+Rearrangement,c_support,protected,raw_sequence,number,airr-schema,"C gene alignment E-value, p-value, likelihood, probability or other similar measure of support for the C gene assignment as defined by the alignment tool."
+Rearrangement,c_cigar,protected,raw_sequence,string,airr-schema,CIGAR string for the C gene alignment.
+Rearrangement,v_sequence_start,protected,raw_sequence,integer,airr-schema,Start position of the V gene in the query sequence (1-based closed interval).
+Rearrangement,v_sequence_end,protected,raw_sequence,integer,airr-schema,End position of the V gene in the query sequence (1-based closed interval).
+Rearrangement,v_germline_start,protected,raw_sequence,integer,airr-schema,Alignment start position in the V gene reference sequence (1-based closed interval).
+Rearrangement,v_germline_end,protected,raw_sequence,integer,airr-schema,Alignment end position in the V gene reference sequence (1-based closed interval).
+Rearrangement,v_alignment_start,protected,raw_sequence,integer,airr-schema,Start position of the V gene alignment in both the sequence_alignment and germline_alignment fields (1-based closed interval).
+Rearrangement,v_alignment_end,protected,raw_sequence,integer,airr-schema,End position of the V gene alignment in both the sequence_alignment and germline_alignment fields (1-based closed interval).
+Rearrangement,d_sequence_start,protected,raw_sequence,integer,airr-schema,Start position of the first or only D gene in the query sequence. (1-based closed interval).
+Rearrangement,d_sequence_end,protected,raw_sequence,integer,airr-schema,End position of the first or only D gene in the query sequence. (1-based closed interval).
+Rearrangement,d_germline_start,protected,raw_sequence,integer,airr-schema,Alignment start position in the D gene reference sequence for the first or only D gene (1-based closed interval).
+Rearrangement,d_germline_end,protected,raw_sequence,integer,airr-schema,Alignment end position in the D gene reference sequence for the first or only D gene (1-based closed interval).
+Rearrangement,d_alignment_start,protected,raw_sequence,integer,airr-schema,Start position of the first or only D gene in both the sequence_alignment and germline_alignment fields (1-based closed interval).
+Rearrangement,d_alignment_end,protected,raw_sequence,integer,airr-schema,End position of the first or only D gene in both the sequence_alignment and germline_alignment fields (1-based closed interval).
+Rearrangement,d2_sequence_start,protected,raw_sequence,integer,airr-schema,Start position of the second D gene in the query sequence (1-based closed interval).
+Rearrangement,d2_sequence_end,protected,raw_sequence,integer,airr-schema,End position of the second D gene in the query sequence (1-based closed interval).
+Rearrangement,d2_germline_start,protected,raw_sequence,integer,airr-schema,Alignment start position in the second D gene reference sequence (1-based closed interval).
+Rearrangement,d2_germline_end,protected,raw_sequence,integer,airr-schema,Alignment end position in the second D gene reference sequence (1-based closed interval).
+Rearrangement,d2_alignment_start,protected,raw_sequence,integer,airr-schema,Start position of the second D gene alignment in both the sequence_alignment and germline_alignment fields (1-based closed interval).
+Rearrangement,d2_alignment_end,protected,raw_sequence,integer,airr-schema,End position of the second D gene alignment in both the sequence_alignment and germline_alignment fields (1-based closed interval).
+Rearrangement,j_sequence_start,protected,raw_sequence,integer,airr-schema,Start position of the J gene in the query sequence (1-based closed interval).
+Rearrangement,j_sequence_end,protected,raw_sequence,integer,airr-schema,End position of the J gene in the query sequence (1-based closed interval).
+Rearrangement,j_germline_start,protected,raw_sequence,integer,airr-schema,Alignment start position in the J gene reference sequence (1-based closed interval).
+Rearrangement,j_germline_end,protected,raw_sequence,integer,airr-schema,Alignment end position in the J gene reference sequence (1-based closed interval).
+Rearrangement,j_alignment_start,protected,raw_sequence,integer,airr-schema,Start position of the J gene alignment in both the sequence_alignment and germline_alignment fields (1-based closed interval).
+Rearrangement,j_alignment_end,protected,raw_sequence,integer,airr-schema,End position of the J gene alignment in both the sequence_alignment and germline_alignment fields (1-based closed interval).
+Rearrangement,cdr1_start,protected,raw_sequence,integer,airr-schema,CDR1 start position in the query sequence (1-based closed interval).
+Rearrangement,cdr1_end,protected,raw_sequence,integer,airr-schema,CDR1 end position in the query sequence (1-based closed interval).
+Rearrangement,cdr2_start,protected,raw_sequence,integer,airr-schema,CDR2 start position in the query sequence (1-based closed interval).
+Rearrangement,cdr2_end,protected,raw_sequence,integer,airr-schema,CDR2 end position in the query sequence (1-based closed interval).
+Rearrangement,cdr3_start,protected,raw_sequence,integer,airr-schema,CDR3 start position in the query sequence (1-based closed interval).
+Rearrangement,cdr3_end,protected,raw_sequence,integer,airr-schema,CDR3 end position in the query sequence (1-based closed interval).
+Rearrangement,fwr1_start,protected,raw_sequence,integer,airr-schema,FWR1 start position in the query sequence (1-based closed interval).
+Rearrangement,fwr1_end,protected,raw_sequence,integer,airr-schema,FWR1 end position in the query sequence (1-based closed interval).
+Rearrangement,fwr2_start,protected,raw_sequence,integer,airr-schema,FWR2 start position in the query sequence (1-based closed interval).
+Rearrangement,fwr2_end,protected,raw_sequence,integer,airr-schema,FWR2 end position in the query sequence (1-based closed interval).
+Rearrangement,fwr3_start,protected,raw_sequence,integer,airr-schema,FWR3 start position in the query sequence (1-based closed interval).
+Rearrangement,fwr3_end,protected,raw_sequence,integer,airr-schema,FWR3 end position in the query sequence (1-based closed interval).
+Rearrangement,fwr4_start,protected,raw_sequence,integer,airr-schema,FWR4 start position in the query sequence (1-based closed interval).
+Rearrangement,fwr4_end,protected,raw_sequence,integer,airr-schema,FWR4 end position in the query sequence (1-based closed interval).
+Rearrangement,v_sequence_alignment,protected,raw_sequence,string,airr-schema,"Aligned portion of query sequence assigned to the V gene, including any indel corrections or numbering spacers."
+Rearrangement,v_sequence_alignment_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the v_sequence_alignment field.
+Rearrangement,d_sequence_alignment,protected,raw_sequence,string,airr-schema,"Aligned portion of query sequence assigned to the first or only D gene, including any indel corrections or numbering spacers."
+Rearrangement,d_sequence_alignment_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the d_sequence_alignment field.
+Rearrangement,d2_sequence_alignment,protected,raw_sequence,string,airr-schema,"Aligned portion of query sequence assigned to the second D gene, including any indel corrections or numbering spacers."
+Rearrangement,d2_sequence_alignment_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the d2_sequence_alignment field.
+Rearrangement,j_sequence_alignment,protected,raw_sequence,string,airr-schema,"Aligned portion of query sequence assigned to the J gene, including any indel corrections or numbering spacers."
+Rearrangement,j_sequence_alignment_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the j_sequence_alignment field.
+Rearrangement,c_sequence_alignment,protected,raw_sequence,string,airr-schema,"Aligned portion of query sequence assigned to the constant region, including any indel corrections or numbering spacers."
+Rearrangement,c_sequence_alignment_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the c_sequence_alignment field.
+Rearrangement,v_germline_alignment,protected,raw_sequence,string,airr-schema,Aligned V gene germline sequence spanning the same region as the v_sequence_alignment field and including the same set of corrections and spacers (if any).
+Rearrangement,v_germline_alignment_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the v_germline_alignment field.
+Rearrangement,d_germline_alignment,protected,raw_sequence,string,airr-schema,Aligned D gene germline sequence spanning the same region as the d_sequence_alignment field and including the same set of corrections and spacers (if any).
+Rearrangement,d_germline_alignment_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the d_germline_alignment field.
+Rearrangement,d2_germline_alignment,protected,raw_sequence,string,airr-schema,Aligned D gene germline sequence spanning the same region as the d2_sequence_alignment field and including the same set of corrections and spacers (if any).
+Rearrangement,d2_germline_alignment_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the d2_germline_alignment field.
+Rearrangement,j_germline_alignment,protected,raw_sequence,string,airr-schema,Aligned J gene germline sequence spanning the same region as the j_sequence_alignment field and including the same set of corrections and spacers (if any).
+Rearrangement,j_germline_alignment_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the j_germline_alignment field.
+Rearrangement,c_germline_alignment,protected,raw_sequence,string,airr-schema,Aligned constant region germline sequence spanning the same region as the c_sequence_alignment field and including the same set of corrections and spacers (if any).
+Rearrangement,c_germline_alignment_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the c_germline_aligment field.
+Rearrangement,junction_length,protected,raw_sequence,integer,airr-schema,Number of nucleotides in the junction sequence.
+Rearrangement,junction_aa_length,protected,raw_sequence,integer,airr-schema,Number of amino acids in the junction sequence.
+Rearrangement,np1_length,protected,raw_sequence,integer,airr-schema,Number of nucleotides between the V gene and first D gene alignments or between the V gene and J gene alignments.
+Rearrangement,np2_length,protected,raw_sequence,integer,airr-schema,Number of nucleotides between either the first D gene and J gene alignments or the first D gene and second D gene alignments.
+Rearrangement,np3_length,protected,raw_sequence,integer,airr-schema,Number of nucleotides between the second D gene and J gene alignments.
+Rearrangement,n1_length,protected,raw_sequence,integer,airr-schema,Number of untemplated nucleotides 5' of the first or only D gene alignment.
+Rearrangement,n2_length,protected,raw_sequence,integer,airr-schema,Number of untemplated nucleotides 3' of the first or only D gene alignment.
+Rearrangement,n3_length,protected,raw_sequence,integer,airr-schema,Number of untemplated nucleotides 3' of the second D gene alignment.
+Rearrangement,p3v_length,protected,raw_sequence,integer,airr-schema,Number of palindromic nucleotides 3' of the V gene alignment.
+Rearrangement,p5d_length,protected,raw_sequence,integer,airr-schema,Number of palindromic nucleotides 5' of the first or only D gene alignment.
+Rearrangement,p3d_length,protected,raw_sequence,integer,airr-schema,Number of palindromic nucleotides 3' of the first or only D gene alignment.
+Rearrangement,p5d2_length,protected,raw_sequence,integer,airr-schema,Number of palindromic nucleotides 5' of the second D gene alignment.
+Rearrangement,p3d2_length,protected,raw_sequence,integer,airr-schema,Number of palindromic nucleotides 3' of the second D gene alignment.
+Rearrangement,p5j_length,protected,raw_sequence,integer,airr-schema,Number of palindromic nucleotides 5' of the J gene alignment.
+Rearrangement,consensus_count,protected,raw_sequence,integer,airr-schema,"Number of reads contributing to the (UMI) consensus for this sequence. For example, the sum of the number of reads for all UMIs that contribute to the query sequence."
+Rearrangement,duplicate_count,protected,raw_sequence,integer,miairr,"Copy number or number of duplicate observations for the query sequence. For example, the number of UMIs sharing an identical sequence or the number of identical observations of this sequence absent UMIs."
+Rearrangement,cell_id,protected,raw_sequence,string,miairr,Identifier defining the cell of origin for the query sequence.
+Rearrangement,clone_id,protected,raw_sequence,string,airr-schema,Clonal cluster assignment for the query sequence.
+Rearrangement,rearrangement_id,protected,raw_sequence,string,airr-schema,"Identifier for the Rearrangement object. May be identical to sequence_id, but will usually be a universally unique record locator for database applications."
+Rearrangement,repertoire_id,protected,raw_sequence,string,airr-schema,Identifier to the associated repertoire in study metadata.
+Rearrangement,sample_processing_id,protected,raw_sequence,string,airr-schema,Identifier to the sample processing object in the repertoire metadata for this rearrangement. If the repertoire has a single sample then this field may be empty or missing. If the repertoire has multiple samples then this field may be empty or missing if the sample cannot be differentiated or the relationship is not maintained by the data processing.
+Rearrangement,data_processing_id,protected,raw_sequence,string,airr-schema,Identifier to the data processing object in the repertoire metadata for this rearrangement. If this field is empty than the primary data processing object is assumed.
+Rearrangement,germline_database,protected,raw_sequence,string,airr-schema,Source of germline V(D)J genes with version number or date accessed.

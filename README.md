@@ -289,7 +289,7 @@ spring.cache.type=simple
 Value for the `app.adcCsvConfigPath` config param. You can use the default provided `./field-mapping.csv` or extend it.
 The CSV must have header:
 - `class`: Specifies whether the field is a `Repertoire` or `Rearrangement`
-- `field`: The field. For nested objects demark with `.`. Example `subject.age_unit.value` or `repertoire_id`.
+- `field`: The field. For nested objects demark with `.`. Example `subject.age_unit.value` or `repertoire_id`. Supports arrays.
 - `protection`: Whether the field is publicly access or protected. Public means any user can access this information, protected means only users that were given access to with the specific scope can access the field information. Valid values are `public` and `protected`. 
 - `access_scope`: The UMA scope required to be able to access the field. Must be blank if `protection` is `public`, cannot be blank if it is not. Values can be any user defined string of pattern `[\w_]+`. 
 **IMPORTANT**: make sure that you make no typos here, the values used here are the UMA scopes stored in keycloak and used for access control.
