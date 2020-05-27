@@ -1,7 +1,9 @@
 package pt.inesctec.adcauthmiddleware;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,7 +58,7 @@ public class AdcAuthSynchronizationTests extends TestBase {
   }
 
   @Test
-  public void testAdditiveSync() {
+  public void testAdditiveSyncWithVerify() {
     var repertoire1 = ModelFactory.buildRepertoire("1");
     wireSyncRepertoires(repertoire1);
     String accessToken = umaInit();
@@ -73,11 +75,50 @@ public class AdcAuthSynchronizationTests extends TestBase {
     accessToken = umaInit();
     UmaWireMocker.wireListResources(umaMock, accessToken, umaId1);
     var name = "name 123";
-    UmaWireMocker.wireGetResource(umaMock, umaId1, name, TestConstants.UMA_ALL_SCOPES, accessToken);
+    UmaWireMocker.wireGetResource(umaMock, umaId1, name, List.of("123", TestConstants.UMA_SEQUENCE_SCOPE), accessToken);
+    UmaWireMocker.wirePutResource(umaMock, umaId1, name, List.of("123", TestConstants.UMA_SEQUENCE_SCOPE, TestConstants.UMA_STATISTICS_SCOPE), accessToken);
     var umaId2 = UmaWireMocker.wireCreateResource(umaMock, repertoire2, accessToken);
     synchronize();
     assertRepertoireTicketRequest(repertoire2, accessToken, umaId2);
     assertRepertoireTicketRequest(repertoire1, accessToken, umaId1);
+    umaMock.verify(1, WireMock.putRequestedFor(WireMock.urlEqualTo(UmaWireMocker.UMA_RESOURCE_REGISTRATION_PATH + "/" + umaId1)));
+  }
+
+  @Test
+  public void testDestructiveDbSync() {
+    var repertoire1 = ModelFactory.buildRepertoire("1");
+    wireSyncRepertoires(repertoire1);
+    String accessToken = umaInit();
+    UmaWireMocker.wireListResources(umaMock, accessToken);
+    var umaId1 = UmaWireMocker.wireCreateResource(umaMock, repertoire1, accessToken);
+    synchronize();
+    assertRepertoireTicketRequest(repertoire1, accessToken, umaId1);
+
+    umaMock.resetMappings();
+    backendMock.resetMappings();
+
+    var repertoire2 = ModelFactory.buildRepertoire("2");
+    wireSyncRepertoires(repertoire2);
+    accessToken = umaInit();
+    UmaWireMocker.wireListResources(umaMock, accessToken);
+    var umaId2 = UmaWireMocker.wireCreateResource(umaMock, repertoire2, accessToken);
+    synchronize();
+    assertRepertoireTicketRequest(repertoire2, accessToken, umaId2);
+    assertRepertoireNotFound(TestCollections.getString(repertoire1, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD));
+    umaMock.verify(0, WireMock.putRequestedFor(WireMock.urlEqualTo(UmaWireMocker.UMA_RESOURCE_REGISTRATION_PATH + "/" + umaId1)));
+  }
+
+
+  @Test
+  public void testDestructiveUmaSync() {
+    wireSyncRepertoires();
+    String accessToken = umaInit();
+    var danglingUmaId = "123";
+    UmaWireMocker.wireListResources(umaMock, accessToken, danglingUmaId);
+    UmaWireMocker.wireDeleteResource(umaMock, danglingUmaId, accessToken);
+    synchronize();
+
+    umaMock.verify(1, WireMock.deleteRequestedFor(WireMock.urlEqualTo(UmaWireMocker.UMA_RESOURCE_REGISTRATION_PATH + "/" + danglingUmaId)));
   }
 
   private void assertRepertoireNotFound(String repertoireId) {

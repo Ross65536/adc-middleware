@@ -179,10 +179,8 @@ public class DbRepository {
   }
 
   protected void synchronizeStudies(Map<String, String> backendStudyMap) throws Exception {
-    var umaResources = List.of(this.umaClient.listUmaResources());
+    var serverUmaIds = Set.of(this.umaClient.listUmaResources());
     var dbStudies = this.studyRepository.findAll();
-
-    var serverUmaIds = new HashSet<>(umaResources);
     var dbUmaIds = dbStudies.stream().map(Study::getUmaId).collect(Collectors.toSet());
 
     // delete dangling UMA resources

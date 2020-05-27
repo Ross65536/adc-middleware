@@ -135,4 +135,18 @@ public class UmaWireMocker {
 
     WireMocker.wireGetJson(umaMock, UMA_RESOURCE_REGISTRATION_PATH + "/" + umaId, 200, response, "Bearer " + expectedBearer);
   }
+
+  public static void wirePutResource(WireMockServer umaMock, String umaId, String name, List<String> umaScopes, String expectedBearer) {
+    var expectedRequest = Map.of(
+        "name", name,
+        "resource_scopes", umaScopes,
+        "type", AdcConstants.UMA_STUDY_TYPE
+    );
+
+    WireMocker.wirePutJson(umaMock, UMA_RESOURCE_REGISTRATION_PATH + "/" + umaId, 200, null, expectedRequest,"Bearer " + expectedBearer);
+  }
+
+  public static void wireDeleteResource(WireMockServer umaMock, String umaId, String expectedBearer) {
+    WireMocker.wireDelete(umaMock, UMA_RESOURCE_REGISTRATION_PATH + "/" + umaId, 200, "Bearer " + expectedBearer);
+  }
 }

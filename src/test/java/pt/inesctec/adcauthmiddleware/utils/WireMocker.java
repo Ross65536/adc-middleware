@@ -68,6 +68,24 @@ public final class WireMocker {
             .willReturn(jsonResponse(respStatus, responseBody)));
   }
 
+  public static void wirePutJson(
+      WireMockServer mock,
+      String matchUrl,
+      int respStatus,
+      Object responseBody,
+      Object expectedBody,
+      String expectedAuthorization) {
+    var expectedJson = toJson(expectedBody);
+
+    mock.stubFor(
+        WireMock.put(matchUrl)
+            .withHeader(CONTENT_TYPE_HEADER, containing(JSON_MIME))
+            .withHeader(ACCEPT_HEADER, containing(JSON_MIME))
+            .withHeader(AUTHORIZATION_HEADER, equalTo(expectedAuthorization))
+            .withRequestBody(equalToJson(expectedJson, true, false))
+            .willReturn(jsonResponse(respStatus, responseBody)));
+  }
+
   public static void wireExpectFormReturnJson(
       WireMockServer mock,
       String matchUrl,
@@ -102,6 +120,14 @@ public final class WireMocker {
     addFormEncodedChecks(expectedBody, post);
 
     mock.stubFor(post.willReturn(jsonResponse(respStatus, responseBody)));
+  }
+
+  public static void wireDelete(WireMockServer mock, String url, int returnStatus, String expectedAuthorization) {
+    mock.stubFor(
+        WireMock.delete(url)
+            .withHeader(AUTHORIZATION_HEADER, equalTo(expectedAuthorization))
+            .willReturn(WireMock.aResponse()
+                .withStatus(returnStatus)));
   }
 
   private static void addFormEncodedChecks(Map<String, String> expectedBody, MappingBuilder post) {
