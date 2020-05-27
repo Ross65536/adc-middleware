@@ -23,6 +23,9 @@ public class CsvField {
 
   @NotNull private boolean isPublic;
 
+  @JsonProperty("include_fields")
+  private IncludeField includeField;
+
   private static final String ValidScopePattern = "^[\\w_]*$";
 
   public void setAccessScope(String accessScope) {
@@ -94,5 +97,13 @@ public class CsvField {
         throw new IllegalArgumentException(
             "Invalid field mapping CSV protection value: " + protectionString);
     }
+  }
+
+  public IncludeField getIncludeField() {
+    return includeField;
+  }
+
+  public void setIncludeField(IncludeField includeField) {
+    this.includeField = includeField;
   }
 }

@@ -2,6 +2,7 @@ package pt.inesctec.adcauthmiddleware.adc.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -12,6 +13,7 @@ import pt.inesctec.adcauthmiddleware.adc.models.filters.LogicalFilter;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.PrimitiveListContent;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.PrimitiveListContentFilter;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
+import pt.inesctec.adcauthmiddleware.config.csv.IncludeField;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdcSearchRequest {
@@ -21,6 +23,8 @@ public class AdcSearchRequest {
   private Long size;
   private String format;
   private String facets;
+  @JsonProperty("include_fields")
+  private IncludeField includeFields;
 
   public Set<String> getFields() {
     return fields;
@@ -89,6 +93,11 @@ public class AdcSearchRequest {
   }
 
   @JsonIgnore
+  public boolean isIncludeFieldsEmpty() {
+    return this.includeFields == null;
+  }
+
+  @JsonIgnore
   public boolean isFieldsEmpty() {
     return this.fields == null || this.fields.isEmpty();
   }
@@ -136,6 +145,10 @@ public class AdcSearchRequest {
       throw new AdcException("Can't use 'fields' and 'facets' at the same time in request");
     }
 
+    if (adcSearch.getIncludeFields() != null && adcSearch.getFacets() != null) {
+      throw new AdcException("Can't use 'include_fields' and 'facets' at the same time in request");
+    }
+
     if (fields != null && !fields.isEmpty()) {
       for (var field : fields) {
         if (!validFieldTypes.containsKey(field)) {
@@ -177,5 +190,13 @@ public class AdcSearchRequest {
     this.filters = andFilter;
 
     return this;
+  }
+
+  public IncludeField getIncludeFields() {
+    return includeFields;
+  }
+
+  public void setIncludeFields(IncludeField includeFields) {
+    this.includeFields = includeFields;
   }
 }

@@ -351,8 +351,10 @@ public class AdcAuthController {
       ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest,
       Function<String, String> mapperComposition)
       throws Exception {
-    boolean requestFieldsEmpty = adcSearch.isFieldsEmpty();
-    Set<String> requestFields = adcSearch.getFields();
+    final Set<String> adcFields = adcSearch.isFieldsEmpty() ? Set.of() : adcSearch.getFields();
+    final Set<String> adcIncludeFields = adcSearch.isIncludeFieldsEmpty() ? Set.of() : this.csvConfig.getFields(fieldClass, adcSearch.getIncludeFields());
+    final Set<String> requestFields = Sets.union(adcFields, adcIncludeFields);
+    final boolean requestFieldsEmpty = requestFields.isEmpty();
 
     var umaScopes =
         requestFieldsEmpty

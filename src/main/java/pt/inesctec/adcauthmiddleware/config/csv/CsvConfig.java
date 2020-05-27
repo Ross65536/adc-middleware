@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,6 +18,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.hibernate.query.criteria.internal.expression.function.AggregationFunction;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
@@ -75,10 +78,14 @@ public class CsvConfig {
     return this.getFields(fieldClass, FilterPublicScopes);
   }
 
-  public Map<String, FieldType> getFields(FieldClass fieldClass) {
+  private Stream<CsvField> getAllClassFields(FieldClass fieldClass) {
     return this.fieldsMapping.get(fieldClass).values().stream()
         .map(Map::values)
-        .flatMap(Collection::stream)
+        .flatMap(Collection::stream);
+  }
+
+  public Map<String, FieldType> getFields(FieldClass fieldClass) {
+    return getAllClassFields(fieldClass)
         .collect(Collectors.toMap(CsvField::getField, CsvField::getFieldType));
   }
 
@@ -96,6 +103,15 @@ public class CsvConfig {
         .filter(classFields::containsKey)
         .map(scope -> classFields.get(scope).keySet())
         .reduce(new HashSet<>(), Sets::union);
+  }
+
+  public Set<String> getFields(FieldClass fieldClass, IncludeField includeFields) {
+    Set<IncludeField> filterInclude = IncludeField.getIncludeFieldScoping(includeFields);
+
+    return this.getAllClassFields(fieldClass)
+        .filter(csv -> filterInclude.contains(csv.getIncludeField()))
+        .map(CsvField::getField)
+        .collect(Collectors.toSet());
   }
 
   private static void validateCsvFields(List<CsvField> fields) throws Exception {
