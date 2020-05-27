@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,6 +74,12 @@ public class AdcAuthEndpointTests extends TestBase {
         this.buildMiddlewareUrl(TestConstants.SYNCHRONIZE_PATH_FRAGMENT),
         TestConstants.SYNC_PASSWORD,
         200);
+  }
+
+  @AfterAll
+  public static void stop() {
+    umaMock.stop();
+    backendMock.stop();
   }
 
   @BeforeEach

@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,12 @@ public class AdcAuthSynchronizationTests extends TestBase {
   public static void init() {
     backendMock.start();
     umaMock.start();
+  }
+
+  @AfterAll
+  public static void stop() {
+    umaMock.stop();
+    backendMock.stop();
   }
 
   @BeforeEach
