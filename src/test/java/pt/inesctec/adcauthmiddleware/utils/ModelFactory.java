@@ -44,6 +44,10 @@ public class ModelFactory {
     return TestCollections.mapOf(Pair.of("fields", List.of(fields)));
   }
 
+  public static Map<String, Object> buildAdcIncludeFields(String include) {
+    return TestCollections.mapOf(Pair.of("include_fields", include));
+  }
+
   public static Map<String, Object> buildAdcFields(Set<String> fields) {
     return TestCollections.mapOf(Pair.of("fields", fields));
   }

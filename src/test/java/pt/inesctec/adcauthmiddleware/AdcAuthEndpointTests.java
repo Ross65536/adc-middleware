@@ -3,6 +3,7 @@ package pt.inesctec.adcauthmiddleware;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.collect.Sets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+import pt.inesctec.adcauthmiddleware.config.csv.IncludeField;
 import pt.inesctec.adcauthmiddleware.utils.ModelFactory;
 import pt.inesctec.adcauthmiddleware.utils.TestCollections;
 import pt.inesctec.adcauthmiddleware.utils.TestConstants;
@@ -356,12 +358,23 @@ public class AdcAuthEndpointTests extends TestBase {
     checker.accept(
         400, TestJson.toJson(Map.of("filters", Map.of("op", "=", "content", List.of()))));
 
+    checker.accept(400, TestJson.toJson(Map.of("include_fields", "invalid_include12345")));
+
     checker.accept(
         422,
         TestJson.toJson(
             Map.of(
                 "fields",
                 List.of(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD),
+                "facets",
+                AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD)));
+
+    checker.accept(
+        422,
+        TestJson.toJson(
+            Map.of(
+                "include_fields",
+                IncludeField.MIAIRR,
                 "facets",
                 AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD)));
 
@@ -470,6 +483,33 @@ public class AdcAuthEndpointTests extends TestBase {
             ModelFactory.buildUmaResource(
                 this.firstRepertoireUmaId,
                 Set.of(TestConstants.UMA_SEQUENCE_SCOPE)));
+
+    this.requests.postJsonTicket(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
+        TestJson.toJson(request),
+        ticket);
+  }
+
+  @Test
+  public void repertoireSearchIncludeFieldsTicketScopeLimit() throws JsonProcessingException {
+    // based on fields limits to 'raw_sequence' scope
+    var request = ModelFactory.buildAdcIncludeFields("airr-core");
+    var ticketRequest = ModelFactory.buildAdcFields(RepertoireIdFields);
+
+    var repertoiresResponse =
+        ModelFactory.buildRepertoiresDocumentWithInfo(
+            TestCollections.mapSubset(firstRepertoire, RepertoireIdFields));
+
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, ticketRequest);
+
+    var ticket =
+        UmaWireMocker.wireGetTicket(
+            umaMock,
+            this.accessToken,
+            ModelFactory.buildUmaResource(
+                this.firstRepertoireUmaId,
+                Set.of(TestConstants.UMA_STATISTICS_SCOPE)));
 
     this.requests.postJsonTicket(
         this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
@@ -590,12 +630,14 @@ public class AdcAuthEndpointTests extends TestBase {
     Map<String, Object> queryFilters = ModelFactory.buildAdcFilters(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
     var request = TestCollections.mapMerge(
         ModelFactory.buildAdcFields(fields),
+        ModelFactory.buildAdcIncludeFields("miairr"),
         queryFilters,
         queryExtras
     );
 
     var backendRequest = TestCollections.mapMerge(
         ModelFactory.buildAdcFields(Set.of(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD)),
+        ModelFactory.buildAdcIncludeFields("miairr"),
         queryFilters,
         queryExtras
     );
@@ -619,7 +661,7 @@ public class AdcAuthEndpointTests extends TestBase {
             200, token);
 
     assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(
-        TestCollections.mapSubset(this.firstRepertoire, fields)
+        TestCollections.mapSubset(this.firstRepertoire, Sets.union(fields, Set.of(AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD))) // study title added by include_fields
     ));
   }
 
