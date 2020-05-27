@@ -294,18 +294,9 @@ The CSV must have header:
 - `access_scope`: The UMA scope required to be able to access the field. Must be blank if `protection` is `public`, cannot be blank if it is not. Values can be any user defined string of pattern `[\w_]+`. 
 **IMPORTANT**: make sure that you make no typos here, the values used here are the UMA scopes stored in keycloak and used for access control.
 - `field_type`: The type of the field. User for input validation. Valid values are `string`, `boolean`, `number`, `integer`, `array_string`.
+- `include_fields`: Can be one of `miairr`, `airr-core`, `airr-schema` or empty. Specifies to which type the field belongs to. A field that belongs to `airr-schema` belongs also to `airr-core` and `miairr` and a field of `airr-core` also belongs to `miairr`.  Matches with the ADC API query's `include_fields` JSON parameter.
 
-The CSV is comma separated.
-Example:
-
-```csv
-class,field,protection,access_scope,field_type,description
-Repertoire,repertoire_id,public,,string,"Identifier for the ..."
-Repertoire,repertoire_name,public,,string,Short generic display name for the repertoire
-Repertoire,repertoire_description,public,,string,Generic repertoire description
-...
-Repertoire,study.study_type.value,protected,statistics,string,Type of study design
-```
+The CSV is comma separated. For an example see `src/main/resources/field-mapping.csv`.
 
 The CSV can include other columns after these which are ignored.
 
