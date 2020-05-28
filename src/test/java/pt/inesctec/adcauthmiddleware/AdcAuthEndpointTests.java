@@ -1,6 +1,5 @@
 package pt.inesctec.adcauthmiddleware;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.Sets;
@@ -29,10 +28,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AdcAuthEndpointTests extends TestBase {
 
-  private static final Set<String> RepertoireIdFields = Set.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
-  private static final Set<String> RearrangementIdFields = Set.of(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
+  private static final Set<String> RepertoireIdFields =
+      Set.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+  private static final Set<String> RearrangementIdFields =
+      Set.of(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
   private static WireMockServer umaMock = new WireMockRule(options().port(TestConstants.UMA_PORT));
-  Set<String> RepertoireStatisticsScopeFields = Set.of(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_BASE, "data_processing.data_processing_files");
+  Set<String> RepertoireStatisticsScopeFields =
+      Set.of(
+          AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+          AdcConstants.REPERTOIRE_STUDY_BASE,
+          "data_processing.data_processing_files");
 
   private Map<String, Object> firstRepertoire;
   private Map<String, Object> secondRepertoire;
@@ -40,8 +45,11 @@ public class AdcAuthEndpointTests extends TestBase {
   private String secondRepertoireUmaId;
   private String accessToken;
 
-  private static final Set<String> RepertoirePublicFields = Set.of(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD);
-
+  private static final Set<String> RepertoirePublicFields =
+      Set.of(
+          AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD,
+          AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+          AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD);
 
   @BeforeAll
   public void init() {
@@ -97,7 +105,7 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void singleRepertoireTicket() throws JsonProcessingException {
+  public void singleRepertoireTicket() {
     var repertoireId =
         TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
 
@@ -114,7 +122,7 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void notFoundSingleRepertoire() throws JsonProcessingException {
+  public void notFoundSingleRepertoire() {
     var repertoireId =
         TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD)
             + "2324";
@@ -124,7 +132,7 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void singleRepertoireAllAccess() throws JsonProcessingException {
+  public void singleRepertoireAllAccess() {
     var repertoireId =
         TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
 
@@ -151,7 +159,7 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void singleRepertoireExpiredRptToken() throws JsonProcessingException {
+  public void singleRepertoireExpiredRptToken() {
     var repertoireId =
         TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
 
@@ -169,7 +177,7 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void singleRepertoireMismatchedRptToken() throws JsonProcessingException {
+  public void singleRepertoireMismatchedRptToken() {
     var repertoireId =
         TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
 
@@ -191,13 +199,14 @@ public class AdcAuthEndpointTests extends TestBase {
             200,
             token);
 
-    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(
-        TestCollections.mapSubset(this.firstRepertoire, RepertoirePublicFields)
-    ));
+    assertThat(actual)
+        .isEqualTo(
+            ModelFactory.buildRepertoiresDocumentWithInfo(
+                TestCollections.mapSubset(this.firstRepertoire, RepertoirePublicFields)));
   }
 
   @Test
-  public void singleRepertoireOneScopeFiltering() throws JsonProcessingException {
+  public void singleRepertoireOneScopeFiltering() {
     var repertoireId =
         TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
 
@@ -218,15 +227,12 @@ public class AdcAuthEndpointTests extends TestBase {
             200,
             token);
 
-    var expected =
-        TestCollections.mapSubset(
-            this.firstRepertoire,
-            RepertoireStatisticsScopeFields);
+    var expected = TestCollections.mapSubset(this.firstRepertoire, RepertoireStatisticsScopeFields);
     assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(expected));
   }
 
   @Test
-  public void singleRepertoirePublicFiltering() throws JsonProcessingException {
+  public void singleRepertoirePublicFiltering() {
     var repertoireId =
         TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
 
@@ -247,12 +253,16 @@ public class AdcAuthEndpointTests extends TestBase {
 
     var expected =
         TestCollections.mapSubset(
-            this.firstRepertoire, Set.of(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD));
+            this.firstRepertoire,
+            Set.of(
+                AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD,
+                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+                AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD));
     assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(expected));
   }
 
   @Test
-  public void singleRearrangementTicket() throws JsonProcessingException {
+  public void singleRearrangementTicket() {
     var repertoireId =
         TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
     String rearrangementId = "1";
@@ -277,7 +287,7 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void singleRearrangementAllAccess() throws JsonProcessingException {
+  public void singleRearrangementAllAccess() {
     var repertoireId =
         TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
     String rearrangementId = "1";
@@ -304,7 +314,7 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void singleRearrangementMismatchedRptToken() throws JsonProcessingException {
+  public void singleRearrangementMismatchedRptToken() {
     var repertoireId =
         TestCollections.getString(firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
     String rearrangementId = "1";
@@ -332,7 +342,7 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void notFoundSingleRearrangement() throws JsonProcessingException {
+  public void notFoundSingleRearrangement() {
     String rearrangementId = "1";
 
     WireMocker.wireGetJson(
@@ -359,7 +369,8 @@ public class AdcAuthEndpointTests extends TestBase {
     checker.accept(400, "[1]");
     checker.accept(400, "{\"a\":1}");
     checker.accept(400, "{\"fields\":1}");
-    checker.accept(400, TestJson.toJson(Map.of("fields", AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD)));
+    checker.accept(
+        400, TestJson.toJson(Map.of("fields", AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD)));
 
     checker.accept(400, TestJson.toJson(Map.of("filters", Map.of("op", "zxY"))));
     checker.accept(
@@ -412,10 +423,12 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void repertoireSearchTicketAll() throws JsonProcessingException {
+  public void repertoireSearchTicketAll() {
     var repertoireIdFields = Set.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
-    var request = ModelFactory.buildAdcFilters(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var request =
+        ModelFactory.buildAdcFilters(
+            ModelFactory.buildComplexFilter(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD));
     var ticketRequest =
         TestCollections.mapMerge(request, ModelFactory.buildAdcFields(repertoireIdFields));
 
@@ -443,9 +456,11 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void repertoireSearchTicketSingle() throws JsonProcessingException {
+  public void repertoireSearchTicketSingle() {
 
-    var request = ModelFactory.buildAdcFilters(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var request =
+        ModelFactory.buildAdcFilters(
+            ModelFactory.buildComplexFilter(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD));
     var ticketRequest =
         TestCollections.mapMerge(request, ModelFactory.buildAdcFields(RepertoireIdFields));
 
@@ -471,7 +486,7 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void repertoireSearchTicketScopeLimit() throws JsonProcessingException {
+  public void repertoireSearchTicketScopeLimit() {
     // based on fields limits to 'raw_sequence' scope
     var request = ModelFactory.buildAdcFields(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
     var ticketRequest = ModelFactory.buildAdcFields(RepertoireIdFields);
@@ -488,8 +503,7 @@ public class AdcAuthEndpointTests extends TestBase {
             umaMock,
             this.accessToken,
             ModelFactory.buildUmaResource(
-                this.firstRepertoireUmaId,
-                Set.of(TestConstants.UMA_SEQUENCE_SCOPE)));
+                this.firstRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE)));
 
     this.requests.postJsonTicket(
         this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
@@ -498,7 +512,7 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void repertoireSearchIncludeFieldsTicketScopeLimit() throws JsonProcessingException {
+  public void repertoireSearchIncludeFieldsTicketScopeLimit() {
     // based on fields limits to 'raw_sequence' scope
     var request = ModelFactory.buildAdcIncludeFields("airr-core");
     var ticketRequest = ModelFactory.buildAdcFields(RepertoireIdFields);
@@ -515,8 +529,7 @@ public class AdcAuthEndpointTests extends TestBase {
             umaMock,
             this.accessToken,
             ModelFactory.buildUmaResource(
-                this.firstRepertoireUmaId,
-                Set.of(TestConstants.UMA_STATISTICS_SCOPE)));
+                this.firstRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE)));
 
     this.requests.postJsonTicket(
         this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
@@ -525,7 +538,7 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void repertoireFacetsTicket() throws JsonProcessingException {
+  public void repertoireFacetsTicket() {
     // based on facets limits to 'raw_sequence' scope
     var request = ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
     var ticketRequest = ModelFactory.buildAdcFields(RepertoireIdFields);
@@ -542,8 +555,7 @@ public class AdcAuthEndpointTests extends TestBase {
             umaMock,
             this.accessToken,
             ModelFactory.buildUmaResource(
-                this.firstRepertoireUmaId,
-                Set.of(TestConstants.UMA_SEQUENCE_SCOPE)));
+                this.firstRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE)));
 
     this.requests.postJsonTicket(
         this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
@@ -552,14 +564,17 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void rearrangementsFacetsTicket() throws JsonProcessingException {
+  public void rearrangementsFacetsTicket() {
     // based on facets limits to 'raw_sequence' scope
-    var repertoireId = TestCollections.getString(this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var repertoireId =
+        TestCollections.getString(
+            this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
     var request = ModelFactory.buildAdcFacets(TestConstants.REARRANGEMENT_PRIVATE_FIELD);
 
     var rearrangement = ModelFactory.buildRearrangement(repertoireId, "1");
     var ticketRequest = ModelFactory.buildAdcFields(RearrangementIdFields);
-    var repertoiresResponse = ModelFactory.buildRearrangementsDocumentWithInfo(
+    var repertoiresResponse =
+        ModelFactory.buildRearrangementsDocumentWithInfo(
             TestCollections.mapSubset(rearrangement, RearrangementIdFields));
     WireMocker.wirePostJson(
         backendMock, TestConstants.REARRANGEMENT_PATH, 200, repertoiresResponse, ticketRequest);
@@ -569,8 +584,7 @@ public class AdcAuthEndpointTests extends TestBase {
             umaMock,
             this.accessToken,
             ModelFactory.buildUmaResource(
-                this.firstRepertoireUmaId,
-                Set.of(TestConstants.UMA_SEQUENCE_SCOPE)));
+                this.firstRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE)));
 
     this.requests.postJsonTicket(
         this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT),
@@ -579,8 +593,9 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
-  public void repertoireSearchPublic() throws JsonProcessingException {
-    Set<String> fields = Set.of(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+  public void repertoireSearchPublic() {
+    Set<String> fields =
+        Set.of(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
     var request = ModelFactory.buildAdcFields(fields);
 
     var repertoiresResponse =
@@ -594,14 +609,15 @@ public class AdcAuthEndpointTests extends TestBase {
             TestJson.toJson(request),
             200);
 
-    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(
-        TestCollections.mapSubset(this.firstRepertoire, fields),
-        TestCollections.mapSubset(this.secondRepertoire, fields)
-    ));
+    assertThat(actual)
+        .isEqualTo(
+            ModelFactory.buildRepertoiresDocumentWithInfo(
+                TestCollections.mapSubset(this.firstRepertoire, fields),
+                TestCollections.mapSubset(this.secondRepertoire, fields)));
   }
 
   @Test
-  public void repertoireSearchAllAccess() throws JsonProcessingException {
+  public void repertoireSearchAllAccess() {
     var request = Map.of();
 
     var repertoiresResponse =
@@ -613,89 +629,102 @@ public class AdcAuthEndpointTests extends TestBase {
         UmaWireMocker.wireTokenIntrospection(
             umaMock,
             ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES),
-            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, TestConstants.UMA_ALL_SCOPES)
-        );
+            ModelFactory.buildUmaResource(
+                this.secondRepertoireUmaId, TestConstants.UMA_ALL_SCOPES));
 
     var actual =
         this.requests.postJson(
-            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
-            request,
-            200, token);
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token);
 
-    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire, this.secondRepertoire));
+    assertThat(actual)
+        .isEqualTo(
+            ModelFactory.buildRepertoiresDocumentWithInfo(
+                this.firstRepertoire, this.secondRepertoire));
   }
 
   @Test
-  public void repertoireSearchAllAccessFullAdcQueryFieldFilterWithOversizedRpt() throws JsonProcessingException {
+  public void repertoireSearchAllAccessFullAdcQueryFieldFilterWithOversizedRpt() {
     var fields = Set.of(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
-    Map<String, Object> queryExtras = Map.of(
-    "from", 1,
-    "size", 1,
-    "format", "json"
-    );
+    Map<String, Object> queryExtras =
+        Map.of(
+            "from", 1,
+            "size", 1,
+            "format", "json");
 
-    Map<String, Object> queryFilters = ModelFactory.buildAdcFilters(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
-    var request = TestCollections.mapMerge(
-        ModelFactory.buildAdcFields(fields),
-        ModelFactory.buildAdcIncludeFields("miairr"),
-        queryFilters,
-        queryExtras
-    );
+    Map<String, Object> queryFilters =
+        ModelFactory.buildAdcFilters(
+            ModelFactory.buildComplexFilter(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD));
+    var request =
+        TestCollections.mapMerge(
+            ModelFactory.buildAdcFields(fields),
+            ModelFactory.buildAdcIncludeFields("miairr"),
+            queryFilters,
+            queryExtras);
 
-    var backendRequest = TestCollections.mapMerge(
-        ModelFactory.buildAdcFields(Set.of(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD)),
-        ModelFactory.buildAdcIncludeFields("miairr"),
-        queryFilters,
-        queryExtras
-    );
+    var backendRequest =
+        TestCollections.mapMerge(
+            ModelFactory.buildAdcFields(
+                Set.of(
+                    TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD,
+                    AdcConstants.REPERTOIRE_STUDY_ID_FIELD)),
+            ModelFactory.buildAdcIncludeFields("miairr"),
+            queryFilters,
+            queryExtras);
 
-    var repertoiresResponse =
-        ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire);
+    var repertoiresResponse = ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire);
     WireMocker.wirePostJson(
         backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, backendRequest);
 
     var token =
         UmaWireMocker.wireTokenIntrospection(
             umaMock,
-            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE)),
-            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE))
-        );
+            ModelFactory.buildUmaResource(
+                this.firstRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE)),
+            ModelFactory.buildUmaResource(
+                this.secondRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE)));
 
     var actual =
         this.requests.postJson(
-            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
-            request,
-            200, token);
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token);
 
-    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(
-        TestCollections.mapSubset(this.firstRepertoire, Sets.union(fields, Set.of(AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD))) // study title added by include_fields
-    ));
+    assertThat(actual)
+        .isEqualTo(
+            ModelFactory.buildRepertoiresDocumentWithInfo(
+                TestCollections.mapSubset(
+                    this.firstRepertoire,
+                    Sets.union(
+                        fields,
+                        Set.of(AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD))) // study title added by
+                // include_fields
+                ));
   }
 
   @Test
-  public void repertoireSearchUnknownResponseFields() throws JsonProcessingException {
+  public void repertoireSearchUnknownResponseFields() {
     var request = Map.of();
 
     var backendRepertoire = new HashMap<>(this.firstRepertoire);
-    backendRepertoire.put("field-xyz-unknown", 1); // would fail equality assert below if piped to requester
+    backendRepertoire.put(
+        "field-xyz-unknown", 1); // would fail equality assert below if piped to requester
     var repertoiresResponse = ModelFactory.buildRepertoiresDocumentWithInfo(backendRepertoire);
-    WireMocker.wirePostJson(backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
 
-    var token = UmaWireMocker.wireTokenIntrospection(
-        umaMock, ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES)
-    );
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES));
 
     var actual =
         this.requests.postJson(
-            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
-            request,
-            200, token);
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token);
 
-    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire));
+    assertThat(actual)
+        .isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire));
   }
 
   @Test
-  public void repertoireSearchPartialAccessDeny() throws JsonProcessingException {
+  public void repertoireSearchPartialAccessDeny() {
     var request = Map.of();
 
     var repertoiresResponse =
@@ -706,54 +735,49 @@ public class AdcAuthEndpointTests extends TestBase {
     var token =
         UmaWireMocker.wireTokenIntrospection(
             umaMock,
-            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE))
-        );
+            ModelFactory.buildUmaResource(
+                this.firstRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE)));
 
     var actual =
         this.requests.postJson(
-            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
-            request,
-            200, token);
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token);
 
-    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(
-        TestCollections.mapSubset(this.firstRepertoire, RepertoireStatisticsScopeFields),
-        TestCollections.mapSubset(this.secondRepertoire, RepertoirePublicFields)
-    ));
+    assertThat(actual)
+        .isEqualTo(
+            ModelFactory.buildRepertoiresDocumentWithInfo(
+                TestCollections.mapSubset(this.firstRepertoire, RepertoireStatisticsScopeFields),
+                TestCollections.mapSubset(this.secondRepertoire, RepertoirePublicFields)));
   }
 
   @Test
-  public void repertoireSearchArrayPartialAccessDeny() throws JsonProcessingException {
+  public void repertoireSearchArrayPartialAccessDeny() {
     var request = Map.of();
 
     var repertoirePublic = TestCollections.mapSubset(this.firstRepertoire, RepertoirePublicFields);
     final List<String> files = List.of(TestConstants.generateHexString(10));
-    var responseRepertoire1 = TestCollections.mapMerge(
-        repertoirePublic,
-        Map.of("data_processing", List.of(
-          Map.of(
-              "data_processing_files", files,
-              "numbo", TestConstants.Random.nextInt(20)
-          ), Map.of( // should be removed
-              "numbo", TestConstants.Random.nextInt(20)
-          )
-    )));
-
-    var responseRepertoire2 = TestCollections.mapMerge(
-        repertoirePublic,
-        Map.of("data_processing", List.of( // should filter this out
+    var responseRepertoire1 =
+        TestCollections.mapMerge(
+            repertoirePublic,
             Map.of(
-                "numbo", TestConstants.Random.nextInt(20),
-                "bool", false
-            )
-        )));
+                "data_processing",
+                List.of(
+                    Map.of(
+                        "data_processing_files", files, "numbo", TestConstants.Random.nextInt(20)),
+                    Map.of( // should be removed
+                        "numbo", TestConstants.Random.nextInt(20)))));
 
-    var expectedRepertoire1 = TestCollections.mapMerge(
-        repertoirePublic,
-        Map.of("data_processing", List.of(
+    var responseRepertoire2 =
+        TestCollections.mapMerge(
+            repertoirePublic,
             Map.of(
-                "data_processing_files", files
-            )
-        )));
+                "data_processing",
+                List.of( // should filter this out
+                    Map.of("numbo", TestConstants.Random.nextInt(20), "bool", false))));
+
+    var expectedRepertoire1 =
+        TestCollections.mapMerge(
+            repertoirePublic,
+            Map.of("data_processing", List.of(Map.of("data_processing_files", files))));
 
     var repertoiresResponse =
         ModelFactory.buildRepertoiresDocumentWithInfo(responseRepertoire1, responseRepertoire2);
@@ -763,27 +787,32 @@ public class AdcAuthEndpointTests extends TestBase {
     var token =
         UmaWireMocker.wireTokenIntrospection(
             umaMock,
-            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE))
-        );
+            ModelFactory.buildUmaResource(
+                this.firstRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE)));
 
     var actual =
         this.requests.postJson(
-            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
-            request,
-            200, token);
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token);
 
-    assertThat(actual).isEqualTo(ModelFactory.buildRepertoiresDocumentWithInfo(expectedRepertoire1, repertoirePublic));
+    assertThat(actual)
+        .isEqualTo(
+            ModelFactory.buildRepertoiresDocumentWithInfo(expectedRepertoire1, repertoirePublic));
   }
 
   @Test
-  public void rearrangementSearchAllAccess() throws JsonProcessingException {
-    var repertoireId1 = TestCollections.getString(this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
-    var repertoireId2 = TestCollections.getString(this.secondRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+  public void rearrangementSearchAllAccess() {
+    var repertoireId1 =
+        TestCollections.getString(
+            this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var repertoireId2 =
+        TestCollections.getString(
+            this.secondRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
     var request = Map.of();
 
     Map<String, Object> rearrangement1 = ModelFactory.buildRearrangement(repertoireId1, "1");
     Map<String, Object> rearrangement2 = ModelFactory.buildRearrangement(repertoireId2, "2");
-    var rearrangementResponse = ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2);
+    var rearrangementResponse =
+        ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2);
 
     WireMocker.wirePostJson(
         backendMock, TestConstants.REARRANGEMENT_PATH, 200, rearrangementResponse, request);
@@ -792,26 +821,32 @@ public class AdcAuthEndpointTests extends TestBase {
         UmaWireMocker.wireTokenIntrospection(
             umaMock,
             ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES),
-            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, TestConstants.UMA_ALL_SCOPES)
-        );
+            ModelFactory.buildUmaResource(
+                this.secondRepertoireUmaId, TestConstants.UMA_ALL_SCOPES));
 
     var actual =
         this.requests.postJson(
             this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT),
             request,
-            200, token);
+            200,
+            token);
 
-    assertThat(actual).isEqualTo(ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2));
+    assertThat(actual)
+        .isEqualTo(
+            ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2));
   }
 
   @Test
-  public void rearrangementSearchAllAccessSameRepertoire() throws JsonProcessingException {
-    var repertoireId = TestCollections.getString(this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+  public void rearrangementSearchAllAccessSameRepertoire() {
+    var repertoireId =
+        TestCollections.getString(
+            this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
     var request = Map.of();
 
     Map<String, Object> rearrangement1 = ModelFactory.buildRearrangement(repertoireId, "1");
     Map<String, Object> rearrangement2 = ModelFactory.buildRearrangement(repertoireId, "2");
-    var rearrangementResponse = ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2);
+    var rearrangementResponse =
+        ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2);
 
     WireMocker.wirePostJson(
         backendMock, TestConstants.REARRANGEMENT_PATH, 200, rearrangementResponse, request);
@@ -819,27 +854,35 @@ public class AdcAuthEndpointTests extends TestBase {
     var token =
         UmaWireMocker.wireTokenIntrospection(
             umaMock,
-            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE))
-        );
+            ModelFactory.buildUmaResource(
+                this.firstRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE)));
 
     var actual =
         this.requests.postJson(
             this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT),
             request,
-            200, token);
+            200,
+            token);
 
-    assertThat(actual).isEqualTo(ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2));
+    assertThat(actual)
+        .isEqualTo(
+            ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2));
   }
 
   @Test
-  public void rearrangementSearchPartialAccessDeny() throws JsonProcessingException {
-    var repertoireId1 = TestCollections.getString(this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
-    var repertoireId2 = TestCollections.getString(this.secondRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+  public void rearrangementSearchPartialAccessDeny() {
+    var repertoireId1 =
+        TestCollections.getString(
+            this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var repertoireId2 =
+        TestCollections.getString(
+            this.secondRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
     var request = Map.of();
 
     Map<String, Object> rearrangement1 = ModelFactory.buildRearrangement(repertoireId1, "1");
     Map<String, Object> rearrangement2 = ModelFactory.buildRearrangement(repertoireId2, "2");
-    var rearrangementResponse = ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2);
+    var rearrangementResponse =
+        ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2);
 
     WireMocker.wirePostJson(
         backendMock, TestConstants.REARRANGEMENT_PATH, 200, rearrangementResponse, request);
@@ -847,61 +890,71 @@ public class AdcAuthEndpointTests extends TestBase {
     var token =
         UmaWireMocker.wireTokenIntrospection(
             umaMock,
-            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE)),
-            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE)) // should deny
-        );
+            ModelFactory.buildUmaResource(
+                this.firstRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE)),
+            ModelFactory.buildUmaResource(
+                this.secondRepertoireUmaId,
+                Set.of(TestConstants.UMA_STATISTICS_SCOPE)) // should deny
+            );
 
     var actual =
         this.requests.postJson(
             this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT),
             request,
-            200, token);
+            200,
+            token);
 
     assertThat(actual).isEqualTo(ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1));
   }
 
   @Test
-  public void rearrangementSearchPartialFullAccessDeny() throws JsonProcessingException {
-    var repertoireId1 = TestCollections.getString(this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
-    var repertoireId2 = TestCollections.getString(this.secondRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+  public void rearrangementSearchPartialFullAccessDeny() {
+    var repertoireId1 =
+        TestCollections.getString(
+            this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var repertoireId2 =
+        TestCollections.getString(
+            this.secondRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
     var request = Map.of();
 
     Map<String, Object> rearrangement1 = ModelFactory.buildRearrangement(repertoireId1, "1");
     Map<String, Object> rearrangement2 = ModelFactory.buildRearrangement(repertoireId2, "2");
-    var rearrangementResponse = ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2);
+    var rearrangementResponse =
+        ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2);
 
     WireMocker.wirePostJson(
         backendMock, TestConstants.REARRANGEMENT_PATH, 200, rearrangementResponse, request);
 
-    var token =
-        UmaWireMocker.wireTokenIntrospection(
-            umaMock
-        );
+    var token = UmaWireMocker.wireTokenIntrospection(umaMock);
 
     var actual =
         this.requests.postJson(
             this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT),
             request,
-            200, token);
+            200,
+            token);
 
     assertThat(actual).isEqualTo(ModelFactory.buildRearrangementsDocumentWithInfo());
   }
 
   @Test
-  public void repertoireFacetsAllAccess() throws JsonProcessingException {
+  public void repertoireFacetsAllAccess() {
     var request = ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
     var facet = ModelFactory.buildFacet(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
 
-    var backendRequest = TestCollections.mapMerge(
-      request,
-      ModelFactory.buildAdcFacetsFilter(AdcConstants.REPERTOIRE_STUDY_ID_FIELD, List.of(
-          TestCollections.getString(this.firstRepertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD),
-          TestCollections.getString(this.secondRepertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD)
-      ))
-    );
+    var backendRequest =
+        TestCollections.mapMerge(
+            request,
+            ModelFactory.buildAdcFilters(
+                ModelFactory.buildAdcFacetsFilter(
+                    AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+                    List.of(
+                        TestCollections.getString(
+                            this.firstRepertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD),
+                        TestCollections.getString(
+                            this.secondRepertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD)))));
 
-    var repertoiresResponse =
-        ModelFactory.buildFacetsDocumentWithInfo(facet);
+    var repertoiresResponse = ModelFactory.buildFacetsDocumentWithInfo(facet);
     WireMocker.wirePostJson(
         backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, backendRequest);
 
@@ -909,71 +962,120 @@ public class AdcAuthEndpointTests extends TestBase {
         UmaWireMocker.wireTokenIntrospection(
             umaMock,
             ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES),
-            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, TestConstants.UMA_ALL_SCOPES)
-        );
+            ModelFactory.buildUmaResource(
+                this.secondRepertoireUmaId, TestConstants.UMA_ALL_SCOPES));
 
     var actual =
         this.requests.postJson(
-            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
-            request,
-            200, token);
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token);
 
     assertThat(actual).isEqualTo(ModelFactory.buildFacetsDocumentWithInfo(facet));
   }
 
   @Test
-  public void repertoireFacetsPublicAccess() throws JsonProcessingException {
+  public void repertoireFacetsFiltersComposition() {
+    Map<String, Object> requestFilter = ModelFactory.buildComplexFilter(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+
+    var request =
+        TestCollections.mapMerge(
+            ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD),
+            ModelFactory.buildAdcFilters(requestFilter));
+    var facet = ModelFactory.buildFacet(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
+
+    var backendRequest =
+        TestCollections.mapMerge(
+            request,
+            ModelFactory.buildAdcFilters(
+                ModelFactory.buildAndFilter(
+                    ModelFactory.buildAdcFacetsFilter(
+                        AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+                        List.of(
+                            TestCollections.getString(
+                                this.firstRepertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD)
+                        )
+                    ),
+                    requestFilter
+                )
+            )
+        );
+
+    var repertoiresResponse = ModelFactory.buildFacetsDocumentWithInfo(facet);
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, backendRequest);
+
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES));
+
+    var actual =
+        this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildFacetsDocumentWithInfo(facet));
+  }
+
+  @Test
+  public void repertoireFacetsPublicAccess() {
     var request = ModelFactory.buildAdcFacets(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
     var facet = ModelFactory.buildFacet(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
     var repertoiresResponse = ModelFactory.buildFacetsDocumentWithInfo(facet);
-    WireMocker.wirePostJson(backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
-
-    var actual = this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200);
-
-    assertThat(actual).isEqualTo(ModelFactory.buildFacetsDocumentWithInfo(facet));
-  }
-
-  @Test
-  public void repertoireFacetsDenyAccess() throws JsonProcessingException {
-    var request = ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
-    List<Map<String, Object>> facet = List.of();
-
-    var backendRequest = TestCollections.mapMerge(
-        request,
-        ModelFactory.buildAdcFacetsFilter(AdcConstants.REPERTOIRE_STUDY_ID_FIELD, List.of())
-    );
-
-    var repertoiresResponse =
-        ModelFactory.buildFacetsDocumentWithInfo(facet);
     WireMocker.wirePostJson(
-        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, backendRequest);
-
-    var token = UmaWireMocker.wireTokenIntrospection(umaMock,
-        ModelFactory.buildUmaResource(TestConstants.generateHexString(10), Set.of(TestConstants.UMA_SEQUENCE_SCOPE))
-    );
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
 
     var actual =
         this.requests.postJson(
-            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
-            request,
-            200, token);
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200);
 
     assertThat(actual).isEqualTo(ModelFactory.buildFacetsDocumentWithInfo(facet));
   }
 
   @Test
-  public void repertoireFacetsDenyAccessWhitelisting() throws JsonProcessingException {
+  public void repertoireFacetsDenyAccess() {
     var request = ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
-    List<Map<String, Object>> facet = ModelFactory.buildFacet(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
+    List<Map<String, Object>> facet = List.of();
 
-    var backendRequest = TestCollections.mapMerge(
-        request,
-        ModelFactory.buildAdcFacetsFilter(AdcConstants.REPERTOIRE_STUDY_ID_FIELD, List.of()) // for access denied, an empty 'in' is sent
-    );
+    var backendRequest =
+        TestCollections.mapMerge(
+            request,
+            ModelFactory.buildAdcFilters(
+                ModelFactory.buildAdcFacetsFilter(
+                    AdcConstants.REPERTOIRE_STUDY_ID_FIELD, List.of())));
 
-    var repertoiresResponse =
-        ModelFactory.buildFacetsDocumentWithInfo(facet);
+    var repertoiresResponse = ModelFactory.buildFacetsDocumentWithInfo(facet);
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, backendRequest);
+
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(
+                TestConstants.generateHexString(10), Set.of(TestConstants.UMA_SEQUENCE_SCOPE)));
+
+    var actual =
+        this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token);
+
+    assertThat(actual).isEqualTo(ModelFactory.buildFacetsDocumentWithInfo(facet));
+  }
+
+  @Test
+  public void repertoireFacetsDenyAccessWhitelisting() {
+    var request = ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
+    List<Map<String, Object>> facet =
+        ModelFactory.buildFacet(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
+
+    var backendRequest =
+        TestCollections.mapMerge(
+            request,
+            ModelFactory.buildAdcFilters(
+                ModelFactory.buildAdcFacetsFilter(
+                    AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+                    List.of()) // for access denied, an empty 'in' is sent
+                ));
+
+    var repertoiresResponse = ModelFactory.buildFacetsDocumentWithInfo(facet);
     WireMocker.wirePostJson(
         backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, backendRequest);
 
@@ -981,74 +1083,76 @@ public class AdcAuthEndpointTests extends TestBase {
 
     var actual =
         this.requests.postJson(
-            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
-            request,
-            200, token);
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token);
 
-    List<Map<String, Object>>  expectedFacet = List.of();
+    List<Map<String, Object>> expectedFacet = List.of();
     assertThat(actual).isEqualTo(ModelFactory.buildFacetsDocumentWithInfo(expectedFacet));
   }
 
-
-
   @Test
-  public void rearrangementFacetsAllAccess() throws JsonProcessingException {
+  public void rearrangementFacetsAllAccess() {
     var request = ModelFactory.buildAdcFacets(TestConstants.REARRANGEMENT_PRIVATE_FIELD);
     var facet = ModelFactory.buildFacet(TestConstants.REARRANGEMENT_PRIVATE_FIELD);
 
-    var backendRequest = TestCollections.mapMerge(
-        request,
-        ModelFactory.buildAdcFacetsFilter(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, List.of(
-            TestCollections.getString(this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD)
-        ))
-    );
+    var backendRequest =
+        TestCollections.mapMerge(
+            request,
+            ModelFactory.buildAdcFilters(
+                ModelFactory.buildAdcFacetsFilter(
+                    AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+                    List.of(
+                        TestCollections.getString(
+                            this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD)))));
 
-    var rearrangementsResponse =
-        ModelFactory.buildFacetsDocumentWithInfo(facet);
+    var rearrangementsResponse = ModelFactory.buildFacetsDocumentWithInfo(facet);
     WireMocker.wirePostJson(
         backendMock, TestConstants.REARRANGEMENT_PATH, 200, rearrangementsResponse, backendRequest);
 
     var token =
         UmaWireMocker.wireTokenIntrospection(
             umaMock,
-            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE))
-        );
+            ModelFactory.buildUmaResource(
+                this.firstRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE)));
 
     var actual =
         this.requests.postJson(
             this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT),
             request,
-            200, token);
+            200,
+            token);
 
     assertThat(actual).isEqualTo(ModelFactory.buildFacetsDocumentWithInfo(facet));
   }
 
   @Test
-  public void rearrangementFacetsDenyAccess() throws JsonProcessingException {
+  public void rearrangementFacetsDenyAccess() {
     var request = ModelFactory.buildAdcFacets(TestConstants.REARRANGEMENT_PRIVATE_FIELD);
     List<Map<String, Object>> facet = List.of();
 
-    var backendRequest = TestCollections.mapMerge(
-        request,
-        ModelFactory.buildAdcFacetsFilter(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, List.of())
-    );
+    var backendRequest =
+        TestCollections.mapMerge(
+            request,
+            ModelFactory.buildAdcFilters(
+                ModelFactory.buildAdcFacetsFilter(
+                    AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, List.of())));
 
-    var rearrangementsResponse =
-        ModelFactory.buildFacetsDocumentWithInfo(facet);
+    var rearrangementsResponse = ModelFactory.buildFacetsDocumentWithInfo(facet);
     WireMocker.wirePostJson(
         backendMock, TestConstants.REARRANGEMENT_PATH, 200, rearrangementsResponse, backendRequest);
 
-    var token = UmaWireMocker.wireTokenIntrospection(umaMock,
-        ModelFactory.buildUmaResource(TestConstants.generateHexString(10), Set.of(TestConstants.UMA_SEQUENCE_SCOPE))
-    );
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(
+                TestConstants.generateHexString(10), Set.of(TestConstants.UMA_SEQUENCE_SCOPE)));
 
     var actual =
         this.requests.postJson(
             this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT),
             request,
-            200, token);
+            200,
+            token);
 
     assertThat(actual).isEqualTo(ModelFactory.buildFacetsDocumentWithInfo(facet));
   }
-
 }

@@ -119,34 +119,45 @@ public class ModelFactory {
     );
   }
 
-  public static Map<String, Object> buildAdcFilters(String field) {
+  public static Map<String, Object> buildAdcFilters(Map<String, Object> filters) {
     return Map.of(
-        "filters", Map.of(
-            "op", "and",
-            "content", List.of(
-                Map.of(
-                "op", "=",
+        "filters", filters);
+  }
+
+  public static Map<String, Object> buildComplexFilter(String field) {
+    return Map.of(
+        "op", "and",
+        "content", List.of(
+            Map.of(
+            "op", "=",
+            "content", Map.of(
+                "field", field,
+                "value", TestConstants.generateHexString(4)
+            )),
+            Map.of(
+                "op", "!=",
                 "content", Map.of(
                     "field", field,
                     "value", TestConstants.generateHexString(4)
-                )),
-                Map.of(
-                    "op", "!=",
-                    "content", Map.of(
-                        "field", field,
-                        "value", TestConstants.generateHexString(4)
-                    ))
-            )
-      ));
+                ))
+        )
+  );
   }
 
   public static Map<String, Object> buildAdcFacetsFilter(String field, List<String> values) {
     return Map.of(
-        "filters", Map.of(
-            "op", "in",
-            "content", Map.of(
-              "field", field,
-              "value", values
-                )));
+        "op", "in",
+        "content", Map.of(
+          "field", field,
+          "value", values
+            )
+    );
+  }
+
+  public static Map<String, Object> buildAndFilter(Map<String, Object> ... filters) {
+    return Map.of(
+        "op", "and",
+        "content", List.of(filters)
+    );
   }
 }

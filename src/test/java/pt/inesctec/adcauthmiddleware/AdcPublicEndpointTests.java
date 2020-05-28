@@ -20,7 +20,7 @@ class AdcPublicEndpointTests extends TestBase {
   }
 
   @Test
-  void rootOk() throws JsonProcessingException {
+  void rootOk() {
     int status = 200;
     var info = TestCollections.mapOf(Pair.of("result", "success"));
 
@@ -32,7 +32,7 @@ class AdcPublicEndpointTests extends TestBase {
   }
 
   @Test
-  void infoOk() throws JsonProcessingException {
+  void infoOk() {
     int status = 200;
     String path = "info";
     var info = TestCollections.mapOf(Pair.of("name", "airr"), Pair.of("last_update", null));
@@ -45,7 +45,7 @@ class AdcPublicEndpointTests extends TestBase {
   }
 
   @Test
-  void infoError() throws JsonProcessingException {
+  void infoError() {
     int status = 401;
     String path = "info";
     var info = TestCollections.mapOf(Pair.of("result", "error"));
@@ -58,7 +58,7 @@ class AdcPublicEndpointTests extends TestBase {
   }
 
   @Test
-  void swaggerOk() throws JsonProcessingException {
+  void swaggerOk() {
     // not sure what swagger is suppoed to return
     int status = 200;
     String path = "swagger";
@@ -72,7 +72,7 @@ class AdcPublicEndpointTests extends TestBase {
   }
 
   @Test
-  void publicFields() throws JsonProcessingException {
+  void publicFields() {
     // based on file src/test/resources/field-mapping.csv
     String[] expectedFields = new String[]{AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD};
 

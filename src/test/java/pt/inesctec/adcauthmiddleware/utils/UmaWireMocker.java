@@ -85,7 +85,7 @@ public class UmaWireMocker {
     return ticket;
   }
 
-  public static String wireTokenIntrospection(WireMockServer umaMock, Map<String, Object> ... resources) throws JsonProcessingException {
+  public static String wireTokenIntrospection(WireMockServer umaMock, Map<String, Object> ... resources) {
     var response = Map.of(
         "active", true,
         "permissions", resources
@@ -103,7 +103,7 @@ public class UmaWireMocker {
     return rptToken;
   }
 
-  public static String wireTokenIntrospectionExpired(WireMockServer umaMock) throws JsonProcessingException {
+  public static String wireTokenIntrospectionExpired(WireMockServer umaMock) {
     var response = Map.of(
         "active", false
     );
