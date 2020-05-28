@@ -1,7 +1,6 @@
 package pt.inesctec.adcauthmiddleware.db;
 
 import com.google.common.collect.Sets;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,7 +24,6 @@ import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
-import pt.inesctec.adcauthmiddleware.utils.Utils;
 
 @Component
 public class DbRepository {
@@ -57,9 +55,9 @@ public class DbRepository {
   @CacheEvict(
       cacheNames = {STUDIES_CACHE_NAME, REPERTOIRES_CACHE_NAME, REARRANGEMENTS_CACHE_NAME},
       allEntries = true)
-  public void synchronize() throws Exception {
+  public boolean synchronize() throws Exception {
     synchronized (DbRepository.SyncMonitor) {
-      synchronizeGuts();
+      return synchronizeGuts();
     }
   }
 
@@ -131,7 +129,7 @@ public class DbRepository {
   }
 
   @Transactional
-  protected void synchronizeGuts() throws Exception {
+  protected boolean synchronizeGuts() throws Exception {
     Logger.info("Synchronizing DB and cache");
 
     var repertoireSearch =
@@ -146,135 +144,147 @@ public class DbRepository {
         e -> e.getRepertoireId() != null,
         "Repertoires response must have a " + AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
 
+    boolean ok = true;
     // sync studies
     var backendStudyMap =
         CollectionsUtils.toMapKeyByLatest(
             backendRepertoires, RepertoireIds::getStudyId, RepertoireIds::getStudyTitle);
-    this.synchronizeStudies(backendStudyMap);
+    if (!this.synchronizeStudies(backendStudyMap)) {
+      ok = false;
+    }
 
     // sync cache
     this.deleteCache();
-    this.synchronizeRepertoires(backendRepertoires);
+    if (!this.synchronizeRepertoires(backendRepertoires)) {
+      ok = false;
+    }
 
     Logger.info("Finished DB and cache synchronization");
+
+    return ok;
   }
 
-  protected void synchronizeRepertoires(List<RepertoireIds> backendRepertoires) {
-    backendRepertoires.forEach(
-        repertoireIds -> {
-          var studyId = repertoireIds.getStudyId();
-          var study = this.studyRepository.findByStudyId(studyId);
-          if (study == null) {
-            Logger.error("Invalid DB state, missing study {}, skipping", studyId);
-            return;
-          }
+  protected boolean synchronizeRepertoires(List<RepertoireIds> backendRepertoires) {
+    boolean ok = true;
 
-          var repertoire = new Repertoire(repertoireIds.getRepertoireId(), study);
-          DbRepository.saveResource(this.repertoireRepository, repertoire);
-        });
+    for (RepertoireIds repertoireIds : backendRepertoires) {
+      var studyId = repertoireIds.getStudyId();
+      var study = this.studyRepository.findByStudyId(studyId);
+      if (study == null) {
+        Logger.error("Invalid DB state, missing study {}, skipping", studyId);
+        continue;
+      }
+
+      var repertoire = new Repertoire(repertoireIds.getRepertoireId(), study);
+      if (!DbRepository.saveResource(this.repertoireRepository, repertoire)) {
+        ok = false;
+      }
+    }
+
+    return ok;
   }
 
   protected void deleteCache() {
     this.repertoireRepository.deleteAll();
   }
 
-  protected void synchronizeStudies(Map<String, String> backendStudyMap) throws Exception {
+  protected boolean synchronizeStudies(Map<String, String> backendStudyMap) throws Exception {
     var serverUmaIds = Set.of(this.umaClient.listUmaResources());
     var dbStudies = this.studyRepository.findAll();
     var dbUmaIds = dbStudies.stream().map(Study::getUmaId).collect(Collectors.toSet());
+    boolean ok = true;
 
     // delete dangling UMA resources
-    Sets.difference(serverUmaIds, dbUmaIds)
-        .forEach(
-            danglingUma -> {
-              try {
-                this.umaClient.deleteUmaResource(danglingUma);
-              } catch (Exception e) {
-                Logger.error(
-                    "Failed to delete UMA resource {}, because: {}", danglingUma, e.getMessage());
-                Logger.debug("Stacktrace: ", e);
-              }
-            });
+    for (String danglingUma : Sets.difference(serverUmaIds, dbUmaIds)) {
+      try {
+        this.umaClient.deleteUmaResource(danglingUma);
+      } catch (Exception e) {
+        ok = false;
+        Logger.error(
+            "Failed to delete UMA resource {}, because: {}", danglingUma, e.getMessage());
+        Logger.debug("Stacktrace: ", e);
+      }
+    }
 
     // delete dangling DB resources
-    Sets.difference(dbUmaIds, serverUmaIds)
-        .forEach(
-            danglingDbUmaId -> {
-              Logger.info("Deleting DB study with uma ID: {}", danglingDbUmaId);
-              try {
-                this.studyRepository.deleteByUmaId(danglingDbUmaId);
-              } catch (RuntimeException e) {
-                Logger.error(
-                    "Failed to delete DB study with UMA ID {}, because: {}",
-                    danglingDbUmaId,
-                    e.getMessage());
-                Logger.debug("Stacktrace: ", e);
-              }
-            });
+    for (String danglingDbUmaId : Sets.difference(dbUmaIds, serverUmaIds)) {
+      Logger.info("Deleting DB study with uma ID: {}", danglingDbUmaId);
+      try {
+        this.studyRepository.deleteByUmaId(danglingDbUmaId);
+      } catch (RuntimeException e) {
+        ok = false;
+        Logger.error(
+            "Failed to delete DB study with UMA ID {}, because: {}",
+            danglingDbUmaId,
+            e.getMessage());
+        Logger.debug("Stacktrace: ", e);
+      }
+    }
 
     // add new resources
     var allUmaScopes = this.csvConfig.getAllUmaScopes();
     dbStudies = this.studyRepository.findAll();
     var backendStudySet = backendStudyMap.keySet();
     var dbStudyIds = dbStudies.stream().map(Study::getStudyId).collect(Collectors.toSet());
-    Sets.difference(backendStudySet, dbStudyIds)
-        .forEach(
-            newStudyId -> {
-              var studyTitle = backendStudyMap.get(newStudyId);
-              var umaName = String.format("study ID: %s; title: %s", newStudyId, studyTitle);
-              var newUmaResource =
-                  new UmaRegistrationResource(umaName, AdcConstants.UMA_STUDY_TYPE, allUmaScopes);
+    for (String newStudyId : Sets.difference(backendStudySet, dbStudyIds)) {
+      var studyTitle = backendStudyMap.get(newStudyId);
+      var umaName = String.format("study ID: %s; title: %s", newStudyId, studyTitle);
+      var newUmaResource =
+          new UmaRegistrationResource(umaName, AdcConstants.UMA_STUDY_TYPE, allUmaScopes);
 
-              String createdUmaId = null;
-              try {
-                createdUmaId = this.umaClient.createUmaResource(newUmaResource);
-              } catch (Exception e) {
-                Logger.info("Resource {} not created", umaName);
-                Logger.info("Stacktrace: ", e);
-                return;
-              }
+      String createdUmaId = null;
+      try {
+        createdUmaId = this.umaClient.createUmaResource(newUmaResource);
+      } catch (Exception e) {
+        ok = false;
+        Logger.info("Resource {} not created", umaName);
+        Logger.info("Stacktrace: ", e);
+        continue;
+      }
 
-              var study = new Study(newStudyId, createdUmaId);
-              Logger.info("Creating DB study {}", study);
-              try {
-                this.studyRepository.saveAndFlush(study);
-              } catch (RuntimeException e) {
-                Logger.error("Failed to create DB study {} because: {}", study, e.getMessage());
-                Logger.debug("Stacktrace: ", e);
-              }
-            });
+      var study = new Study(newStudyId, createdUmaId);
+      Logger.info("Creating DB study {}", study);
+      try {
+        this.studyRepository.saveAndFlush(study);
+      } catch (RuntimeException e) {
+        ok = false;
+        Logger.error("Failed to create DB study {} because: {}", study, e.getMessage());
+        Logger.debug("Stacktrace: ", e);
+      }
+    }
 
     // validate common resources
-    Sets.intersection(serverUmaIds, dbUmaIds)
-        .forEach(
-            umaId -> {
-              try {
-                var resource = this.umaClient.getResource(umaId);
-                Set<String> actualResources = resource.getResourceScopes();
-                if (actualResources.containsAll(allUmaScopes)) {
-                  return;
-                }
+    for (String umaId : Sets.intersection(serverUmaIds, dbUmaIds)) {
+      try {
+        var resource = this.umaClient.getResource(umaId);
+        Set<String> actualResources = resource.getResourceScopes();
+        if (actualResources.containsAll(allUmaScopes)) {
+          continue;
+        }
 
-                // update resource if scopes are not matching
+        // update resource if scopes are not matching
 
-                var updateResources = Sets.union(actualResources, allUmaScopes);
-                var updateResource = new UmaRegistrationResource();
-                updateResource.setName(resource.getName()); // mandatory by keycloak
-                updateResource.setResourceScopes(updateResources);
-                updateResource.setType(
-                    AdcConstants.UMA_STUDY_TYPE); // keycloak will delete type if not present here
+        var updateResources = Sets.union(actualResources, allUmaScopes);
+        var updateResource = new UmaRegistrationResource();
+        updateResource.setName(resource.getName()); // mandatory by keycloak
+        updateResource.setResourceScopes(updateResources);
+        updateResource.setType(
+            AdcConstants.UMA_STUDY_TYPE); // keycloak will delete type if not present here
 
-                Logger.info("Updating resource {}:{} with {}", umaId, resource, updateResource);
+        Logger.info("Updating resource {}:{} with {}", umaId, resource, updateResource);
 
-                this.umaClient.updateUmaResource(umaId, updateResource);
-              } catch (Exception e) {
-                Logger.error("Failed to check UMA resource {}, because: {}", umaId, e.getMessage());
-                Logger.debug("Stacktrace: ", e);
-              }
-            });
+        this.umaClient.updateUmaResource(umaId, updateResource);
+      } catch (Exception e) {
+        ok = false;
+        Logger.error("Failed to check UMA resource {}, because: {}", umaId, e.getMessage());
+        Logger.debug("Stacktrace: ", e);
+      }
+    }
+
+    return ok;
   }
 
-  public static <T> void saveResource(CrudRepository<T, ?> repository, T resource) {
+  public static <T> boolean saveResource(CrudRepository<T, ?> repository, T resource) {
     Logger.debug("Saving resource {}", resource);
 
     try {
@@ -282,6 +292,9 @@ public class DbRepository {
     } catch (RuntimeException e) {
       Logger.error("Failed to save cache resource {}, because: {}", resource, e.getMessage());
       Logger.debug("Stacktrace: ", e);
+      return false;
     }
+
+    return true;
   }
 }

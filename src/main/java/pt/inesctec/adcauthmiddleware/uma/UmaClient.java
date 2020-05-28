@@ -27,10 +27,8 @@ public class UmaClient {
   private UmaWellKnown wellKnown;
   private AccessToken accessToken = null;
 
-  public UmaClient(UmaConfig config) throws Exception {
+  public UmaClient(UmaConfig config) {
     this.umaConfig = config;
-
-
   }
 
   private UmaWellKnown getWellKnownInstance() throws Exception {

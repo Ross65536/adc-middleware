@@ -263,7 +263,7 @@ public class AdcAuthController {
   }
 
   @RequestMapping(value = "/synchronize", method = RequestMethod.POST)
-  public void synchronize(HttpServletRequest request) throws Exception {
+  public Map<String, Object> synchronize(HttpServletRequest request) throws Exception {
     String bearer = SpringUtils.getBearer(request);
     if (bearer == null) {
       throw new SyncException("Invalid user credential format");
@@ -273,7 +273,11 @@ public class AdcAuthController {
       throw new SyncException("Invalid user credential");
     }
 
-    this.dbRepository.synchronize();
+    if (! this.dbRepository.synchronize()) {
+      throw SpringUtils.buildHttpException(HttpStatus.INTERNAL_SERVER_ERROR, "One or more DB or UMA resources failed to synchronize, check logs");
+    }
+
+    return SpringUtils.buildStatusMessage(200, null);
   }
 
   private List<String> getRearrangementsRepertoireIds(AdcSearchRequest idsQuery) throws Exception {

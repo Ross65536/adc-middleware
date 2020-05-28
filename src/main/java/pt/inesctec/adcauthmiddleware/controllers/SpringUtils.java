@@ -81,16 +81,21 @@ public final class SpringUtils {
   }
 
   private static String errorToJson(int statusCode, String msg) {
-    Map<String, Object> error = new HashMap<>();
-    error.put("status", statusCode);
-    if (msg != null) {
-      error.put("message", msg);
-    }
+    Map<String, Object> error = buildStatusMessage(statusCode, msg);
 
     try {
       return Json.toJson(error);
     } catch (JsonProcessingException e) {
       throw new RuntimeException("Failed to create json");
     }
+  }
+
+  public static Map<String, Object> buildStatusMessage(int statusCode, String msg) {
+    Map<String, Object> error = new HashMap<>();
+    error.put("status", statusCode);
+    if (msg != null) {
+      error.put("message", msg);
+    }
+    return error;
   }
 }
