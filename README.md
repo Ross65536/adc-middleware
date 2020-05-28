@@ -9,7 +9,7 @@ Middleware server for handling UMA authorization and access control.
 Project runs on java 11, with (modified) google java style guide.
 
 Features:
-- Support for all of the AIRR ADC API functionalities except for: `tsv` format on POST endpoints, `include_fields` ADC query field and deprecation of Rearrangement's `rearrangement_id` in favour of `sequence_id`. 
+- Support for all of the AIRR ADC API functionalities except for: `tsv` format on POST endpoints and deprecation of Rearrangement's `rearrangement_id` in favour of `sequence_id`. 
 - Response fields filtering based on provided token access level
 - Emission of UMA tickets restricted to the fields requested
 
