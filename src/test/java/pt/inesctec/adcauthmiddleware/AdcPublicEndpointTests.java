@@ -1,6 +1,5 @@
 package pt.inesctec.adcauthmiddleware;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

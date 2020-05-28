@@ -1,6 +1,5 @@
 package pt.inesctec.adcauthmiddleware.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

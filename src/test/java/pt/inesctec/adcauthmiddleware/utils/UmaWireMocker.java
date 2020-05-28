@@ -1,6 +1,5 @@
 package pt.inesctec.adcauthmiddleware.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.common.base.Charsets;
 import java.util.List;
