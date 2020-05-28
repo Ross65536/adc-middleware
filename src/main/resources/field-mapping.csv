@@ -105,17 +105,17 @@ Rearrangement,vj_in_frame,protected,raw_sequence,boolean,airr-schema,True if the
 Rearrangement,stop_codon,protected,raw_sequence,boolean,airr-schema,True if the aligned sequence contains a stop codon.
 Rearrangement,complete_vdj,protected,raw_sequence,boolean,airr-schema,"True if the sequence alignment spans the entire V(D)J region. Meaning, sequence_alignment includes both the first V gene codon that encodes the mature polypeptide chain (i.e., after the leader sequence) and the last complete codon of the J gene (i.e., before the J-C splice site). This does not require an absence of deletions within the internal FWR and CDR regions of the alignment."
 Rearrangement,locus,protected,raw_sequence,string,airr-schema,"Gene locus (chain type). Note that this field uses a controlled vocabulary that is meant to provide a generic classification of the locus, not necessarily the correct designation according to a specific nomenclature."
-Rearrangement,v_call,protected,statistics,string,miairr,"V gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHV4-59*01 if using IMGT/GENE-DB)."
-Rearrangement,d_call,protected,statistics,string,miairr,"First or only D gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHD3-10*01 if using IMGT/GENE-DB)."
+Rearrangement,v_call,protected,raw_sequence,string,miairr,"V gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHV4-59*01 if using IMGT/GENE-DB)."
+Rearrangement,d_call,protected,raw_sequence,string,miairr,"First or only D gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHD3-10*01 if using IMGT/GENE-DB)."
 Rearrangement,d2_call,protected,raw_sequence,string,airr-schema,"Second D gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHD3-10*01 if using IMGT/GENE-DB)."
-Rearrangement,j_call,protected,statistics,string,miairr,"J gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHJ4*02 if using IMGT/GENE-DB)."
-Rearrangement,c_call,protected,statistics,string,miairr,"Constant region gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHG1*01 if using IMGT/GENE-DB)."
+Rearrangement,j_call,protected,raw_sequence,string,miairr,"J gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHJ4*02 if using IMGT/GENE-DB)."
+Rearrangement,c_call,protected,raw_sequence,string,miairr,"Constant region gene with allele. If referring to a known reference sequence in a database the relevant gene/allele nomenclature should be followed (e.g., IGHG1*01 if using IMGT/GENE-DB)."
 Rearrangement,sequence_alignment,protected,raw_sequence,string,airr-core,"Aligned portion of query sequence, including any indel corrections or numbering spacers, such as IMGT-gaps. Typically, this will include only the V(D)J region, but that is not a requirement."
 Rearrangement,sequence_alignment_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the aligned query sequence.
 Rearrangement,germline_alignment,protected,raw_sequence,string,airr-core,"Assembled, aligned, full-length inferred germline sequence spanning the same region as the sequence_alignment field (typically the V(D)J region) and including the same set of corrections and spacers (if any)."
 Rearrangement,germline_alignment_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the assembled germline sequence.
-Rearrangement,junction,protected,statistics,string,miairr,"Junction region nucleotide sequence, where the junction is defined as the CDR3 plus the two flanking conserved codons."
-Rearrangement,junction_aa,protected,statistics,string,miairr,Amino acid translation of the junction.
+Rearrangement,junction,protected,raw_sequence,string,miairr,"Junction region nucleotide sequence, where the junction is defined as the CDR3 plus the two flanking conserved codons."
+Rearrangement,junction_aa,protected,raw_sequence,string,miairr,Amino acid translation of the junction.
 Rearrangement,np1,protected,raw_sequence,string,airr-schema,Nucleotide sequence of the combined N/P region between the V gene and first D gene alignment or between the V gene and J gene alignments.
 Rearrangement,np1_aa,protected,raw_sequence,string,airr-schema,Amino acid translation of the np1 field.
 Rearrangement,np2,protected,raw_sequence,string,airr-schema,Nucleotide sequence of the combined N/P region between either the first D gene and J gene alignments or the first D gene and second D gene alignments.
@@ -229,8 +229,8 @@ Rearrangement,p5d2_length,protected,raw_sequence,integer,airr-schema,Number of p
 Rearrangement,p3d2_length,protected,raw_sequence,integer,airr-schema,Number of palindromic nucleotides 3' of the second D gene alignment.
 Rearrangement,p5j_length,protected,raw_sequence,integer,airr-schema,Number of palindromic nucleotides 5' of the J gene alignment.
 Rearrangement,consensus_count,protected,raw_sequence,integer,airr-schema,"Number of reads contributing to the (UMI) consensus for this sequence. For example, the sum of the number of reads for all UMIs that contribute to the query sequence."
-Rearrangement,duplicate_count,protected,statistics,integer,miairr,"Copy number or number of duplicate observations for the query sequence. For example, the number of UMIs sharing an identical sequence or the number of identical observations of this sequence absent UMIs."
-Rearrangement,cell_id,protected,statistics,string,miairr,Identifier defining the cell of origin for the query sequence.
+Rearrangement,duplicate_count,protected,raw_sequence,integer,miairr,"Copy number or number of duplicate observations for the query sequence. For example, the number of UMIs sharing an identical sequence or the number of identical observations of this sequence absent UMIs."
+Rearrangement,cell_id,protected,raw_sequence,string,miairr,Identifier defining the cell of origin for the query sequence.
 Rearrangement,clone_id,protected,raw_sequence,string,airr-schema,Clonal cluster assignment for the query sequence.
 Rearrangement,rearrangement_id,protected,raw_sequence,string,airr-schema,"Identifier for the Rearrangement object. May be identical to sequence_id, but will usually be a universally unique record locator for database applications."
 Rearrangement,repertoire_id,protected,raw_sequence,string,airr-schema,Identifier to the associated repertoire in study metadata.
