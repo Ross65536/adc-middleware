@@ -88,7 +88,7 @@ public class ModelFactory {
         Pair.of(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, repertoireId),
         Pair.of(AdcConstants.REARRANGEMENT_REARRANGEMENT_ID_FIELD, "r" + rearrangementId),
         Pair.of("sequence", stringPrefix + TestConstants.generateHexString(10)),
-        Pair.of("sequence_id", stringPrefix + TestConstants.generateHexString(10)),
+        Pair.of("rearrangement_id", stringPrefix + TestConstants.generateHexString(10)),
         Pair.of("sequence_aa", stringPrefix + TestConstants.generateHexString(10))
     );
   }

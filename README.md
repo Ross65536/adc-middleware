@@ -9,7 +9,7 @@ Middleware server for handling UMA authorization and access control.
 Project runs on java 11, with (modified) google java style guide.
 
 Features:
-- Support for all of the AIRR ADC API functionalities except for: `tsv` format on POST endpoints and deprecation of Rearrangement's `rearrangement_id` in favour of `sequence_id`. 
+- Support for all of the AIRR ADC API functionalities except for: `tsv` format on POST endpoints. 
 - Response fields filtering based on provided token access level
 - Emission of UMA tickets restricted to the fields requested
 
@@ -304,7 +304,7 @@ The CSV can include other columns after these which are ignored.
 
 ### Synchronization
 
-The middleware needs to synchronize with the backend periodically. No automatic synchronization is performed so you must invoke synchronization when data in the resource server changes, namely when: a repertoire or rearrangement ir added, deleted or updated (study, repertoire_id and rearrangement_id fields).
+The middleware needs to synchronize with the backend periodically. No automatic synchronization is performed so you must invoke synchronization when data in the resource server changes, namely when: a repertoire or rearrangement ir added, deleted or updated (study, repertoire_id and sequence_id fields).
 
 To synchronize you can make the following request to the `/airr/v1/synchronize` endpoint using the password as Bearer token:
 
@@ -339,7 +339,7 @@ to obtain the public fields for each class of resources.
 To be able to make use of this middleware the backend **MUST** implement the following AIRR ADC API endpoints (the URL base-path is configurable):
 
 1. GET /repertoire/{repertoire_id}
-2. GET /rearrangement/{rearrangement_id} 
+2. GET /rearrangement/{sequence_id} 
 3. POST /repertoire
 4. POST /rearrangement
 
@@ -369,7 +369,7 @@ The `Rearrangement`s responses (2. and 4.) must be of (minimal) format:
 {
   "Rearrangement": { // can put any extra fields in here
     "repertoire_id": "123adc", // string type, must be the id of the repertoire to which this rearrangement belongs to
-    "rearrangement_id": "234" // string type, must be the id in endpoint 2.
+    "sequence_id": "234" // string type, must be the id in endpoint 2.
   }
 }
 ```
@@ -387,7 +387,7 @@ More specifically the `in` `filters` operator must be supported (and the `and` o
     "filters":{
         "op":"=",
         "content": {
-            "field": "rearrangement_id",
+            "field": "sequence_id",
             "value": "5e53dead4d808a03178c7891"
         } 
   }
@@ -403,7 +403,7 @@ The middleware modifies the request and sends:
           {
             "op":"=",
             "content": {
-              "field": "rearrangement_id",
+              "field": "sequence_id",
               "value": "5e53dead4d808a03178c7891"
             } 
           },
@@ -435,6 +435,24 @@ would make the backend return an empty `Facet` response.
 
 If there are values for the array sent the ids **MUST** be matched against the response, otherwise an information leak is created. 
 
+### Adding OpenID Connect third-party Identity Providers
+
+1. Login to keycloak's admin panel.
+2. Go to `Identity Providers` in the side bar and add a OpenID Connect provider, set the `alias` which will be the display name (for example to `orcid`) and make note of the generated `Redirect URI`.
+3. Add keycloak to third party OIDC IdP. 
+  
+  For ORCDID login as an account, go to developer tools, and add keycloak: set the `Your website URL` to keycloak's host (example `http://localhost:8082`) and put in `Redirect URIs` the url generated in keycloak from the previous step (example `http://localhost:8082/auth/realms/master/broker/orcid/endpoint`). Make note of the `Client ID` and `Client Secret`. Save.
+
+  For EGI Checkin: ?
+
+4. In the dashboard from step 2, add generated info from previous step. 
+
+  For ORCID put `https://orcid.org/oauth/authorize` in the `Authorization URL`, `https://orcid.org/oauth/token` in the token url, set `Client Authentication` to `Client secret sent as post` and input the client ID and client secret from the previous step in `Client ID` and `Client Secret`. Save
+
+  For EGI Checkin put `https://aai-dev.egi.eu/oidc/authorize` in the `Authorization URL`, `https://aai-dev.egi.eu/oidc/token` in the token url, set `Client secret sent as post` and input client ID and secret. Save
+
+
+
 ## Profilling
 
 ### Flamegraphs
@@ -443,3 +461,4 @@ If there are values for the array sent the ids **MUST** be matched against the r
 2. Follow https://blog.codecentric.de/en/2017/09/jvm-fire-using-flame-graphs-analyse-performance/
 
 > TODO add profiling instructions
+
