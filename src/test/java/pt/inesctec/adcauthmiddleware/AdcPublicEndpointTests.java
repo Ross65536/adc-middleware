@@ -57,20 +57,6 @@ class AdcPublicEndpointTests extends TestBase {
   }
 
   @Test
-  void swaggerOk() {
-    // not sure what swagger is suppoed to return
-    int status = 200;
-    String path = "swagger";
-    var info = TestCollections.mapOf(Pair.of("result", "success"));
-
-    wireGetJson(backendMock, TestConstants.buildAirrPath(path), status, info);
-    backendMock.start();
-
-    var actualInfo = requests.getJsonMap(buildMiddlewareUrl(path), status);
-    assertThat(actualInfo).isEqualTo(info);
-  }
-
-  @Test
   void publicFields() {
     // based on file src/test/resources/field-mapping.csv
     String[] expectedFields = new String[]{AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD};

@@ -52,14 +52,6 @@ public class AdcPublicController {
     return forward("info");
   }
 
-  @RequestMapping(
-      value = "/swagger",
-      method = RequestMethod.GET,
-      produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<StreamingResponseBody> swagger() throws Exception {
-    return forward("swagger"); // TODO does this endpoint return JSON?
-  }
-
   private ResponseEntity<StreamingResponseBody> forward(String path) throws Exception {
     if (! appConfig.isPublicEndpointsEnabled()) {
       throw SpringUtils.buildHttpException(
