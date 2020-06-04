@@ -401,7 +401,7 @@ More specifically the `in` `filters` operator must be supported (and the `and` o
 The middleware modifies the request and sends:
 ```yaml
 {
-	"filters":{
+  "filters":{
         "op": "and",
         "content": [
           {
