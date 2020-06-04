@@ -354,23 +354,27 @@ The following public endpoints are not mandatory and access to them can be disab
 The `Repertoire`s responses (1. and 3.) must be of (minimal) format:
 ```yaml
 {
-  "Repertoire": { // can put any extra fields in here
-    "repertoire_id": "123adc", // string type, must be the id in endpoint 1.
-    "study": {
-      "study_id": "12", // string type, multiple repertoires can have the same study, in which case the study id MUST be the same
-      "study_title": "Research thingy" // string type, while this is optional it is used for UI purposes for keycloak 
+  "Repertoire": [ 
+    { // can put any extra fields in here
+      "repertoire_id": "123adc", // string type, must be the id in endpoint 1.
+      "study": {
+        "study_id": "12", // string type, multiple repertoires can have the same study, in which case the study id MUST be the same
+        "study_title": "Research thingy" // string type, while this is optional it is used for UI purposes for keycloak 
+      }
     }
-  }
+  ]
 }
 ```
 
 The `Rearrangement`s responses (2. and 4.) must be of (minimal) format:
 ```yaml
 {
-  "Rearrangement": { // can put any extra fields in here
-    "repertoire_id": "123adc", // string type, must be the id of the repertoire to which this rearrangement belongs to
-    "sequence_id": "234" // string type, must be the id in endpoint 2.
-  }
+  "Rearrangement": [
+    { // can put any extra fields in here
+      "repertoire_id": "123adc", // string type, must be the id of the repertoire to which this rearrangement belongs to
+      "sequence_id": "234" // string type, must be the id in endpoint 2.
+    }
+  ]
 }
 ```
 
