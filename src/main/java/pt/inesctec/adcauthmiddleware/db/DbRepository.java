@@ -200,7 +200,6 @@ public class DbRepository {
     for (String danglingDbStudyId : Sets.difference(dbStudyIds, repositoryStudyIds)) {
       Logger.info("Deleting DB study with study ID: {}", danglingDbStudyId);
       try {
-        var study = this.studyRepository.findByStudyId(danglingDbStudyId);
         this.studyRepository.deleteByStudyId(danglingDbStudyId);
       } catch (RuntimeException e) {
         ok = false;
