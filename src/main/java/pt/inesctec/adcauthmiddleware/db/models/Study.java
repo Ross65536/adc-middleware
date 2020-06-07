@@ -50,4 +50,5 @@ public class Study {
   public List<Repertoire> getRepertoires() {
     return repertoires;
   }
+
 }

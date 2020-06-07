@@ -107,12 +107,13 @@ public class AdcAuthSynchronizationTests extends TestBase {
     var repertoire2 = ModelFactory.buildRepertoire("2");
     wireSyncRepertoires(repertoire2);
     accessToken = umaInit();
-    UmaWireMocker.wireListResources(umaMock, accessToken);
+    UmaWireMocker.wireListResources(umaMock, accessToken, umaId1);
     var umaId2 = UmaWireMocker.wireCreateResource(umaMock, repertoire2, accessToken);
+    UmaWireMocker.wireDeleteResource(umaMock, umaId1, accessToken);
     synchronize();
     assertRepertoireTicketRequest(repertoire2, accessToken, umaId2);
     assertRepertoireNotFound(TestCollections.getString(repertoire1, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD));
-    umaMock.verify(0, WireMock.putRequestedFor(WireMock.urlEqualTo(UmaWireMocker.UMA_RESOURCE_REGISTRATION_PATH + "/" + umaId1)));
+    umaMock.verify(1, WireMock.deleteRequestedFor(WireMock.urlEqualTo(UmaWireMocker.UMA_RESOURCE_REGISTRATION_PATH + "/" + umaId1)));
   }
 
 

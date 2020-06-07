@@ -1,6 +1,7 @@
 package pt.inesctec.adcauthmiddleware.db;
 
 import com.google.common.collect.Sets;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -189,13 +190,32 @@ public class DbRepository {
   }
 
   protected boolean synchronizeStudies(Map<String, String> backendStudyMap) throws Exception {
-    var serverUmaIds = Set.of(this.umaClient.listUmaResources());
-    var dbStudies = this.studyRepository.findAll();
-    var dbUmaIds = dbStudies.stream().map(Study::getUmaId).collect(Collectors.toSet());
     boolean ok = true;
 
+    var keycloakUmaIds = Set.of(this.umaClient.listUmaResources());
+    var dbStudyIds = new HashSet<>(loadDbUmaStudyMapping().values());
+    var repositoryStudyIds = backendStudyMap.keySet();
+
+    // delete dangling DB resources
+    for (String danglingDbStudyId : Sets.difference(dbStudyIds, repositoryStudyIds)) {
+      Logger.info("Deleting DB study with study ID: {}", danglingDbStudyId);
+      try {
+        var study = this.studyRepository.findByStudyId(danglingDbStudyId);
+        this.studyRepository.deleteByStudyId(danglingDbStudyId);
+      } catch (RuntimeException e) {
+        ok = false;
+        Logger.error(
+            "Failed to delete DB study with study ID {}, because: {}",
+            danglingDbStudyId,
+            e.getMessage());
+        Logger.debug("Stacktrace: ", e);
+      }
+    }
+    this.studyRepository.flush();
+
+    var dbUmaIds = loadDbUmaStudyMapping().keySet();
     // delete dangling UMA resources
-    for (String danglingUma : Sets.difference(serverUmaIds, dbUmaIds)) {
+    for (String danglingUma : Sets.difference(keycloakUmaIds, dbUmaIds)) {
       try {
         this.umaClient.deleteUmaResource(danglingUma);
       } catch (Exception e) {
@@ -207,7 +227,7 @@ public class DbRepository {
     }
 
     // delete dangling DB resources
-    for (String danglingDbUmaId : Sets.difference(dbUmaIds, serverUmaIds)) {
+    for (String danglingDbUmaId : Sets.difference(dbUmaIds, keycloakUmaIds)) {
       Logger.info("Deleting DB study with uma ID: {}", danglingDbUmaId);
       try {
         this.studyRepository.deleteByUmaId(danglingDbUmaId);
@@ -223,10 +243,8 @@ public class DbRepository {
 
     // add new resources
     var allUmaScopes = this.csvConfig.getAllUmaScopes();
-    dbStudies = this.studyRepository.findAll();
-    var backendStudySet = backendStudyMap.keySet();
-    var dbStudyIds = dbStudies.stream().map(Study::getStudyId).collect(Collectors.toSet());
-    for (String newStudyId : Sets.difference(backendStudySet, dbStudyIds)) {
+    dbStudyIds = new HashSet<>(loadDbUmaStudyMapping().values());
+    for (String newStudyId : Sets.difference(repositoryStudyIds, dbStudyIds)) {
       var studyTitle = backendStudyMap.get(newStudyId);
       var umaName = String.format("study ID: %s; title: %s", newStudyId, studyTitle);
       var newUmaResource =
@@ -254,7 +272,7 @@ public class DbRepository {
     }
 
     // validate common resources
-    for (String umaId : Sets.intersection(serverUmaIds, dbUmaIds)) {
+    for (String umaId : Sets.intersection(keycloakUmaIds, dbUmaIds)) {
       try {
         var resource = this.umaClient.getResource(umaId);
         Set<String> actualResources = resource.getResourceScopes();
@@ -282,6 +300,12 @@ public class DbRepository {
     }
 
     return ok;
+  }
+
+  private Map<String, String> loadDbUmaStudyMapping() {
+    return this.studyRepository.findAll()
+        .stream()
+        .collect(Collectors.toMap(Study::getUmaId, Study::getStudyId));
   }
 
   public static <T> boolean saveResource(CrudRepository<T, ?> repository, T resource) {

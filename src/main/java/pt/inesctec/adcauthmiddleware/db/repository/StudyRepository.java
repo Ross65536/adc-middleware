@@ -14,4 +14,8 @@ public interface StudyRepository extends JpaRepository<Study, Long> {
   @Transactional
   @Modifying
   void deleteByUmaId(String umaId);
+
+  @Transactional
+  @Modifying
+  Long deleteByStudyId(String studyId);
 }
