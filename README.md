@@ -392,7 +392,7 @@ More specifically the `in` `filters` operator must be supported (and the `and` o
     "filters":{
         "op":"=",
         "content": {
-            "field": "sequence_id",
+            "field": "repertoire_id",
             "value": "5e53dead4d808a03178c7891"
         } 
   }
@@ -408,7 +408,7 @@ The middleware modifies the request and sends:
           {
             "op":"=",
             "content": {
-              "field": "sequence_id",
+              "field": "repertoire_id",
               "value": "5e53dead4d808a03178c7891"
             } 
           },
