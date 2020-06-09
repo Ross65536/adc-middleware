@@ -448,9 +448,7 @@ If there are values for the array sent the ids **MUST** be matched against the r
   
   For ORCDID login as an account, go to developer tools, and add keycloak: set the `Your website URL` to keycloak's host (example `http://localhost:8082`) and put in `Redirect URIs` the url generated in keycloak from the previous step (example `http://localhost:8082/auth/realms/master/broker/orcid/endpoint`). Make note of the `Client ID` and `Client Secret`. Save.
 
-  For EGI Checkin: ?
-
-4. In the dashboard from step 2, add generated info from previous step. 
+  For EGI Checkin: In the dashboard from step 2, add generated info from previous step. 
 
   For ORCID put `https://orcid.org/oauth/authorize` in the `Authorization URL`, `https://orcid.org/oauth/token` in the token url, set `Client Authentication` to `Client secret sent as post` and input the client ID and client secret from the previous step in `Client ID` and `Client Secret`. Save
 
@@ -464,6 +462,4 @@ If there are values for the array sent the ids **MUST** be matched against the r
 
 1. Install JavaFX
 2. Follow https://blog.codecentric.de/en/2017/09/jvm-fire-using-flame-graphs-analyse-performance/
-
-> TODO add profiling instructions
 
