@@ -36,7 +36,6 @@ Features:
     - Load some data, based [on](https://github.com/sfu-ireceptor/dataloading-curation):
     
         follow the instructions to load some data.
-        > TODO add specific instructions
 
 2. Either build or download adc-middleware image:
     
