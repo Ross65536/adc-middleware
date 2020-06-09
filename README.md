@@ -13,6 +13,8 @@ Features:
 - Response fields filtering based on provided token access level
 - Emission of UMA tickets restricted to the fields requested
 
+You can also checkout a simple [front-end](https://github.com/Ross65536/adc-middleware-frontend) for testing the requests.
+
 ## Deployment
 
 ### Example Deployment
