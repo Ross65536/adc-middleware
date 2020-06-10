@@ -434,7 +434,7 @@ public class AdcAuthController {
 
     return umaId -> {
       if (umaId == null) {
-        return EmptySet;
+        return publicFields;
       }
 
       var fields = validUmaFields.getOrDefault(umaId, EmptySet);
