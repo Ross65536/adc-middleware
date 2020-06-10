@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -212,13 +211,13 @@ public class AdcAuthController {
               adcSearch,
               FieldClass.REPERTOIRE,
               AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-              this::getRepertoireStudyIds,
-              this.dbRepository::getStudyUmaId);
+              this::getRepertoireStudyIds
+          );
 
       return buildFilteredJsonResponse(
           AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
           AdcConstants.REPERTOIRE_RESPONSE_FILTER_FIELD,
-          fieldMapper,
+          fieldMapper.compose(this.dbRepository::getStudyUmaId),
           () -> this.adcClient.searchRepertoiresAsStream(adcSearch));
     }
   }
@@ -248,13 +247,13 @@ public class AdcAuthController {
               adcSearch,
               FieldClass.REARRANGEMENT,
               AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-              this::getRearrangementsRepertoireIds,
-              this.dbRepository::getRepertoireUmaId);
+              this::getRearrangementsRepertoireIds
+          );
 
       return buildFilteredJsonResponse(
           AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
           AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
-          fieldMapper,
+          fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
           () -> this.adcClient.searchRearrangementsAsStream(adcSearch));
     }
   }
@@ -263,7 +262,6 @@ public class AdcAuthController {
   public Map<FieldClass, Set<String>> publicFields() {
 
     var map = new HashMap<FieldClass, Set<String>>();
-
     for (var adcClass : FieldClass.values()) {
       var fields = this.csvConfig.getPublicFields(adcClass);
       map.put(adcClass, fields);
@@ -360,8 +358,7 @@ public class AdcAuthController {
       AdcSearchRequest adcSearch, // will be modified by reference
       FieldClass fieldClass,
       String resourceId,
-      ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> umaIdsProducer,
-      Function<String, String> mapperComposition)
+      ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> umaIdsProducer)
       throws Exception {
     final Set<String> adcFields = adcSearch.isFieldsEmpty() ? Set.of() : adcSearch.getFields();
     final Set<String> adcIncludeFields =
@@ -382,16 +379,12 @@ public class AdcAuthController {
             : // empty means public
             this.adcQueryUmaFlow(request, adcSearch, resourceId, umaScopes, umaIdsProducer);
 
-    var fieldMapper =
-        mapperComposition
-            .andThen(this.buildUmaFieldMapper(umaResources, fieldClass))
-            .andThen(set -> (Set<String>) Sets.intersection(set, allRequestedFields));
-
     if (!allRequestedFields.contains(resourceId)) {
       adcSearch.addField(resourceId);
     }
 
-    return fieldMapper;
+    return this.buildUmaFieldMapper(umaResources, fieldClass)
+            .andThen(set -> Sets.intersection(set, allRequestedFields));
   }
 
   private void validateAdcSearch(AdcSearchRequest adcSearch, FieldClass fieldClass)
@@ -422,13 +415,9 @@ public class AdcAuthController {
       List<UmaResource> resources, FieldClass fieldClass) { // TODO extract into class
     var validUmaFields =
         resources.stream()
-            .map(
-                uma -> {
-                  var scopes = new HashSet<>(uma.getScopes());
-                  var fields = this.csvConfig.getFields(fieldClass, scopes);
-                  return Pair.of(uma.getUmaResourceId(), fields);
-                })
-            .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
+            .collect(Collectors.toMap(UmaResource::getUmaResourceId, uma ->
+                this.csvConfig.getFields(fieldClass, uma.getScopes())
+            ));
 
     var publicFields = this.csvConfig.getPublicFields(fieldClass);
 
