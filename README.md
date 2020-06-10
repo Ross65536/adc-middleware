@@ -2,9 +2,9 @@
 
 [![pipeline status](https://gitlab.com/Ross65536/adc-middleware/badges/master/pipeline.svg)](https://gitlab.com/Ross65536/adc-middleware/commits/master)
 
-Check out Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middleware)
+Middleware server for handling access control for ADC API compliant repositories.
 
-Middleware server for handling UMA authorization and access control.
+Check out Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middleware)
 
 Project runs on java 11, with (modified) google java style guide.
 
