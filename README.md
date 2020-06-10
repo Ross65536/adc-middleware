@@ -2,9 +2,9 @@
 
 [![pipeline status](https://gitlab.com/Ross65536/adc-middleware/badges/master/pipeline.svg)](https://gitlab.com/Ross65536/adc-middleware/commits/master)
 
-Check out Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middleware)
+Middleware server for handling access control for ADC API compliant repositories.
 
-Middleware server for handling UMA authorization and access control.
+Check out Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middleware)
 
 Project runs on java 11, with (modified) google java style guide.
 
@@ -12,6 +12,8 @@ Features:
 - Support for all of the AIRR ADC API functionalities except for: `tsv` format on POST endpoints. 
 - Response fields filtering based on provided token access level
 - Emission of UMA tickets restricted to the fields requested
+
+You can also checkout this simple [front-end](https://github.com/Ross65536/adc-middleware-frontend) for testing the access control capabilities of this middleware.
 
 ## Deployment
 
@@ -36,7 +38,6 @@ Features:
     - Load some data, based [on](https://github.com/sfu-ireceptor/dataloading-curation):
     
         follow the instructions to load some data.
-        > TODO add specific instructions
 
 2. Either build or download adc-middleware image:
     
@@ -391,7 +392,7 @@ More specifically the `in` `filters` operator must be supported (and the `and` o
     "filters":{
         "op":"=",
         "content": {
-            "field": "sequence_id",
+            "field": "repertoire_id",
             "value": "5e53dead4d808a03178c7891"
         } 
   }
@@ -407,7 +408,7 @@ The middleware modifies the request and sends:
           {
             "op":"=",
             "content": {
-              "field": "sequence_id",
+              "field": "repertoire_id",
               "value": "5e53dead4d808a03178c7891"
             } 
           },
@@ -447,9 +448,7 @@ If there are values for the array sent the ids **MUST** be matched against the r
   
   For ORCDID login as an account, go to developer tools, and add keycloak: set the `Your website URL` to keycloak's host (example `http://localhost:8082`) and put in `Redirect URIs` the url generated in keycloak from the previous step (example `http://localhost:8082/auth/realms/master/broker/orcid/endpoint`). Make note of the `Client ID` and `Client Secret`. Save.
 
-  For EGI Checkin: ?
-
-4. In the dashboard from step 2, add generated info from previous step. 
+  For EGI Checkin: In the dashboard from step 2, add generated info from previous step. 
 
   For ORCID put `https://orcid.org/oauth/authorize` in the `Authorization URL`, `https://orcid.org/oauth/token` in the token url, set `Client Authentication` to `Client secret sent as post` and input the client ID and client secret from the previous step in `Client ID` and `Client Secret`. Save
 
@@ -463,6 +462,4 @@ If there are values for the array sent the ids **MUST** be matched against the r
 
 1. Install JavaFX
 2. Follow https://blog.codecentric.de/en/2017/09/jvm-fire-using-flame-graphs-analyse-performance/
-
-> TODO add profiling instructions
 
