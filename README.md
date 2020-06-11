@@ -454,7 +454,9 @@ If there are values for the array sent the ids **MUST** be matched against the r
 
   For EGI Checkin put `https://aai-dev.egi.eu/oidc/authorize` in the `Authorization URL`, `https://aai-dev.egi.eu/oidc/token` in the token url, set `Client secret sent as post` and input client ID and secret. Save
 
+## Implementation Details
 
+You can see [here](./PSEUDOCODE.md) a python-like pseudo-code which describes this whole middleware server's working.
 
 ## Profilling
 
