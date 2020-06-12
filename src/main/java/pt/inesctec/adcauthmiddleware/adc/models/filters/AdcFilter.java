@@ -1,5 +1,6 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.Map;
@@ -49,5 +50,6 @@ public abstract class AdcFilter {
     FiltersUtils.assertNonNull(field + ".op", op);
   }
 
+  @JsonIgnore
   public abstract void loadFields(Set<String> fields);
 }

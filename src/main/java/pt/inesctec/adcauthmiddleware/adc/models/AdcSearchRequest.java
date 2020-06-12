@@ -187,6 +187,7 @@ public class AdcSearchRequest {
     this.includeFields = includeFields;
   }
 
+  @JsonIgnore
   public Set<String> getFiltersFields() {
     var fields = new HashSet<String>();
 

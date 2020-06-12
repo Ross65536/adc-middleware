@@ -1,5 +1,6 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters.content;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Map;
 import java.util.Set;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
@@ -26,6 +27,7 @@ public class FieldContent {
     }
   }
 
+  @JsonIgnore
   public void loadFields(Set<String> fields) {
     fields.add(field);
   }
