@@ -2,7 +2,95 @@
 
 This section describes in a python-like pseudo-code the full workings of this middleware server.
 
-Valid as of commit `f35c923389aac8453d17e2d4e98535d261caa825`
+Valid as of commit `8c0344104a006df023e5e49ccb6cf15b7e7d688c`
+
+- `synchronize.py`:
+
+```python 
+
+def getAllScopes():
+  fieldsCsv = csv.loadFile(config.load("app.adcCsvConfigPath"))
+  scopes = fieldsCsv.select("access_scope")
+  return set(scopes)
+
+# POST /v1/synchronize
+def synchronize(password):
+  # step 1, check password
+  syncPassHash = config.load("app.synchronizePasswordHash")
+  if BCrypt.hash(password, 10) != syncPassHash:
+    raise "Invalid password" 
+
+  repository = AdcClient("http://repository:80/airr/v1")
+  uma = UmaClient("http://keycloak:8082")
+  db = DbRepository("http://postgres:5432")
+  cache = Cache("http://redis:6379")
+  allUmaScopes = getAllScopes()
+
+  # step 2, delete cache
+  cache.deleteAll()
+  db.deleteStudyRepertoireMappings()
+
+  # step 3, synchronize studies
+  body = {
+    "fields": [
+      "repertoire_id", "study.study_id", "study.study_title"
+    ]
+  }
+  repertoires = repository.getRepertoires(body)
+  repositoryStudies = { 
+    rep["study"]["study_id"]: rep["study"]["study_title"] for rep in repertoires
+  }
+  repositoryStudyIds = set(repositoryStudies.keys())
+  umaIds = set(uma.listUmaResourceIds())
+  
+  # 3. (a), delete DB studies not in repository
+  for studyId in set(db.studyIds()) - repositoryStudyIds:
+    db.deleteUmaStudyMapping(studyId)
+
+  # 3. (b), delete UMA resources not in DB
+  for umaId in umaIds - set(db.umaIds()):
+    uma.deleteResource(umaId)
+
+  # 3. (c), delete DB studies not in UMA server
+  for umaId in set(db.umaIds()) - umaIds:
+    studyId = db.getStudy(umaId)
+    db.deleteUmaStudyMapping(studyId)
+
+  # 3. (d), create UMA and DB studies not in repository
+  for studyId in repositoryStudyIds - set(db.studyIds()):
+    umaResource = {
+      "name": "study ID: " + studyId + "; title: " + repositoryStudies[studyId],
+      "type": "study",
+      "resource_scopes": allUmaScopes,
+      "ownerManagedAccess" : True,
+      "owner": config.load("uma.resourceOwner")
+    }
+
+    createdUmaId = uma.createResource(umaResource)["_id"]
+    db.addUmaStudyMapping(createdUmaId, studyId)
+  
+  # 3. (e), validate UMA studies in repository
+  for umaId in umaIds - set(db.umaIds()):
+    umaResource = uma.getResource(umaId)
+    actualScopes = set([
+      e["name"] for e in umaResource["resource_scopes"] 
+    ])
+    
+    if not actualScopes.contains(allUmaScopes):
+      updateUmaResource = {
+        "name": umaResource["name"],
+        "resource_scopes": actualScopes + allUmaScopes # no duplicates
+      }
+      uma.updateResource(umaId, updateUmaResource)
+
+  # step 4, synchronize repertoires
+  for repertorie in repertoires:
+    db.addStudyRepertoireMapping(
+      repertoire["study"]["study_id"],
+      repertoire["repertoire_id"]
+    )
+```
+
 
 - `filtering.py`:
 
@@ -96,93 +184,6 @@ def streamFilteredResources(adcResponseStream, umaGrantedFieldsMap, responseReso
 
   responseStream.endObject()
   responseStream.close()
-```
-
-- `synchronize.py`:
-
-```python 
-
-def getAllScopes():
-  fieldsCsv = csv.loadFile(config.load("app.adcCsvConfigPath"))
-  scopes = fieldsCsv.select("access_scope")
-  return set(scopes)
-
-# POST /v1/synchronize
-def synchronize(password):
-  # step 1, check password
-  syncPassHash = config.load("app.synchronizePasswordHash")
-  if BCrypt.hash(password, 10) != syncPassHash:
-    raise "Invalid password" 
-
-  repository = AdcClient("http://repository:80/airr/v1")
-  uma = UmaClient("http://keycloak:8082")
-  db = DbRepository("http://postgres:5432")
-  cache = Cache("http://redis:6379")
-  allUmaScopes = getAllScopes()
-
-  # step 2, delete cache
-  cache.deleteAll()
-  db.deleteStudyRepertoireMappings()
-
-  # step 3, synchronize studies
-  body = {
-    "fields": [
-      "repertoire_id", "study.study_id", "study.study_title"
-    ]
-  }
-  repertoires = repository.getRepertoires(body)
-  repositoryStudies = { 
-    rep["study"]["study_id"]: rep["study"]["study_title"] for rep in repertoires
-  }
-  repositoryStudyIds = set(repositoryStudies.keys())
-  umaIds = set(uma.listUmaResourceIds())
-  
-  # 3. (a), delete DB studies not in repository
-  for studyId in set(db.studyIds()) - repositoryStudyIds:
-    db.deleteUmaStudyMapping(studyId)
-
-  # 3. (b), delete UMA resources not in DB
-  for umaId in umaIds - set(db.umaIds()):
-    uma.deleteResource(umaId)
-
-  # 3. (c), delete DB studies not in UMA server
-  for umaId in set(db.umaIds()) - umaIds:
-    studyId = db.getStudy(umaId)
-    db.deleteUmaStudyMapping(studyId)
-
-  # 3. (d), create UMA and DB studies not in repository
-  for studyId in repositoryStudyIds - set(db.studyIds()):
-    umaResource = {
-      "name": "study ID: " + studyId + "; title: " + repositoryStudies[studyId],
-      "type": "study",
-      "resource_scopes": allUmaScopes,
-      "ownerManagedAccess" : True,
-      "owner": config.load("uma.resourceOwner")
-    }
-
-    createdUmaId = uma.createResource(umaResource)["_id"]
-    db.addUmaStudyMapping(createdUmaId, studyId)
-  
-  # 3. (e), validate UMA studies in repository
-  for umaId in umaIds - set(db.umaIds()):
-    umaResource = uma.getResource(umaId)
-    actualScopes = set([
-      e["name"] for e in umaResource["resource_scopes"] 
-    ])
-    
-    if not actualScopes.contains(allUmaScopes):
-      updateUmaResource = {
-        "name": umaResource["name"],
-        "resource_scopes": actualScopes + allUmaScopes # no duplicates
-      }
-      uma.updateResource(umaId, updateUmaResource)
-
-  # step 4, synchronize repertoires
-  for repertorie in repertoires:
-    db.addStudyRepertoireMapping(
-      repertoire["study"]["study_id"],
-      repertoire["repertoire_id"]
-    )
 ```
 
 - `individual_endpoints.py`:
@@ -304,7 +305,9 @@ def buildSearchRequestFields(className, requestBody):
     allRequestedFields = getClassFields(className)
 
 def postValidateToken(requestBody, allRequestedFields, rptToken, className, resourceIdField, resourceIdsProducer):
-  requestedScopes = getFieldsScopes(className, allRequestedFields)
+  filtersFields = set(getAdcQueryFiltersFields(requestBody["filters"]))
+  fields = allRequestedFields + filtersFields
+  requestedScopes = getFieldsScopes(className, fields)
   if requestedScopes.empty(): # public fields access
     return []
 
@@ -323,8 +326,13 @@ def whitelistSearch(requestBody, grantedFieldsMap, allRequestedFields, resourceI
   if not idFieldAlreadyRequested:
     requestBody["fields"].add(resourceIdField)
 
+  filtersFields = set(getAdcQueryFiltersFields(requestBody["filters"]))
   for _, fields in enumerate(grantedFieldsMap):
+    if not (filtersFields - fields).empty():
+      fields.removeAll()
+
     fields.remove(fields - allRequestedFields) # set intersection
+
 
 def getRepertoireUmaIds(requestBody):
   repertoires = repository.searchRepertoires(requestBody)["Repertoire"]
@@ -433,13 +441,15 @@ def repertoiresFacets(requestBody, rptToken):
   if "facets" not in requestBody or "fields" in requestBody or "include_fields" in requestBody:
     raise "error"
 
-  requestedField = requestBody["facets"]
-  tokenUmaResources = postValidateToken(requestBody, [ requestedField ], rptToken, "Repertoire", "study.study_id", getRepertoireUmaIds)
+  facetsField = requestBody["facets"]
+  filtersFields = set(getAdcQueryFiltersFields(requestBody["filters"]))
+  requestedFields = set(facetsField) + filtersFields
+  tokenUmaResources = postValidateToken(requestBody, [ facetsField ], rptToken, "Repertoire", "study.study_id", getRepertoireUmaIds)
   if not tokenUmaResources.empty(): # non public field
     grantedFieldsMap = umaResourcesToGrantedFields(tokenUmaResources, "Repertoire")
     grantedUmaIds = [
       umaId for umaId, fields in enumerate(grantedFieldsMap) if 
-          umaId != None and requestedField in fields
+          umaId != None and requestedFields in fields
     ]
 
     nestedStudies = [db.getUmaResourceStudies(umaId) for umaId in grantedUmaIds]
@@ -455,13 +465,15 @@ def rearrangementsFacets(requestBody, rptToken):
   if "facets" not in requestBody or "fields" in requestBody or "include_fields" in requestBody:
     raise "error"
 
-  requestedField = requestBody["facets"]
-  tokenUmaResources = postValidateToken(requestBody, [ requestedField ], rptToken, "Rearrangement", "repertoire_id", getRearrangementUmaIds)
+  facetsField = requestBody["facets"]
+  filtersFields = set(getAdcQueryFiltersFields(requestBody["filters"]))
+  requestedFields = set(facetsField) + filtersFields
+  tokenUmaResources = postValidateToken(requestBody, [ facetsField ], rptToken, "Rearrangement", "repertoire_id", getRearrangementUmaIds)
   if not tokenUmaResources.empty(): # non public field
     grantedFieldsMap = umaResourcesToGrantedFields(tokenUmaResources, "Rearrangement")
     grantedUmaIds = [
       umaId for umaId, fields in enumerate(grantedFieldsMap) if 
-          umaId != None and requestedField in fields
+          umaId != None and requestedFields in fields
     ]
 
     nestedRepertoires = [db.getUmaResourceRepertoire(umaId) for umaId in grantedUmaIds]
