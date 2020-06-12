@@ -1,5 +1,6 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +31,14 @@ public class LogicalFilter extends AdcFilter {
   public void loadFields(Set<String> fields) {
     for (AdcFilter adcFilter : content) {
       adcFilter.loadFields(fields);
+    }
+  }
+
+  @Override
+  public void loadOperators(Set<String> operators) {
+    super.loadOperators(operators);
+    for (AdcFilter adcFilter : content) {
+      adcFilter.loadOperators(operators);
     }
   }
 }

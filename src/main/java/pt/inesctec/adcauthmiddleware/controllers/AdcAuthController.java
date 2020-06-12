@@ -412,6 +412,21 @@ public class AdcAuthController {
           "Invalid input JSON: 'facets' support for current repository not enabled");
     }
 
+    if (adcSearch.getFilters() != null && !this.appConfig.isAdcFiltersEnabled()) {
+      throw SpringUtils.buildHttpException(
+          HttpStatus.NOT_IMPLEMENTED,
+          "Invalid input JSON: 'filters' support for current repository not enabled");
+    }
+
+    var filtersBlacklist = this.appConfig.getFiltersOperatorsBlacklist();
+    Set<String> actualFiltersOperators = adcSearch.getFiltersOperators();
+    Sets.SetView<String> operatorDiff = Sets.intersection(filtersBlacklist, actualFiltersOperators);
+    if (! operatorDiff.isEmpty()) {
+      throw SpringUtils.buildHttpException(
+          HttpStatus.NOT_IMPLEMENTED,
+          "Invalid input JSON: 'filters' operators: " + CollectionsUtils.toString(operatorDiff)  + " are blacklisted");
+    }
+
     var fieldTypes = this.csvConfig.getFields(fieldClass);
     try {
       AdcSearchRequest.validate(adcSearch, fieldTypes);
