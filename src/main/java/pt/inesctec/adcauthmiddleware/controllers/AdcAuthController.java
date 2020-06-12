@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -317,6 +318,11 @@ public class AdcAuthController {
 
     var idsQuery = adcSearch.queryClone().addFields(resourceId);
     Collection<String> umaIds = umaIdsProducer.apply(idsQuery);
+    if (umaIds.isEmpty()) {
+      // when no resources return, just err
+      throw SpringUtils.buildHttpException(HttpStatus.UNAUTHORIZED, null);
+    }
+
     throw this.umaFlow.noRptToken(umaIds, umaScopes);
   }
 
@@ -329,7 +335,9 @@ public class AdcAuthController {
       Function<String, Set<String>> umaIdGetter,
       ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest)
       throws Exception {
-    var umaScopes = this.csvConfig.getUmaScopes(fieldClass, List.of(adcSearch.getFacets()));
+    final Set<String> filtersFields = adcSearch.getFiltersFields();
+    final Set<String> facets = Set.of(adcSearch.getFacets());
+    var umaScopes = this.csvConfig.getUmaScopes(fieldClass, Sets.union(filtersFields, facets));
     boolean filterResponse = false;
     if (!umaScopes.isEmpty()) { // non public facets field
       var resourceIds =
@@ -366,25 +374,34 @@ public class AdcAuthController {
             ? Set.of()
             : this.csvConfig.getFields(fieldClass, adcSearch.getIncludeFields());
     final Set<String> requestedFields = Sets.union(adcFields, adcIncludeFields);
-    final Set<String> allRequestedFields =
+    final Set<String> allReturnFields =
         new HashSet<>(
             requestedFields.isEmpty()
                 ? this.csvConfig.getFields(fieldClass).keySet()
                 : requestedFields);
+    final Set<String> filtersFields = adcSearch.getFiltersFields();
+    final Set<String> allConsideredFields = Sets.union(allReturnFields, filtersFields);
 
-    var umaScopes = this.csvConfig.getUmaScopes(fieldClass, allRequestedFields);
+    var umaScopes = this.csvConfig.getUmaScopes(fieldClass, allConsideredFields);
+    // empty means public
     List<UmaResource> umaResources =
-        umaScopes.isEmpty()
-            ? EmptyResources
-            : // empty means public
+        umaScopes.isEmpty() ? EmptyResources :
             this.adcQueryUmaFlow(request, adcSearch, resourceId, umaScopes, umaIdsProducer);
 
-    if (!allRequestedFields.contains(resourceId)) {
+    if (!allReturnFields.contains(resourceId)) {
       adcSearch.addField(resourceId);
     }
 
     return this.buildUmaFieldMapper(umaResources, fieldClass)
-            .andThen(set -> Sets.intersection(set, allRequestedFields));
+        .andThen(fields -> {
+          // don't return resources where the access level does not match the one in the filters, in order to avoid information leaks
+          if (Sets.difference(filtersFields, fields).isEmpty()) {
+            return fields;
+          }
+
+          return EmptySet;
+        })
+        .andThen(set -> Sets.intersection(set, allReturnFields));
   }
 
   private void validateAdcSearch(AdcSearchRequest adcSearch, FieldClass fieldClass)
@@ -423,6 +440,7 @@ public class AdcAuthController {
 
     return umaId -> {
       if (umaId == null) {
+        Logger.warn("A resource was returned by the repository with no mapping from resource ID to UMA ID. Consider synchronizing.");
         return publicFields;
       }
 
