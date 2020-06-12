@@ -3,6 +3,7 @@ package pt.inesctec.adcauthmiddleware.adc.models.filters;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.Map;
+import java.util.Set;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.NoValueContentFilter;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.NumberContentFilter;
@@ -47,4 +48,6 @@ public abstract class AdcFilter {
   public void validate(String field, Map<String, FieldType> validFieldTypes) throws AdcException {
     FiltersUtils.assertNonNull(field + ".op", op);
   }
+
+  public abstract void loadFields(Set<String> fields);
 }

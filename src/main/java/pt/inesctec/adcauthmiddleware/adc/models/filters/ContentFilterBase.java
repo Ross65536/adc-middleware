@@ -1,6 +1,7 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters;
 
 import java.util.Map;
+import java.util.Set;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.FieldContent;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
@@ -22,5 +23,10 @@ public class ContentFilterBase<T extends FieldContent> extends AdcFilter {
     FiltersUtils.assertNonNull(field + ".content", content);
     content.validate(field + ".content", validFieldTypes);
     //    for
+  }
+
+  @Override
+  public void loadFields(Set<String> fields) {
+    content.loadFields(fields);
   }
 }

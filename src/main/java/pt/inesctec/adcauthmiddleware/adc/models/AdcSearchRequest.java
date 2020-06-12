@@ -186,4 +186,14 @@ public class AdcSearchRequest {
   public void setIncludeFields(IncludeField includeFields) {
     this.includeFields = includeFields;
   }
+
+  public Set<String> getFiltersFields() {
+    var fields = new HashSet<String>();
+
+    if (filters != null) {
+      filters.loadFields(fields);
+    }
+
+    return fields;
+  }
 }
