@@ -198,6 +198,7 @@ public class AdcSearchRequest {
     return fields;
   }
 
+  @JsonIgnore
   public Set<String> getFiltersOperators() {
     var operators = new HashSet<String>();
 
