@@ -3,6 +3,7 @@ package pt.inesctec.adcauthmiddleware.adc.models.filters;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
@@ -52,4 +53,9 @@ public abstract class AdcFilter {
 
   @JsonIgnore
   public abstract void loadFields(Set<String> fields);
+
+  @JsonIgnore
+  public void loadOperators(Set<String> operators) {
+    operators.add(op);
+  };
 }

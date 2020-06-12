@@ -197,4 +197,14 @@ public class AdcSearchRequest {
 
     return fields;
   }
+
+  public Set<String> getFiltersOperators() {
+    var operators = new HashSet<String>();
+
+    if (filters != null) {
+      filters.loadOperators(operators);
+    }
+
+    return operators;
+  }
 }
