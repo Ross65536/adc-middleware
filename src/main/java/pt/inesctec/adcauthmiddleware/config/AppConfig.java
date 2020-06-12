@@ -74,6 +74,7 @@ public class AppConfig {
     var parts = filtersOperatorsBlacklist.split(",");
     this.filtersOperatorsBlacklist = Arrays.stream(parts)
         .map(String::trim)
+        .filter(s -> ! s.equals(""))
         .collect(Collectors.toSet());
 
     Sets.SetView<String> diff = Sets.difference(this.filtersOperatorsBlacklist, AllOperators);
