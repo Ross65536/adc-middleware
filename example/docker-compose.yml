@@ -1,6 +1,28 @@
 version: '3'
 
 services:
+  repository-db:
+    image: ireceptor/repository-mongodb:master
+    volumes:
+        - ./tmp/mongodb:/data/db:delegated
+    environment:
+        MONGO_INITDB_DATABASE: ireceptor
+
+  repository:
+    depends_on:
+        - repository-db
+    image: ireceptor/service-php-mongodb:master
+    environment:
+        DB_HOST: repository-db
+        DB_DATABASE: ireceptor
+        DB_SAMPLES_COLLECTION: sample
+        DB_SEQUENCES_COLLECTION: sequence
+        IRECEPTOR_AIRR_MAPPING_FILE: files/AIRR-iReceptorMapping.txt
+    volumes:
+        - ./config/turnkey:/var/www/html/config/files:delegated
+    ports:
+        - 8000:80
+
   middleware:
     image: ros65536/adc-middleware
     volumes:
@@ -15,8 +37,6 @@ services:
       - keycloak
       - middleware-db
       - middleware-redis
-    networks:
-      - turnkey-service_default
 
   keycloak:
     image: jboss/keycloak:9.0.3
@@ -34,8 +54,6 @@ services:
       - 8082:8080
     depends_on:
       - keycloak_db
-    networks:
-      - turnkey-service_default
 
   keycloak_db:
     image: postgres:12
@@ -45,13 +63,9 @@ services:
       # default user is 'postgres'
       POSTGRES_DB: keycloak_db
       POSTGRES_PASSWORD: password2
-    networks:
-      - turnkey-service_default
 
   middleware-redis:
     image: redis
-    networks:
-      - turnkey-service_default
 
   middleware-db:
     image: postgres:12
@@ -60,11 +74,5 @@ services:
     environment:
       # default user and DB is postgres
       POSTGRES_PASSWORD: password
-    networks:
-      - turnkey-service_default
-
-networks:
-  turnkey-service_default:
-    external: true
 
 
