@@ -15,71 +15,62 @@ Features:
 
 You can also checkout this simple [front-end](https://github.com/Ross65536/adc-middleware-frontend) for testing the access control capabilities of this middleware.
 
-## Deployment
+## Instructions
 
 ### Example Deployment
 
-1. Load a resource server backend:
+1. Load and configure keycloak:
 
-    - Start turnkey backend, [from here](https://github.com/sfu-ireceptor/turnkey-service-php):
-    
-        ```shell script
-        # folder name should be 'turnkey-service-php', important for finding correct docker network. 
-        git clone https://github.com/sfu-ireceptor/turnkey-service-php.git  
-        cd turnkey-service-php
-        echo "API_TAG=master" > .env # this should load the latest api
-        scripts/install_turnkey.sh
-        ```
-        
-        > If you use a different folder or network for the backend (docker network ls) you need to update the file's `./data/config/docker-compose.example.yml` values `turnkey-service_default` to the network used.
-        
-        > If you are using a different service name than `ireceptor-api` for the API backend you need to update `data/config/example.properties`'s `adc.resourceServerUrl` property.
+  ```shell script
+  cd example
+  docker-compose up keycloak keycloak_db
+  ```
 
-    - Load some data, based [on](https://github.com/sfu-ireceptor/dataloading-curation):
-    
-        follow the instructions to load some data.
+  Keycloak is accessible at `http://localhost:8082/`.
+  Then see below how to [configure keycloak for first use](./README.md#Keycloak%20Configuration).
+  Make note of the generated client secret (`$MIDDLEWARE_UMA_CLIENT_SECRET`).
 
-2. Either build or download adc-middleware image:
-    
-    To download skip this step
-    
-    ```shell script
-    # build
-    docker build -t ros65536/adc-middleware:latest .
-    ```
+2. Load a resource server backend:
 
-3. Setup and configure keycloak server:
+  iReceptor Turnkey is used in this example.
 
-    ```shell script
-    docker-compose --file docker-compose.example.yml up keycloak_db
-    docker-compose --file docker-compose.example.yml up keycloak
-    ```
+  Download backend data (for testing):
+  ```shell script
+  curl -L https://github.com/Ross65536/adc-middleware/releases/download/data/repository-data.tar.gz > repository-data.tar.gz
+  tar -xvzf repository-data.tar.gz -C data/
+  sudo chown -R $(whoami) data/mongodb/
+  ```
 
-    Keycloak is accessible at `http://localhost:8082/`.
+  Start Repository:
+  ```shell script
+  docker-compose up repository repository-db
+  ```
 
-    See instructions below on how to configure or skip setup if keycloak was already configured for development. 
-    
-    Make note of the generated client secret (`$MIDDLEWARE_UMA_CLIENT_SECRET`).
+3. Run the middleware:
 
-4. Run the middleware:
+  (Optional) build middleware docker image:
+  ```shell script
+  docker build -t ros65536/adc-middleware:latest ..
+  ```
 
-    ```shell script
-    docker-compose --file docker-compose.example.yml up middleware-db middleware-redis
-    MIDDLEWARE_UMA_CLIENT_SECRET=<the client secret from previous step> docker-compose --file docker-compose.example.yml up middleware 
-    ```
-    
-    You can now make requests to `http://localhost:8080/airr/v1/`. Try with `http://localhost:8080/airr/v1/info` to see if there is a connection to the backend. 
-    
-    On boot the middleware server automatically connects to the DB.
-    
-5. Synchronize middleware cache:
+  Run: 
+  ```shell script
+  docker-compose up middleware-db middleware-redis
+  MIDDLEWARE_UMA_CLIENT_SECRET=<the client secret from the first step> docker-compose up middleware 
+  ```
 
-    ```shell script
-    # '12345abcd' is the password
-    curl --location --request POST 'localhost:8080/airr/v1/synchronize' --header 'Authorization: Bearer 12345abcd'
-    ```
-    
-    See below for a discussion on when to re-synchronize.
+  You can now make requests to `http://localhost:8080/airr/v1/`. Try with `http://localhost:8080/airr/v1/info` to see if there is a connection to the backend. 
+
+  On boot the middleware server automatically connects to the DB.
+
+4. Synchronize middleware and Keycloak state with Repository:
+
+  ```shell script
+  # '12345abcd' is the password
+  curl --location --request POST 'localhost:8080/airr/v1/synchronize' --header 'Authorization: Bearer 12345abcd'
+  ```
+  
+  See below for a discussion on when to re-synchronize.
 
 #### Deployment Notes
 
@@ -88,6 +79,18 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
 > **Important**: You must generate a new password and hash for the `app.synchronizePasswordHash` property variable, see below how. 
 
 > **Important**: The middleware APIs should be under a SSL connection in order not to leak user credentials or synchronization password.
+
+### Keycloak Configuration
+
+#### Initial Keycloak Setup
+
+1. Go to `http://localhost:8082`. Login as admin with `admin:admin`. 
+2. Go to `master`'s `Realm Settings` in the sidebar and enable `User-Managed Access` in the `General` tab.
+3. Create a new client in the `Clients` side bar tab: load (import) and save the client from the file `./keycloak/adc-middleware.json`. Go to credentials tab in the client and note the generated `Secret` value which is the client secret while `adc-middleware` is the client ID.
+4. In the `Users` tab create user with username `owner`, this is the resource owner. Create user with username `user`, this is the user that will access resources. For each created user in the user's `Credentials` tab create the password (equal to username). 
+A user can then login on `http://localhost:8082/auth/realms/master/account` (for example login as owner to grant accesses to users).
+
+You can use different values for these strings, but you would need to update the configuration variables.
 
 ### Docker image
 
@@ -98,8 +101,6 @@ The docker image for the middleware accepts the following environment variables:
 - `PROPERTIES_PATH`: The path for the java properties configuration file. 
 
 The remaining configuration is done using java properties (for example see `data/config/example.properties`, for explanation see below).
-
-## Instructions
 
 ### Dev Setup:
 
@@ -115,15 +116,7 @@ docker-compose --file docker-compose.dev.yml up keycloak_db
 docker-compose --file docker-compose.dev.yml up keycloak
 ```
 
-Then configure keycloak:
-
-1. Go to `http://localhost:8082`. Login as admin with `admin:admin`. 
-2. Go to `master` realm settings and enable `User-Managed Access` in the `General` tab.
-3. Create a new client in the `Clients` tab: load (import) and save the client from the file `./keycloak/adc-middleware.json`. Go to credentials tab in the client and note the generated `Secret` value which is the client secret while `adc-middleware` is the client ID.
-4. In the `Users` tab create user with username `owner`, this is the resource owner. Create user with username `user`, this is the user that will access resources. For each created user in the user's `Credentials` tab create the password (equal to username). 
-A user can then login on `http://localhost:8082/auth/realms/master/account` (for example login as owner to grant accesses to users).
-
-You can use different values for these strings, but you would need to update the configuration variables.
+Then see [above how to configure keycloak](./README.md#Keycloak%20Configuration).
 
 
 #### To install, build and run for development:
