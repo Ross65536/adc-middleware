@@ -39,3 +39,7 @@ data/*
 .~lock.*
 bin/
 .dev/
+example/data
+*.zip
+*.tar.gz
+.DS_Store

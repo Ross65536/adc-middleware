@@ -4,7 +4,7 @@ services:
   repository-db:
     image: ireceptor/repository-mongodb:master
     volumes:
-        - ./tmp/mongodb:/data/db:delegated
+        - ./data/mongodb:/data/db:delegated
     environment:
         MONGO_INITDB_DATABASE: ireceptor
 
@@ -24,15 +24,15 @@ services:
         - 8000:80
 
   middleware:
-    image: ros65536/adc-middleware
+    image: ros65536/adc-middleware:0.5.4
     volumes:
-      - ./data/config:/middleware/config
+      - ./config/middleware:/middleware/config
     ports:
       - 8080:80
     environment:
       - UMA_CLIENT_SECRET=$MIDDLEWARE_UMA_CLIENT_SECRET
       - DB_PASSWORD=password
-      - PROPERTIES_PATH=./config/example.properties
+      - PROPERTIES_PATH=/middleware/config/example.properties
     depends_on:
       - keycloak
       - middleware-db
@@ -46,6 +46,7 @@ services:
       DB_DATABASE: keycloak_db
       DB_USER: postgres
       DB_PASSWORD: password2
+      # IMPORTANT: change username and password for deployment
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: admin
       DB_SCHEMA: public
