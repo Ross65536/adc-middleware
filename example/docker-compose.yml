@@ -20,8 +20,6 @@ services:
         IRECEPTOR_AIRR_MAPPING_FILE: files/AIRR-iReceptorMapping.txt
     volumes:
         - ./config/turnkey:/var/www/html/config/files:delegated
-    # ports:
-    #     - 8000:80
     depends_on:
       - repository-db
 
@@ -29,8 +27,8 @@ services:
     image: ros65536/adc-middleware:0.5.4
     volumes:
       - ./config/middleware:/middleware/config
-    # ports:
-    #   - 8080:80
+    ports:
+      - 8080:80
     environment:
       - UMA_CLIENT_SECRET=$MIDDLEWARE_UMA_CLIENT_SECRET
       - DB_PASSWORD=password
@@ -42,8 +40,6 @@ services:
 
   middleware-frontend:
     image: ros65536/adc-middleware-frontend
-    # ports:
-    #   - 8888:80
 
   keycloak:
     image: jboss/keycloak:9.0.3
@@ -59,8 +55,6 @@ services:
       DB_SCHEMA: public
       PROXY_ADDRESS_FORWARDING: "true"
       # KEYCLOAK_LOGLEVEL: ALL
-    # ports:
-    #   - 8082:8080
     depends_on:
       - keycloak_db
 
@@ -96,12 +90,12 @@ services:
       - middleware-frontend
 
   # up this container and then run 
-  # docker-compose exec http-logger /bin/sh
-  # mitmproxy --mode reverse:http://keycloak:8080 -p 8081 --setheaders :~q:Host:http-logger:8081
+  # $ docker-compose exec http-logger /bin/sh
+  # $ mitmproxy --mode reverse:http://keycloak:8080 -p 8081 --setheaders :~q:Host:http-logger:8081
   # http-logger:
   #   image: mitmproxy/mitmproxy
   #   stdin_open: true # docker run -i
   #   tty: true        # docker run -t
   #   entrypoint: /bin/sh
-    # ports:
-    #   - 8081:8081
+  #   ports:
+  #     - 8081:8081
