@@ -26,7 +26,7 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
   docker-compose up keycloak keycloak_db
   ```
 
-  Keycloak is accessible at `http://localhost:8082/`.
+  Keycloak login page is accessible at `http://localhost:80/auth`.
   Then see below how to [configure keycloak for first use](./README.md#Keycloak%20Configuration).
   Make note of the generated client secret (`$MIDDLEWARE_UMA_CLIENT_SECRET`).
 
@@ -59,7 +59,7 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
   MIDDLEWARE_UMA_CLIENT_SECRET=<the client secret from the first step> docker-compose up middleware 
   ```
 
-  You can now make requests to `http://localhost:8080/airr/v1/`. Try with `http://localhost:8080/airr/v1/info` to see if there is a connection to the backend. 
+  You can now make requests to `http://localhost:80/airr/v1/`. Try with `http://localhost:80/airr/v1/info` to see if there is a connection to the backend. 
 
   On boot the middleware server automatically connects to the DB.
 
@@ -67,7 +67,7 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
 
   ```shell script
   # '12345abcd' is the password
-  curl --location --request POST 'localhost:8080/airr/v1/synchronize' --header 'Authorization: Bearer 12345abcd'
+  curl --location --request POST 'localhost:80/airr/v1/synchronize' --header 'Authorization: Bearer 12345abcd'
   ```
   
   See below for a discussion on when to re-synchronize.
@@ -84,7 +84,7 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
 
 #### Initial Keycloak Setup
 
-1. Go to `http://localhost:8082`. Login as admin with `admin:admin`. 
+1. Go to the keycloak login page (example `http://localhost:8082`). Login as admin with `admin:admin`. 
 2. Go to `master`'s `Realm Settings` in the sidebar and enable `User-Managed Access` in the `General` tab.
 3. Create a new client in the `Clients` side bar tab: load (import) and save the client from the file `./keycloak/adc-middleware.json`. Go to credentials tab in the client and note the generated `Secret` value which is the client secret while `adc-middleware` is the client ID.
 4. In the `Users` tab create user with username `owner`, this is the resource owner. Create user with username `user`, this is the user that will access resources. For each created user in the user's `Credentials` tab create the password (equal to username). 
