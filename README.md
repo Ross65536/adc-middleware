@@ -26,7 +26,7 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
   docker-compose up keycloak keycloak_db
   ```
 
-  Keycloak login page is accessible at `http://localhost:80/auth`.
+  Keycloak login page is accessible at `http://localhost/auth`.
   Then see below how to [configure keycloak for first use](./README.md#Keycloak%20Configuration).
   Make note of the generated client secret (`$MIDDLEWARE_UMA_CLIENT_SECRET`).
 
@@ -59,7 +59,7 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
   MIDDLEWARE_UMA_CLIENT_SECRET=<the client secret from the first step> docker-compose up middleware 
   ```
 
-  You can now make requests to `http://localhost:80/airr/v1/`. Try with `http://localhost:80/airr/v1/info` to see if there is a connection to the backend. 
+  You can now make requests to `http://localhost/airr/v1/`. Try with `http://localhost/airr/v1/info` to see if there is a connection to the backend. 
 
   On boot the middleware server automatically connects to the DB.
 
@@ -67,18 +67,18 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
 
   ```shell script
   # '12345abcd' is the password
-  curl --location --request POST 'localhost:80/airr/v1/synchronize' --header 'Authorization: Bearer 12345abcd'
+  curl --location --request POST 'localhost/airr/v1/synchronize' --header 'Authorization: Bearer 12345abcd'
   ```
   
   See below for a discussion on when to re-synchronize.
 
 #### Deployment Notes
 
-> **Important**: When deploying it's very important to make the backend's API unavailable to the public (for the turnkey example, delete the exposed ports in the `scripts/docker-compose.yml` file's `ireceptor-api` service)
+> **Important**: When deploying it's very important to make the backend's API unavailable to the public
 
 > **Important**: You must generate a new password and hash for the `app.synchronizePasswordHash` property variable, see below how. 
 
-> **Important**: The middleware APIs should be under a SSL connection in order not to leak user credentials or synchronization password.
+> **Important**: The middleware APIs should be under a SSL connection in order not to leak user credentials or the synchronization password.
 
 ### Keycloak Configuration
 
