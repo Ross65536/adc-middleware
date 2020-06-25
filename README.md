@@ -17,53 +17,57 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
 
 ## Instructions
 
-### Example Deployment
+### Example Deployment (for testing)
 
-1. Load and configure keycloak:
-
-  ```shell script
-  cd example
-  docker-compose up keycloak keycloak_db
-  ```
-
-  Keycloak login page is accessible at `http://localhost/auth`.
-  Then see below how to [configure keycloak for first use](./README.md#Keycloak%20Configuration).
-  Make note of the generated client secret (`$MIDDLEWARE_UMA_CLIENT_SECRET`).
-
-2. Load a resource server backend:
+1. Load repository test data:
 
   iReceptor Turnkey is used in this example.
 
   Download backend data (for testing):
   ```shell script
+  cd example
   curl -L https://github.com/Ross65536/adc-middleware/releases/download/data/repository-data.tar.gz > repository-data.tar.gz
   tar -xvzf repository-data.tar.gz -C data/
   sudo chown -R $(whoami) data/mongodb/
   ```
 
-  Start Repository:
+2. Load all components:
+
+  (Optional) build middleware docker image locally:
   ```shell script
-  docker-compose up repository repository-db
+  docker build -t ros65536/adc-middleware:latest .
   ```
 
-3. Run the middleware:
-
-  (Optional) build middleware docker image:
+  Load components
   ```shell script
-  docker build -t ros65536/adc-middleware:latest ..
-  ```
+  cd example
 
-  Run: 
-  ```shell script
-  docker-compose up middleware-db middleware-redis
-  MIDDLEWARE_UMA_CLIENT_SECRET=<the client secret from the first step> docker-compose up middleware 
+  # optional for first time setup, some components may crash if database not already running
+  docker-compose up repository-db keycloak_db middleware-db
+
+  # load all components
+  docker-compose up server
   ```
 
   You can now make requests to `http://localhost/airr/v1/`. Try with `http://localhost/airr/v1/info` to see if there is a connection to the backend. 
 
   On boot the middleware server automatically connects to the DB.
 
-4. Synchronize middleware and Keycloak state with Repository:
+3. Configure keycloak:
+
+  Keycloak admin login page is now accessible at `http://localhost/auth`. Regular user login at `http://localhost/auth/realms/master/account`.
+  Then see below how to [configure keycloak for first use](./README.md#Keycloak%20Configuration).
+  Make note of the generated client secret (`$MIDDLEWARE_UMA_CLIENT_SECRET`) for the created `adc-middleware` client.
+  You also need to create an additional client in the Keycloak's `Clients` side bar tab, load (import) and save the client from the file `./example/config/keycloak/front-end.json`.
+
+4. Re-Load the server with the client secret
+
+  ```shell script
+  docker-compose stop middleware
+  MIDDLEWARE_UMA_CLIENT_SECRET=<the client secret from step 3> docker-compose up server
+  ```
+
+5. Synchronize middleware and Keycloak state with Repository:
 
   ```shell script
   # '12345abcd' is the password
@@ -71,6 +75,8 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
   ```
   
   See below for a discussion on when to re-synchronize.
+
+  You should now be able to access the frontend on `http://localhost`, login, and access resources.
 
 #### Deployment Notes
 
@@ -84,13 +90,13 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
 
 #### Initial Keycloak Setup
 
-1. Go to the keycloak login page (example `http://localhost:8082`). Login as admin with `admin:admin`. 
+1. Go to the keycloak login page (`$HOSTNAME/auth`). Login as admin with `admin:admin`. 
 2. Go to `master`'s `Realm Settings` in the sidebar and enable `User-Managed Access` in the `General` tab.
 3. Create a new client in the `Clients` side bar tab: load (import) and save the client from the file `./keycloak/adc-middleware.json`. Go to credentials tab in the client and note the generated `Secret` value which is the client secret while `adc-middleware` is the client ID.
-4. In the `Users` tab create user with username `owner`, this is the resource owner. Create user with username `user`, this is the user that will access resources. For each created user in the user's `Credentials` tab create the password (equal to username). 
-A user can then login on `http://localhost:8082/auth/realms/master/account` (for example login as owner to grant accesses to users).
+4. In the `Users` tab create a user with username `owner`, this is the resource owner. Create a user with username `user`, this is the user that will access resources. For each created user in the user's `Credentials` tab create the password. 
+A user can then login (`$HOSTNAME/auth/realms/master/account`), for example as an owner to grant accesses to users.
 
-You can use different values for these strings, but you would need to update the configuration variables.
+You can use different values for these strings, but you would need to update a lot of configuration variables.
 
 ### Docker image
 
@@ -115,6 +121,8 @@ Run:
 docker-compose --file docker-compose.dev.yml up keycloak_db
 docker-compose --file docker-compose.dev.yml up keycloak
 ```
+
+Keycloak is now hosted on `http://localhost:8082`.
 
 Then see [above how to configure keycloak](./README.md#Keycloak%20Configuration).
 
@@ -198,7 +206,7 @@ Dockerhub has setup a hook to automatically pull and build images from repositor
 
 ```shell script
 git tag -a v<VERSION> -m <MESSAGE> # tak latest commit
-ode .# This should trigger a build in dockerhub
+git push origin --tags # This should trigger a build in dockerhub
 ```
 
 ### Configuration
