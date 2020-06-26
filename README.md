@@ -42,11 +42,11 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
   ```shell script
   cd example
 
-  # optional for first time setup, some components may crash if database not already running
+  # (optional) for first time setup, some components may crash if database not already running
   docker-compose up repository-db keycloak_db middleware-db
 
   # load all components
-  docker-compose up server
+  docker-compose up
   ```
 
   You can now make requests to `http://localhost/airr/v1/`. Try with `http://localhost/airr/v1/info` to see if there is a connection to the backend. 
@@ -63,8 +63,8 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
 4. Re-Load the server with the client secret
 
   ```shell script
-  docker-compose stop middleware
-  MIDDLEWARE_UMA_CLIENT_SECRET=<the client secret from step 3> docker-compose up server
+  docker-compose stop middleware server
+  MIDDLEWARE_UMA_CLIENT_SECRET=<the client secret from step 3> docker-compose up
   ```
 
 5. Synchronize middleware and Keycloak state with Repository:
