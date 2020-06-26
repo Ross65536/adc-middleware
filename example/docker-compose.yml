@@ -75,6 +75,7 @@ services:
 
   middleware-redis:
     image: redis
+    restart: on-failure
 
   middleware-db:
     image: postgres:12
