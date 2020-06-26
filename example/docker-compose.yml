@@ -7,6 +7,7 @@ services:
         - ./data/mongodb:/data/db:delegated
     environment:
         MONGO_INITDB_DATABASE: ireceptor
+    restart: on-failure
 
   repository:
     depends_on:
@@ -22,6 +23,7 @@ services:
         - ./config/turnkey:/var/www/html/config/files:delegated
     depends_on:
       - repository-db
+    restart: on-failure
 
   middleware:
     image: ros65536/adc-middleware:0.5.4
@@ -37,9 +39,11 @@ services:
       - keycloak
       - middleware-db
       - middleware-redis
+    restart: on-failure
 
   middleware-frontend:
     image: ros65536/adc-middleware-frontend
+    restart: on-failure
 
   keycloak:
     image: jboss/keycloak:9.0.3
@@ -57,6 +61,7 @@ services:
       # KEYCLOAK_LOGLEVEL: ALL
     depends_on:
       - keycloak_db
+    restart: on-failure
 
   keycloak_db:
     image: postgres:12
@@ -66,6 +71,7 @@ services:
       # default user is 'postgres'
       POSTGRES_DB: keycloak_db
       POSTGRES_PASSWORD: password2
+    restart: on-failure
 
   middleware-redis:
     image: redis
@@ -77,6 +83,7 @@ services:
     environment:
       # default user and DB is postgres
       POSTGRES_PASSWORD: password
+    restart: on-failure
 
   server:
     image: nginx
@@ -88,6 +95,7 @@ services:
       - middleware
       - repository
       - middleware-frontend
+    restart: on-failure
 
   # up this container and then run 
   # $ docker-compose exec http-logger /bin/sh
