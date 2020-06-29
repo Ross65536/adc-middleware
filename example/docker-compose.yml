@@ -26,7 +26,7 @@ services:
     restart: on-failure
 
   middleware:
-    image: ros65536/adc-middleware:0.5.4
+    image: ros65536/adc-middleware
     volumes:
       - ./config/middleware:/middleware/config
     ports:
