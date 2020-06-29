@@ -35,7 +35,7 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
 
   (Optional) build middleware docker image locally:
   ```shell script
-  docker build -t ros65536/adc-middleware:latest .
+  docker build -t ros65536/adc-middleware .
   ```
 
   Load components
