@@ -52,7 +52,7 @@ Example deployment for testing in localhost.
 
   # load all components
   MIDDLEWARE_UMA_CLIENT_SECRET=12 docker-compose up # MIDDLEWARE_UMA_CLIENT_SECRET is not important in this step but must be set
-  ```
+  ````
 
   You can now make requests to `http://localhost/airr/v1/`. Try with `http://localhost/airr/v1/info` to see if there is a connection to the backend. 
 
@@ -89,7 +89,7 @@ Example deployment for testing in localhost.
 
 > **Important**: You must generate a new password and hash for the `app.synchronizePasswordHash` property variable, see below how. 
 
-> **Important**: The middleware APIs should be under a SSL connection in order not to leak user credentials or the synchronization password.
+> **Important**: The middleware APIs should be under a SSL connection in order not to leak user credentials or the synchronization password. If it is not under SSL you need to disable SSL connections Keycloak (see below).
 
 > **Importatnt**: The host and port used by the middleware to access keycloak and the host and port used by the user to obtain an RPT token must be the exact same (must have the same `Host` header) otherwise the solution doesn't work. Check the nginx configuration to see how this was achieved. When deploying, if using the provided nginx config you must update the line marked as `VERY IMPORTANT`.
 
@@ -104,6 +104,25 @@ Example deployment for testing in localhost.
 A user can then login (`$HOSTNAME/auth/realms/master/account`), for example as an owner to grant accesses to users.
 
 You can use different values for these strings, but you would need to update a lot of configuration variables.
+
+#### SSL
+
+If you need to disable Keycloak's SSL for remote connections, for example when acessing a remote server without SSL enabled, you can:
+
+- Disable using admin panel. You need to access the admin panel in the remote server locally (localhost) and go to `Realm Settings` -> `Login` -> `Require SSL` = `none`
+
+- Disable using SQL script. You can connect to keycloak's database (after it has been loaded by keycloak) and the run:
+
+  ```sql
+  UPDATE realm set ssl_required = 'NONE' where id = 'master';
+  ```
+
+  You can connect, for example with:
+  ```shell script
+  # in remote server shell
+  psql -U postgres -p 5432 -h localhost
+  \c keycloak_db
+  ```
 
 ### Docker image
 
