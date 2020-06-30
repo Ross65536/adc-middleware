@@ -21,6 +21,12 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
 
 Example deployment for testing in localhost.
 
+0. Clone the repository:
+
+  ```shell script
+  git clone https://github.com/Ross65536/adc-middleware
+  ```
+
 1. Load repository test data:
 
   iReceptor Turnkey is used in this example.
