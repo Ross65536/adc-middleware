@@ -29,8 +29,6 @@ services:
     image: ros65536/adc-middleware
     volumes:
       - ./config/middleware:/middleware/config
-    ports:
-      - 8080:80
     environment:
       - UMA_CLIENT_SECRET=$MIDDLEWARE_UMA_CLIENT_SECRET
       - DB_PASSWORD=password
@@ -46,7 +44,7 @@ services:
     restart: on-failure
 
   keycloak:
-    image: jboss/keycloak:9.0.3
+    image: jboss/keycloak:10.0.2
     environment:
       DB_VENDOR: postgres
       DB_ADDR: keycloak_db
@@ -54,10 +52,11 @@ services:
       DB_USER: postgres
       DB_PASSWORD: password2
       # IMPORTANT: change username and password for deployment
+      # might need to comment these out when restarting keycloak
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: admin
       DB_SCHEMA: public
-      PROXY_ADDRESS_FORWARDING: "true"
+      PROXY_ADDRESS_FORWARDING: 'true'
       # KEYCLOAK_LOGLEVEL: ALL
     depends_on:
       - keycloak_db
@@ -80,7 +79,7 @@ services:
   middleware-db:
     image: postgres:12
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - ./data/middleware_db:/var/lib/postgresql/data
     environment:
       # default user and DB is postgres
       POSTGRES_PASSWORD: password

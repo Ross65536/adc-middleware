@@ -19,6 +19,8 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
 
 ### Example Deployment (for testing)
 
+Example deployment for testing in localhost.
+
 1. Load repository test data:
 
   iReceptor Turnkey is used in this example.
@@ -46,7 +48,7 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
   docker-compose up repository-db keycloak_db middleware-db
 
   # load all components
-  docker-compose up
+  MIDDLEWARE_UMA_CLIENT_SECRET=12 docker-compose up # MIDDLEWARE_UMA_CLIENT_SECRET is not important in this step but must be set
   ```
 
   You can now make requests to `http://localhost/airr/v1/`. Try with `http://localhost/airr/v1/info` to see if there is a connection to the backend. 
@@ -86,7 +88,7 @@ You can also checkout this simple [front-end](https://github.com/Ross65536/adc-m
 
 > **Important**: The middleware APIs should be under a SSL connection in order not to leak user credentials or the synchronization password.
 
-> **Importatnt**: The host and port used by the middleware to access keycloak and the host and port used by the user to obtain an RPT token must be the exact same (must have the same `Host` header) otherwise the solution doesn't work. Check the nginx configuration to see how this was achieved. When deploying if using the provided nginx config you must update the line marked as `VERY IMPORTANT`.
+> **Importatnt**: The host and port used by the middleware to access keycloak and the host and port used by the user to obtain an RPT token must be the exact same (must have the same `Host` header) otherwise the solution doesn't work. Check the nginx configuration to see how this was achieved. When deploying, if using the provided nginx config you must update the line marked as `VERY IMPORTANT`.
 
 ### Keycloak Configuration
 
