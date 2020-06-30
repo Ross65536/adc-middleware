@@ -44,9 +44,6 @@ Example deployment for testing in localhost.
   ```shell script
   cd example
 
-  # (optional) for first time setup, some components may crash if database not already running
-  docker-compose up repository-db keycloak_db middleware-db
-
   # load all components
   MIDDLEWARE_UMA_CLIENT_SECRET=12 docker-compose up # MIDDLEWARE_UMA_CLIENT_SECRET is not important in this step but must be set
   ```
