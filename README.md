@@ -93,7 +93,7 @@ Example deployment for testing in localhost.
 
 1. Go to the keycloak login page (`$HOSTNAME/auth`). Login as admin with `admin:admin`. 
 2. Go to `master`'s `Realm Settings` in the sidebar and enable `User-Managed Access` in the `General` tab.
-3. Create a new client in the `Clients` side bar tab: load (import) and save the client from the file `./keycloak/adc-middleware.json`. Go to credentials tab in the client and note the generated `Secret` value which is the client secret while `adc-middleware` is the client ID.
+3. Create a new client in the `Clients` side bar tab: load (import) and save the client from the file `./example/config/keycloak/adc-middleware.json`. Go to credentials tab in the client and note the generated `Secret` value which is the client secret while `adc-middleware` is the client ID.
 4. In the `Users` tab create a user with username `owner`, this is the resource owner. Create a user with username `user`, this is the user that will access resources. For each created user in the user's `Credentials` tab create the password. 
 A user can then login (`$HOSTNAME/auth/realms/master/account`), for example as an owner to grant accesses to users.
 
