@@ -4,6 +4,7 @@ import java.util.Set;
 
 public final class AdcConstants {
   public static final String UMA_STUDY_TYPE = "study";
+  public static final String UMA_DELETED_STUDY_TYPE = "deleted_study";
 
   public static final String REPERTOIRE_STUDY_ID_FIELD = "study.study_id";
   public static final String REPERTOIRE_STUDY_TITLE_FIELD = "study.study_title";

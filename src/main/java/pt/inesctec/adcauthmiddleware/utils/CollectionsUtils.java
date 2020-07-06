@@ -22,6 +22,10 @@ public final class CollectionsUtils {
   }
 
   public static <T> String toString(Collection<T> list) {
+    if (list == null) {
+      return "[]";
+    }
+
     return "["
         + list.stream().map(e -> String.format("'%s'", e)).collect(Collectors.joining(", "))
         + "]";

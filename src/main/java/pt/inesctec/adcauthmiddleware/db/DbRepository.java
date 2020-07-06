@@ -214,14 +214,26 @@ public class DbRepository {
 
     var dbUmaIds = loadDbUmaStudyMapping().keySet();
     // delete dangling UMA resources
-    for (String danglingUma : Sets.difference(keycloakUmaIds, dbUmaIds)) {
+    for (String danglingUmaId : Sets.difference(keycloakUmaIds, dbUmaIds)) {
       try {
-        this.umaClient.deleteUmaResource(danglingUma);
+        var resource = this.umaClient.getResource(danglingUmaId);
+        var type = resource.getType();
+        if (type != null && type.equals(AdcConstants.UMA_DELETED_STUDY_TYPE)) {
+          continue;
+        }
+
+        var updateResource = new UmaRegistrationResource();
+        updateResource.setName(resource.getName());
+        updateResource.setType(AdcConstants.UMA_DELETED_STUDY_TYPE);
+
+        Logger.info("'Deleting' resource {}:{} (updating with: {})", danglingUmaId, resource, updateResource);
+
+        this.umaClient.updateUmaResource(danglingUmaId, updateResource);
       } catch (Exception e) {
         ok = false;
         Logger.error(
-            "Failed to delete UMA resource {}, because: {}", danglingUma, e.getMessage());
-        Logger.debug("Stacktrace: ", e);
+            "Failed to 'delete' UMA resource {}, because: {}", danglingUmaId, e.getMessage());
+        Logger.info("Stacktrace: ", e);
       }
     }
 

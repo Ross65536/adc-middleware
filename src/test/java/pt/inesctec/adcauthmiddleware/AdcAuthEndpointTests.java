@@ -3,24 +3,17 @@ package pt.inesctec.adcauthmiddleware;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.Sets;
+import org.junit.jupiter.api.*;
+import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+import pt.inesctec.adcauthmiddleware.config.csv.IncludeField;
+import pt.inesctec.adcauthmiddleware.utils.*;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
-import pt.inesctec.adcauthmiddleware.config.csv.IncludeField;
-import pt.inesctec.adcauthmiddleware.utils.ModelFactory;
-import pt.inesctec.adcauthmiddleware.utils.TestCollections;
-import pt.inesctec.adcauthmiddleware.utils.TestConstants;
-import pt.inesctec.adcauthmiddleware.utils.TestJson;
-import pt.inesctec.adcauthmiddleware.utils.UmaWireMocker;
-import pt.inesctec.adcauthmiddleware.utils.WireMocker;
+
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
 

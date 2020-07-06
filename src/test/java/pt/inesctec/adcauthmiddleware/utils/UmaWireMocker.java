@@ -2,11 +2,13 @@ package pt.inesctec.adcauthmiddleware.utils;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.common.base.Charsets;
+import org.springframework.http.HttpHeaders;
+import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.http.HttpHeaders;
-import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 
 public class UmaWireMocker {
 
@@ -135,12 +137,13 @@ public class UmaWireMocker {
     WireMocker.wireGetJson(umaMock, UMA_RESOURCE_REGISTRATION_PATH + "/" + umaId, 200, response, "Bearer " + expectedBearer);
   }
 
-  public static void wirePutResource(WireMockServer umaMock, String umaId, String name, List<String> umaScopes, String expectedBearer) {
-    var expectedRequest = Map.of(
-        "name", name,
-        "resource_scopes", umaScopes,
-        "type", AdcConstants.UMA_STUDY_TYPE
-    );
+  public static void wirePutResource(WireMockServer umaMock, String umaId, String name, List<String> umaScopes, String expectedBearer, String umaResourceType) {
+    var expectedRequest = new HashMap<String, Object>();
+    expectedRequest.put("name", name);
+    if (umaScopes != null) {
+      expectedRequest.put("resource_scopes", umaScopes);
+    }
+    expectedRequest.put("type", umaResourceType);
 
     WireMocker.wirePutJson(umaMock, UMA_RESOURCE_REGISTRATION_PATH + "/" + umaId, 200, null, expectedRequest,"Bearer " + expectedBearer);
   }
