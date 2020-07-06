@@ -3,18 +3,16 @@ package pt.inesctec.adcauthmiddleware;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
-import pt.inesctec.adcauthmiddleware.utils.ModelFactory;
-import pt.inesctec.adcauthmiddleware.utils.TestCollections;
-import pt.inesctec.adcauthmiddleware.utils.TestConstants;
-import pt.inesctec.adcauthmiddleware.utils.UmaWireMocker;
-import pt.inesctec.adcauthmiddleware.utils.WireMocker;
+import pt.inesctec.adcauthmiddleware.utils.*;
+
+import java.util.List;
+import java.util.Map;
+
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 public class AdcAuthSynchronizationTests extends TestBase {
@@ -83,7 +81,7 @@ public class AdcAuthSynchronizationTests extends TestBase {
     UmaWireMocker.wireListResources(umaMock, accessToken, umaId1);
     var name = "name 123";
     UmaWireMocker.wireGetResource(umaMock, umaId1, name, List.of("123", TestConstants.UMA_SEQUENCE_SCOPE), accessToken);
-    UmaWireMocker.wirePutResource(umaMock, umaId1, name, List.of("123", TestConstants.UMA_SEQUENCE_SCOPE, TestConstants.UMA_STATISTICS_SCOPE), accessToken);
+    UmaWireMocker.wirePutResource(umaMock, umaId1, name, List.of("123", TestConstants.UMA_SEQUENCE_SCOPE, TestConstants.UMA_STATISTICS_SCOPE), accessToken, AdcConstants.UMA_STUDY_TYPE);
     var umaId2 = UmaWireMocker.wireCreateResource(umaMock, repertoire2, accessToken);
     synchronize();
     assertRepertoireTicketRequest(repertoire2, accessToken, umaId2);
@@ -110,12 +108,14 @@ public class AdcAuthSynchronizationTests extends TestBase {
     UmaWireMocker.wireListResources(umaMock, accessToken, umaId1);
     var umaId2 = UmaWireMocker.wireCreateResource(umaMock, repertoire2, accessToken);
     UmaWireMocker.wireDeleteResource(umaMock, umaId1, accessToken);
+    var name = "name 123";
+    UmaWireMocker.wireGetResource(umaMock, umaId1, name, List.of("123", TestConstants.UMA_SEQUENCE_SCOPE), accessToken);
+    UmaWireMocker.wirePutResource(umaMock, umaId1, name, null, accessToken, AdcConstants.UMA_DELETED_STUDY_TYPE);
     synchronize();
     assertRepertoireTicketRequest(repertoire2, accessToken, umaId2);
     assertRepertoireNotFound(TestCollections.getString(repertoire1, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD));
-    umaMock.verify(1, WireMock.deleteRequestedFor(WireMock.urlEqualTo(UmaWireMocker.UMA_RESOURCE_REGISTRATION_PATH + "/" + umaId1)));
+    umaMock.verify(1, WireMock.putRequestedFor(WireMock.urlEqualTo(UmaWireMocker.UMA_RESOURCE_REGISTRATION_PATH + "/" + umaId1)));
   }
-
 
   @Test
   public void testDestructiveUmaSync() {
@@ -123,10 +123,12 @@ public class AdcAuthSynchronizationTests extends TestBase {
     String accessToken = umaInit();
     var danglingUmaId = "123";
     UmaWireMocker.wireListResources(umaMock, accessToken, danglingUmaId);
-    UmaWireMocker.wireDeleteResource(umaMock, danglingUmaId, accessToken);
+    var name = "name 123";
+    UmaWireMocker.wireGetResource(umaMock, danglingUmaId, name, List.of("123", TestConstants.UMA_SEQUENCE_SCOPE), accessToken);
+    UmaWireMocker.wirePutResource(umaMock, danglingUmaId, name, null, accessToken, AdcConstants.UMA_DELETED_STUDY_TYPE);
     synchronize();
 
-    umaMock.verify(1, WireMock.deleteRequestedFor(WireMock.urlEqualTo(UmaWireMocker.UMA_RESOURCE_REGISTRATION_PATH + "/" + danglingUmaId)));
+    umaMock.verify(1, WireMock.putRequestedFor(WireMock.urlEqualTo(UmaWireMocker.UMA_RESOURCE_REGISTRATION_PATH + "/" + danglingUmaId)));
   }
 
   private void assertRepertoireNotFound(String repertoireId) {

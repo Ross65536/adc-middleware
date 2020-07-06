@@ -6,7 +6,7 @@ services:
       context: keycloak
       dockerfile: dev.Dockerfile
     volumes:
-      - ./tmp/keycloak_inner:/keycloak/standalone/data
+      - ./tmp/keycloak_inner:/keycloak/standalone/data:delegated
     ports:
       - 8082:80
 
@@ -18,7 +18,7 @@ services:
   db:
     image: postgres:12
     volumes:
-      - ./tmp/postgres:/var/lib/postgresql/data
+      - ./tmp/postgres:/var/lib/postgresql/data:delegated
     ports:
       - 5432:5432
     environment:
