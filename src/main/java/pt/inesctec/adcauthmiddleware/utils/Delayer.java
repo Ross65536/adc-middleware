@@ -2,12 +2,10 @@ package pt.inesctec.adcauthmiddleware.utils;
 
 import com.google.common.collect.SortedMultiset;
 import com.google.common.collect.TreeMultiset;
-import org.slf4j.LoggerFactory;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.temporal.Temporal;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.LoggerFactory;
 
 public class Delayer {
   private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(Delayer.class);
@@ -37,7 +35,7 @@ public class Delayer {
     }
   }
 
-  private static final long MAX_DURATIONS = 100;
+  private static final long MAX_DURATIONS = 2;
 
   // return 75th percentile of 100 worst performers
   private Duration getMedian(Duration duration) {
