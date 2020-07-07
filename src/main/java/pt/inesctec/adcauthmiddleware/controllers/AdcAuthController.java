@@ -5,13 +5,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -49,6 +44,7 @@ import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
+import pt.inesctec.adcauthmiddleware.utils.Delayer;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingProducer;
 
@@ -58,6 +54,8 @@ public class AdcAuthController {
   private static List<UmaResource> EmptyResources = ImmutableList.of();
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcAuthController.class);
   private static final PasswordEncoder PasswordEncoder = new BCryptPasswordEncoder();
+  private static final Delayer RepertoiresDelayer = new Delayer();
+  private static final Delayer RearrangementsDelayer = new Delayer();
 
   @Autowired private AppConfig appConfig;
   @Autowired private AdcClient adcClient;
@@ -191,7 +189,7 @@ public class AdcAuthController {
       method = RequestMethod.POST,
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<StreamingResponseBody> repertoire_search(
+  public ResponseEntity<StreamingResponseBody> repertoireSearch(
       HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
     this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE);
 
@@ -203,7 +201,8 @@ public class AdcAuthController {
           AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
           this::getRepertoireStudyIds,
           (umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId)),
-          this.adcClient::searchRepertoiresAsStream);
+          this.adcClient::searchRepertoiresAsStream,
+          RepertoiresDelayer);
     } else {
       var fieldMapper =
           this.adcSearchFlow(
@@ -211,7 +210,8 @@ public class AdcAuthController {
               adcSearch,
               FieldClass.REPERTOIRE,
               AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-              this::getRepertoireStudyIds
+              this::getRepertoireStudyIds,
+              RepertoiresDelayer
           );
 
       return buildFilteredJsonResponse(
@@ -227,7 +227,7 @@ public class AdcAuthController {
       method = RequestMethod.POST,
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<StreamingResponseBody> rearrangement_search(
+  public ResponseEntity<StreamingResponseBody> rearrangementSearch(
       HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
     this.validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT);
 
@@ -239,7 +239,8 @@ public class AdcAuthController {
           AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
           this::getRearrangementsRepertoireIds,
           this.dbRepository::getUmaRepertoireIds,
-          this.adcClient::searchRearrangementsAsStream);
+          this.adcClient::searchRearrangementsAsStream,
+          RearrangementsDelayer);
     } else {
       var fieldMapper =
           this.adcSearchFlow(
@@ -247,8 +248,8 @@ public class AdcAuthController {
               adcSearch,
               FieldClass.REARRANGEMENT,
               AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-              this::getRearrangementsRepertoireIds
-          );
+              this::getRearrangementsRepertoireIds,
+              RearrangementsDelayer);
 
       return buildFilteredJsonResponse(
           AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
@@ -303,12 +304,14 @@ public class AdcAuthController {
   }
 
   private List<UmaResource> adcQueryUmaFlow(
-      HttpServletRequest request,
-      AdcSearchRequest adcSearch,
-      String resourceId,
-      Set<String> umaScopes,
-      ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> umaIdsProducer)
+          HttpServletRequest request,
+          AdcSearchRequest adcSearch,
+          String resourceId,
+          Set<String> umaScopes,
+          ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> umaIdsProducer, Delayer delayer)
       throws Exception {
+
+    var startTime = LocalDateTime.now();
 
     var bearer = SpringUtils.getBearer(request);
     if (bearer != null) {
@@ -317,6 +320,9 @@ public class AdcAuthController {
 
     var idsQuery = adcSearch.queryClone().addFields(resourceId);
     Collection<String> umaIds = umaIdsProducer.apply(idsQuery);
+
+    delayer.delay(startTime);
+
     if (umaIds.isEmpty()) {
       // when no resources return, just err
       throw SpringUtils.buildHttpException(HttpStatus.UNAUTHORIZED, null);
@@ -326,13 +332,13 @@ public class AdcAuthController {
   }
 
   private ResponseEntity<StreamingResponseBody> facetsRequest(
-      HttpServletRequest request,
-      AdcSearchRequest adcSearch,
-      FieldClass fieldClass,
-      String resourceId,
-      ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> resourceIdSearch,
-      Function<String, Set<String>> umaIdGetter,
-      ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest)
+          HttpServletRequest request,
+          AdcSearchRequest adcSearch,
+          FieldClass fieldClass,
+          String resourceId,
+          ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> resourceIdSearch,
+          Function<String, Set<String>> umaIdGetter,
+          ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest, Delayer delayer)
       throws Exception {
     final Set<String> filtersFields = adcSearch.getFiltersFields();
     final Set<String> facets = Set.of(adcSearch.getFacets());
@@ -340,7 +346,7 @@ public class AdcAuthController {
     boolean filterResponse = false;
     if (!umaScopes.isEmpty()) { // non public facets field
       var resourceIds =
-          this.adcQueryUmaFlow(request, adcSearch, resourceId, umaScopes, resourceIdSearch).stream()
+          this.adcQueryUmaFlow(request, adcSearch, resourceId, umaScopes, resourceIdSearch, delayer).stream()
               .filter(resource -> !Sets.intersection(umaScopes, resource.getScopes()).isEmpty())
               .map(resource -> umaIdGetter.apply(resource.getUmaResourceId()))
               .filter(Objects::nonNull)
@@ -361,11 +367,11 @@ public class AdcAuthController {
   }
 
   private Function<String, Set<String>> adcSearchFlow(
-      HttpServletRequest request,
-      AdcSearchRequest adcSearch, // will be modified by reference
-      FieldClass fieldClass,
-      String resourceId,
-      ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> umaIdsProducer)
+          HttpServletRequest request,
+          AdcSearchRequest adcSearch, // will be modified by reference
+          FieldClass fieldClass,
+          String resourceId,
+          ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> umaIdsProducer, Delayer delayer)
       throws Exception {
     final Set<String> adcFields = adcSearch.isFieldsEmpty() ? Set.of() : adcSearch.getFields();
     final Set<String> adcIncludeFields =
@@ -385,7 +391,7 @@ public class AdcAuthController {
     // empty means public
     List<UmaResource> umaResources =
         umaScopes.isEmpty() ? EmptyResources :
-            this.adcQueryUmaFlow(request, adcSearch, resourceId, umaScopes, umaIdsProducer);
+            this.adcQueryUmaFlow(request, adcSearch, resourceId, umaScopes, umaIdsProducer, delayer);
 
     if (!allReturnFields.contains(resourceId)) {
       adcSearch.addField(resourceId);

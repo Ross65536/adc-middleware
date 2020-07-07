@@ -43,3 +43,5 @@ example/data
 *.zip
 *.tar.gz
 .DS_Store
+
+example/docker-compose.dev.yml
