@@ -10,8 +10,8 @@ Project runs on java 11, with (modified) google java style guide.
 
 Features:
 - Support for all of the AIRR ADC API functionalities except for: `tsv` format on POST endpoints. 
-- Response fields filtering based on provided token access level
-- Emission of UMA tickets restricted to the fields requested
+- Response fields filtering based on provided token access level.
+- Emission of UMA tickets restricted to the fields requested.
 
 You can also checkout this simple [front-end](https://github.com/Ross65536/adc-middleware-frontend) for testing the access control capabilities of this middleware.
 
@@ -91,7 +91,7 @@ Example deployment for testing in localhost.
 
 > **Important**: The middleware APIs should be under a SSL connection in order not to leak user credentials or the synchronization password. If it is not under SSL you need to disable SSL connections Keycloak (see below).
 
-> **Importatnt**: The host and port used by the middleware to access keycloak and the host and port used by the user to obtain an RPT token must be the exact same (must have the same `Host` header) otherwise the solution doesn't work. Check the nginx configuration to see how this was achieved. When deploying, if using the provided nginx config you must update the line marked as `VERY IMPORTANT`.
+> **Important**: The host and port used by the middleware to access keycloak and the host and port used by the user to obtain an RPT token must be the exact same (must have the same `Host` header) otherwise the solution doesn't work. Check the nginx configuration to see how this was achieved. When deploying, if using the provided nginx config you must update the line marked as `VERY IMPORTANT`.
 
 ### Keycloak Configuration
 
