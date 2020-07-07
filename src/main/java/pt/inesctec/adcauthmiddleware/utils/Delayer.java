@@ -12,14 +12,23 @@ public class Delayer {
 
   private final Object monitor = new Object();
   private final SortedMultiset<Duration> durations = TreeMultiset.create();
+  private final long maxPoolSize;
+
+  public Delayer(long requestDelaysPoolSize) {
+    this.maxPoolSize = requestDelaysPoolSize;
+  }
 
   public void delay(LocalDateTime startTime) {
+    if (this.maxPoolSize <= 0) {
+      return;
+    }
+
     var taskEndTime = LocalDateTime.now();
     var taskDuration = Duration.between(startTime, taskEndTime);
     Duration thresholdDuration = null;
 
     synchronized (this.monitor) {
-      thresholdDuration = this.getMedian(taskDuration);
+      thresholdDuration = this.calcThresholdDuration(taskDuration);
     }
 
     var currentTime = LocalDateTime.now();
@@ -35,22 +44,15 @@ public class Delayer {
     }
   }
 
-  private static final long MAX_DURATIONS = 40;
-
-  // return 75th percentile of 100 worst performers
-  private Duration getMedian(Duration duration) {
+  private Duration calcThresholdDuration(Duration duration) {
     durations.add(duration);
 
-    if (durations.size() > MAX_DURATIONS) {
-      durations.pollFirstEntry();
+    if (durations.size() <= this.maxPoolSize) {
+      return this.durations.lastEntry().getElement();
     }
 
-    var skip = durations.size() / 4 - 1;
-    var it = durations.descendingMultiset().iterator();
-    for (long i = 0; i < skip; i++) {
-      it.next();
-    }
+    durations.pollFirstEntry(); // delete smallest
 
-    return it.next();
+    return durations.firstEntry().getElement();
   }
 }

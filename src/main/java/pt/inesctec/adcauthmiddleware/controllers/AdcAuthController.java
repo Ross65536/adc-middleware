@@ -60,15 +60,23 @@ public class AdcAuthController {
   private static List<UmaResource> EmptyResources = ImmutableList.of();
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcAuthController.class);
   private static final PasswordEncoder PasswordEncoder = new BCryptPasswordEncoder();
-  private static final Delayer RepertoiresDelayer = new Delayer();
-  private static final Delayer RearrangementsDelayer = new Delayer();
 
-  @Autowired private AppConfig appConfig;
+  private AppConfig appConfig;
+  private final Delayer repertoiresDelayer;
+  private final Delayer rearrangementsDelayer;
   @Autowired private AdcClient adcClient;
   @Autowired private DbRepository dbRepository;
   @Autowired private UmaFlow umaFlow;
   @Autowired private UmaClient umaClient;
   @Autowired private CsvConfig csvConfig;
+
+  @Autowired
+  public AdcAuthController(AppConfig appConfig) {
+    this.appConfig = appConfig;
+
+    this.repertoiresDelayer = new Delayer(appConfig.getRequestDelaysPoolSize());
+    this.rearrangementsDelayer = new Delayer(appConfig.getRequestDelaysPoolSize());
+  }
 
   private static final Pattern JsonErrorPattern =
       Pattern.compile(".*line: (\\d+), column: (\\d+).*");
@@ -208,7 +216,7 @@ public class AdcAuthController {
           this::getRepertoireStudyIds,
           (umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId)),
           this.adcClient::searchRepertoiresAsStream,
-          RepertoiresDelayer);
+              repertoiresDelayer);
     } else {
       var fieldMapper =
           this.adcSearchFlow(
@@ -217,7 +225,7 @@ public class AdcAuthController {
               FieldClass.REPERTOIRE,
               AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
               this::getRepertoireStudyIds,
-              RepertoiresDelayer
+                  repertoiresDelayer
           );
 
       return buildFilteredJsonResponse(
@@ -246,7 +254,7 @@ public class AdcAuthController {
           this::getRearrangementsRepertoireIds,
           this.dbRepository::getUmaRepertoireIds,
           this.adcClient::searchRearrangementsAsStream,
-          RearrangementsDelayer);
+              rearrangementsDelayer);
     } else {
       var fieldMapper =
           this.adcSearchFlow(
@@ -255,7 +263,7 @@ public class AdcAuthController {
               FieldClass.REARRANGEMENT,
               AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
               this::getRearrangementsRepertoireIds,
-              RearrangementsDelayer);
+                  rearrangementsDelayer);
 
       return buildFilteredJsonResponse(
           AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,

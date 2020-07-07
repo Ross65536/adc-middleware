@@ -20,6 +20,8 @@ public class AppConfig {
   private boolean facetsEnabled = true;
   private boolean publicEndpointsEnabled = true;
   private boolean adcFiltersEnabled = true;
+  @NotNull
+  private Long requestDelaysPoolSize;
   private Set<String> filtersOperatorsBlacklist = Set.of();
   @NotNull @NotBlank
   private String synchronizePasswordHash;
@@ -81,5 +83,17 @@ public class AppConfig {
     if (! diff.isEmpty()) {
       throw new IllegalArgumentException("Invalid operators: " + CollectionsUtils.toString(diff));
     }
+  }
+
+  public long getRequestDelaysPoolSize() {
+    return requestDelaysPoolSize;
+  }
+
+  public void setRequestDelaysPoolSize(long requestDelaysPoolSize) {
+    if (requestDelaysPoolSize < 0) {
+      throw new IllegalArgumentException("must be positive");
+    }
+
+    this.requestDelaysPoolSize = requestDelaysPoolSize;
   }
 }
