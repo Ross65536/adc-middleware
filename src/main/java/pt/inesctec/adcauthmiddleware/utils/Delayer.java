@@ -35,7 +35,7 @@ public class Delayer {
     }
   }
 
-  private static final long MAX_DURATIONS = 2;
+  private static final long MAX_DURATIONS = 40;
 
   // return 75th percentile of 100 worst performers
   private Duration getMedian(Duration duration) {
