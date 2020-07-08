@@ -25,7 +25,7 @@ public class AdcAuthEndpointTests extends TestBase {
       Set.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
   private static final Set<String> RearrangementIdFields =
       Set.of(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
-  private static WireMockServer umaMock = new WireMockRule(options().port(TestConstants.UMA_PORT));
+  private static final WireMockServer umaMock = new WireMockRule(options().port(TestConstants.UMA_PORT));
   Set<String> RepertoireStatisticsScopeFields =
       Set.of(
           AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
