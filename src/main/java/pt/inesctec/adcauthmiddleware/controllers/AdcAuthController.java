@@ -213,25 +213,28 @@ public class AdcAuthController {
             request, adcSearch, this::getRepertoireStudyIds, repertoiresDelayer, umaScopes);
 
     if (adcSearch.isFacetsSearch()) {
+      final List<String> resourceIds =
+          calcValidFacetsResources(
+              umaResources,
+              umaScopes,
+              (umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId)));
+
       return facetsRequest(
           adcSearch,
           AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-              umaResources, umaScopes, (umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId)),
-              this.adcClient::searchRepertoiresAsStream
-      );
-    } else {
-      var fieldMapper =
-          this.adcSearchFlow(
-              adcSearch,
-                  AdcConstants.REPERTOIRE_STUDY_ID_FIELD, FieldClass.REPERTOIRE,
-                  umaResources);
-
-      return buildFilteredJsonResponse(
-          AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-          AdcConstants.REPERTOIRE_RESPONSE_FILTER_FIELD,
-          fieldMapper.compose(this.dbRepository::getStudyUmaId),
-          () -> this.adcClient.searchRepertoiresAsStream(adcSearch));
+          this.adcClient::searchRepertoiresAsStream,
+          resourceIds,
+          !umaScopes.isEmpty());
     }
+
+    var fieldMapper =
+        this.adcSearchFlow(
+            adcSearch, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, FieldClass.REPERTOIRE, umaResources);
+    return buildFilteredJsonResponse(
+        AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+        AdcConstants.REPERTOIRE_RESPONSE_FILTER_FIELD,
+        fieldMapper.compose(this.dbRepository::getStudyUmaId),
+        () -> this.adcClient.searchRepertoiresAsStream(adcSearch));
   }
 
   @RequestMapping(
@@ -253,25 +256,29 @@ public class AdcAuthController {
             umaScopes);
 
     if (adcSearch.isFacetsSearch()) {
+      final List<String> resourceIds =
+          calcValidFacetsResources(umaResources, umaScopes, this.dbRepository::getUmaRepertoireIds);
+
       return facetsRequest(
           adcSearch,
           AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-              umaResources, umaScopes, this.dbRepository::getUmaRepertoireIds,
-              this.adcClient::searchRearrangementsAsStream
-      );
-    } else {
-      var fieldMapper =
-          this.adcSearchFlow(
-              adcSearch,
-                  AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, FieldClass.REARRANGEMENT,
-                  umaResources);
-
-      return buildFilteredJsonResponse(
-          AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-          AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
-          fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
-          () -> this.adcClient.searchRearrangementsAsStream(adcSearch));
+          this.adcClient::searchRearrangementsAsStream,
+          resourceIds,
+          !umaScopes.isEmpty());
     }
+
+    var fieldMapper =
+        this.adcSearchFlow(
+            adcSearch,
+            AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+            FieldClass.REARRANGEMENT,
+            umaResources);
+
+    return buildFilteredJsonResponse(
+        AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+        AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
+        fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
+        () -> this.adcClient.searchRearrangementsAsStream(adcSearch));
   }
 
   @RequestMapping(value = "/public_fields", method = RequestMethod.GET)
@@ -359,30 +366,20 @@ public class AdcAuthController {
     final Set<String> filtersFields = adcSearch.getFiltersFields();
     final Set<String> allConsideredFields = Sets.union(requestedFields, filtersFields);
 
+    // empty set returned means only public fields requested
     return this.csvConfig.getUmaScopes(fieldClass, allConsideredFields);
   }
 
   private ResponseEntity<StreamingResponseBody> facetsRequest(
-          AdcSearchRequest adcSearch,
-          String resourceId,
-          Collection<UmaResource> umaResources,
-          Set<String> umaScopes,
-          Function<String, Set<String>> umaIdGetter,
-          ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest)
+      AdcSearchRequest adcSearch,
+      String resourceId,
+      ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest,
+      List<String> resourceIds,
+      boolean restrictedAccess)
       throws Exception {
 
     boolean filterResponse = false;
-    if (!umaScopes.isEmpty()) { // non public facets field
-      var resourceIds =
-          umaResources.stream()
-              .filter(resource -> !Sets.intersection(umaScopes, resource.getScopes()).isEmpty())
-              .map(resource -> umaIdGetter.apply(resource.getUmaResourceId()))
-              .filter(Objects::nonNull)
-              .flatMap(Collection::stream)
-              .filter(Objects::nonNull)
-              .distinct()
-              .collect(Collectors.toList());
-
+    if (restrictedAccess) { // non public facets field
       adcSearch.withFieldIn(resourceId, resourceIds);
       filterResponse = resourceIds.isEmpty();
     }
@@ -394,11 +391,25 @@ public class AdcAuthController {
         new SimpleJsonFilter(is, AdcConstants.ADC_FACETS, filterResponse));
   }
 
+  private List<String> calcValidFacetsResources(
+      Collection<UmaResource> umaResources,
+      Set<String> umaScopes,
+      Function<String, Set<String>> umaIdGetter) {
+    return umaResources.stream()
+        .filter(resource -> !Sets.intersection(umaScopes, resource.getScopes()).isEmpty())
+        .map(resource -> umaIdGetter.apply(resource.getUmaResourceId()))
+        .filter(Objects::nonNull)
+        .flatMap(Collection::stream)
+        .filter(Objects::nonNull)
+        .distinct()
+        .collect(Collectors.toList());
+  }
+
   private Function<String, Set<String>> adcSearchFlow(
-          AdcSearchRequest adcSearch, // will be modified by reference
-          String resourceId,
-          FieldClass fieldClass,
-          Collection<UmaResource> umaResources) {
+      AdcSearchRequest adcSearch, // will be modified by reference
+      String resourceId,
+      FieldClass fieldClass,
+      Collection<UmaResource> umaResources) {
     final Set<String> allRequestedFields = getRegularSearchRequestedFields(adcSearch, fieldClass);
     final Set<String> filtersFields = adcSearch.getFiltersFields();
 
