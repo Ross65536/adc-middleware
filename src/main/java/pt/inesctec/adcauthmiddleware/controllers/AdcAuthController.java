@@ -302,6 +302,9 @@ public class AdcAuthController {
           "One or more DB or UMA resources failed to synchronize, check logs");
     }
 
+    this.rearrangementsDelayer.reset();
+    this.repertoiresDelayer.reset();
+
     return SpringUtils.buildStatusMessage(200, null);
   }
 

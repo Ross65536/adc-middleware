@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 public class Delayer {
   private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(Delayer.class);
 
-  private final Object monitor = new Object();
   private final SortedMultiset<Duration> durations = TreeMultiset.create();
   private final long maxPoolSize;
 
@@ -27,7 +26,7 @@ public class Delayer {
     var taskDuration = Duration.between(startTime, taskEndTime);
     Duration thresholdDuration = null;
 
-    synchronized (this.monitor) {
+    synchronized (this) {
       thresholdDuration = this.calcThresholdDuration(taskDuration);
     }
 
@@ -54,5 +53,11 @@ public class Delayer {
     durations.pollFirstEntry(); // delete smallest
 
     return durations.firstEntry().getElement();
+  }
+
+  public void reset() {
+    synchronized (this) {
+      this.durations.clear();
+    }
   }
 }
