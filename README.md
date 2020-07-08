@@ -68,7 +68,10 @@ Example deployment for testing in localhost.
 4. Re-Load the server with the client secret
 
   ```shell script
-  docker-compose stop middleware server
+  # first stop docker containers, e.g.
+  docker-compose stop
+
+  # then
   MIDDLEWARE_UMA_CLIENT_SECRET=<the client secret from step 3> docker-compose up
   ```
 
