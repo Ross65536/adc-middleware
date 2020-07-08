@@ -32,7 +32,7 @@ public class AdcPublicController {
   @ExceptionHandler(Throwable.class)
   public ResponseEntity<String> internalErrorHandler(Exception e) {
     Logger.error("Internal error occurred: {}", e.getMessage());
-    Logger.info("Stacktrace: ", e);
+    Logger.debug("Stacktrace: ", e);
     return SpringUtils.buildJsonErrorResponse(HttpStatus.BAD_GATEWAY, null);
   }
 

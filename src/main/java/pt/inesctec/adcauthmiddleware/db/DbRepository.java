@@ -233,7 +233,7 @@ public class DbRepository {
         ok = false;
         Logger.error(
             "Failed to 'delete' UMA resource {}, because: {}", danglingUmaId, e.getMessage());
-        Logger.info("Stacktrace: ", e);
+        Logger.debug("Stacktrace: ", e);
       }
     }
 
@@ -267,7 +267,7 @@ public class DbRepository {
       } catch (Exception e) {
         ok = false;
         Logger.info("Resource {} not created", umaName);
-        Logger.info("Stacktrace: ", e);
+        Logger.debug("Stacktrace: ", e);
         continue;
       }
 

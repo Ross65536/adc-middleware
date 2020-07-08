@@ -133,7 +133,7 @@ public class AdcAuthController {
   @ExceptionHandler(Throwable.class)
   public ResponseEntity<String> internalErrorHandler(Exception e) {
     Logger.error("Internal error occurred: {}", e.getMessage());
-    Logger.info("Stacktrace: ", e);
+    Logger.debug("Stacktrace: ", e);
     return SpringUtils.buildJsonErrorResponse(HttpStatus.UNAUTHORIZED, null);
   }
 
@@ -469,7 +469,7 @@ public class AdcAuthController {
     }
 
     if (!adcSearch.isJsonFormat()) {
-      Logger.error("Not implemented");
+      Logger.error("TSV support not implemented");
       throw SpringUtils.buildHttpException(
           HttpStatus.UNPROCESSABLE_ENTITY, "TSV format not supported yet");
     }
