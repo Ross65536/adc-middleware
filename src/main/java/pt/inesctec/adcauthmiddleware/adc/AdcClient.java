@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpRequest;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RearrangementIds;
@@ -87,15 +89,30 @@ public class AdcClient {
     return listPostConditions(repertoires);
   }
 
-  public List<RearrangementIds> getRearrangementIds(AdcSearchRequest adcRequest) throws Exception {
-    Preconditions.checkArgument(adcRequest.getFacets() == null);
+  public Collection<String> getRepertoireStudyIds(AdcSearchRequest adcRequest) throws Exception {
     Preconditions.checkArgument(adcRequest.isJsonFormat());
 
-    var request = this.buildSearchRequest("rearrangement", adcRequest);
+    var idsQuery = adcRequest.queryClone().addFields(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+    var request = this.buildSearchRequest("repertoire", idsQuery);
+    var repertoires =
+            HttpFacade.makeExpectJsonRequest(request, AdcIdsResponse.class).getRepertoires();
+
+    return listPostConditions(repertoires).stream()
+        .map(RepertoireIds::getStudyId)
+        .collect(Collectors.toSet());
+  }
+
+  public Collection<String> getRearrangementRepertoireIds(AdcSearchRequest adcRequest) throws Exception {
+    Preconditions.checkArgument(adcRequest.isJsonFormat());
+
+    var idsQuery = adcRequest.queryClone().addFields(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
+    var request = this.buildSearchRequest("rearrangement", idsQuery);
     var rearrangements =
         HttpFacade.makeExpectJsonRequest(request, AdcIdsResponse.class).getRearrangements();
 
-    return listPostConditions(rearrangements);
+    return listPostConditions(rearrangements).stream()
+            .map(RearrangementIds::getRepertoireId)
+            .collect(Collectors.toSet());
   }
 
   private HttpRequest buildSearchRequest(String path, AdcSearchRequest adcSearchRequest)

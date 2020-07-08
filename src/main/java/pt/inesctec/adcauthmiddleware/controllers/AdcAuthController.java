@@ -309,21 +309,20 @@ public class AdcAuthController {
   }
 
   private List<String> getRearrangementsRepertoireIds(AdcSearchRequest idsQuery) throws Exception {
-    return this.adcClient.getRearrangementIds(idsQuery).stream()
-        .map(e -> this.dbRepository.getRepertoireUmaId(e.getRepertoireId()))
+    return this.adcClient.getRearrangementRepertoireIds(idsQuery).stream()
+        .map(id -> this.dbRepository.getRepertoireUmaId(id))
         .collect(Collectors.toList());
   }
 
   private List<String> getRepertoireStudyIds(AdcSearchRequest idsQuery) throws Exception {
-    return this.adcClient.getRepertoireIds(idsQuery).stream()
-        .map(e -> this.dbRepository.getStudyUmaId(e.getStudyId()))
+    return this.adcClient.getRepertoireStudyIds(idsQuery).stream()
+        .map(id -> this.dbRepository.getStudyUmaId(id))
         .collect(Collectors.toList());
   }
 
   private List<UmaResource> adcQueryUmaFlow(
           HttpServletRequest request,
           AdcSearchRequest adcSearch,
-          String resourceId,
           Set<String> umaScopes,
           ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> umaIdsProducer, Delayer delayer)
       throws Exception {
@@ -335,8 +334,7 @@ public class AdcAuthController {
       return this.umaClient.introspectToken(bearer);
     }
 
-    var idsQuery = adcSearch.queryClone().addFields(resourceId);
-    Collection<String> umaIds = umaIdsProducer.apply(idsQuery);
+    Collection<String> umaIds = umaIdsProducer.apply(adcSearch);
 
     delayer.delay(startTime);
 
@@ -363,7 +361,7 @@ public class AdcAuthController {
     boolean filterResponse = false;
     if (!umaScopes.isEmpty()) { // non public facets field
       var resourceIds =
-          this.adcQueryUmaFlow(request, adcSearch, resourceId, umaScopes, resourceIdSearch, delayer).stream()
+          this.adcQueryUmaFlow(request, adcSearch, umaScopes, resourceIdSearch, delayer).stream()
               .filter(resource -> !Sets.intersection(umaScopes, resource.getScopes()).isEmpty())
               .map(resource -> umaIdGetter.apply(resource.getUmaResourceId()))
               .filter(Objects::nonNull)
@@ -408,7 +406,7 @@ public class AdcAuthController {
     // empty means public
     List<UmaResource> umaResources =
         umaScopes.isEmpty() ? EmptyResources :
-            this.adcQueryUmaFlow(request, adcSearch, resourceId, umaScopes, umaIdsProducer, delayer);
+            this.adcQueryUmaFlow(request, adcSearch, umaScopes, umaIdsProducer, delayer);
 
     if (!allReturnFields.contains(resourceId)) {
       adcSearch.addField(resourceId);
