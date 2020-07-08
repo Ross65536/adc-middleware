@@ -207,26 +207,24 @@ public class AdcAuthController {
       HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
     this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE);
 
+    Set<String> umaScopes = this.getAdcRequestUmaScopes(adcSearch, FieldClass.REPERTOIRE);
+    var umaResources =
+        this.adcQueryUmaFlow(
+            request, adcSearch, this::getRepertoireStudyIds, repertoiresDelayer, umaScopes);
+
     if (adcSearch.isFacetsSearch()) {
       return facetsRequest(
-          request,
           adcSearch,
-          FieldClass.REPERTOIRE,
           AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-          this::getRepertoireStudyIds,
-          (umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId)),
-          this.adcClient::searchRepertoiresAsStream,
-              repertoiresDelayer);
+              umaResources, umaScopes, (umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId)),
+              this.adcClient::searchRepertoiresAsStream
+      );
     } else {
       var fieldMapper =
           this.adcSearchFlow(
-              request,
               adcSearch,
-              FieldClass.REPERTOIRE,
-              AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-              this::getRepertoireStudyIds,
-                  repertoiresDelayer
-          );
+                  AdcConstants.REPERTOIRE_STUDY_ID_FIELD, FieldClass.REPERTOIRE,
+                  umaResources);
 
       return buildFilteredJsonResponse(
           AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
@@ -245,25 +243,28 @@ public class AdcAuthController {
       HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
     this.validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT);
 
+    Set<String> umaScopes = this.getAdcRequestUmaScopes(adcSearch, FieldClass.REARRANGEMENT);
+    var umaResources =
+        this.adcQueryUmaFlow(
+            request,
+            adcSearch,
+            this::getRearrangementsRepertoireIds,
+            rearrangementsDelayer,
+            umaScopes);
+
     if (adcSearch.isFacetsSearch()) {
       return facetsRequest(
-          request,
           adcSearch,
-          FieldClass.REARRANGEMENT,
           AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-          this::getRearrangementsRepertoireIds,
-          this.dbRepository::getUmaRepertoireIds,
-          this.adcClient::searchRearrangementsAsStream,
-              rearrangementsDelayer);
+              umaResources, umaScopes, this.dbRepository::getUmaRepertoireIds,
+              this.adcClient::searchRearrangementsAsStream
+      );
     } else {
       var fieldMapper =
           this.adcSearchFlow(
-              request,
               adcSearch,
-              FieldClass.REARRANGEMENT,
-              AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-              this::getRearrangementsRepertoireIds,
-                  rearrangementsDelayer);
+                  AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, FieldClass.REARRANGEMENT,
+                  umaResources);
 
       return buildFilteredJsonResponse(
           AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
@@ -321,13 +322,18 @@ public class AdcAuthController {
   }
 
   private List<UmaResource> adcQueryUmaFlow(
-          HttpServletRequest request,
-          AdcSearchRequest adcSearch,
-          Set<String> umaScopes,
-          ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> umaIdsProducer, Delayer delayer)
+      HttpServletRequest request,
+      AdcSearchRequest adcSearch,
+      ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> umaIdsProducer,
+      Delayer delayer,
+      Set<String> umaScopes)
       throws Exception {
-
     var startTime = LocalDateTime.now();
+
+    // empty scopes means public access
+    if (umaScopes.isEmpty()) {
+      return EmptyResources;
+    }
 
     var bearer = SpringUtils.getBearer(request);
     if (bearer != null) {
@@ -335,7 +341,6 @@ public class AdcAuthController {
     }
 
     Collection<String> umaIds = umaIdsProducer.apply(adcSearch);
-
     delayer.delay(startTime);
 
     if (umaIds.isEmpty()) {
@@ -346,22 +351,30 @@ public class AdcAuthController {
     throw this.umaFlow.noRptToken(umaIds, umaScopes);
   }
 
-  private ResponseEntity<StreamingResponseBody> facetsRequest(
-          HttpServletRequest request,
-          AdcSearchRequest adcSearch,
-          FieldClass fieldClass,
-          String resourceId,
-          ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> resourceIdSearch,
-          Function<String, Set<String>> umaIdGetter,
-          ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest, Delayer delayer)
-      throws Exception {
+  private Set<String> getAdcRequestUmaScopes(AdcSearchRequest adcSearch, FieldClass fieldClass) {
+    final Set<String> requestedFields =
+        adcSearch.isFacetsSearch()
+            ? Set.of(adcSearch.getFacets())
+            : getRegularSearchRequestedFields(adcSearch, fieldClass);
     final Set<String> filtersFields = adcSearch.getFiltersFields();
-    final Set<String> facets = Set.of(adcSearch.getFacets());
-    var umaScopes = this.csvConfig.getUmaScopes(fieldClass, Sets.union(filtersFields, facets));
+    final Set<String> allConsideredFields = Sets.union(requestedFields, filtersFields);
+
+    return this.csvConfig.getUmaScopes(fieldClass, allConsideredFields);
+  }
+
+  private ResponseEntity<StreamingResponseBody> facetsRequest(
+          AdcSearchRequest adcSearch,
+          String resourceId,
+          Collection<UmaResource> umaResources,
+          Set<String> umaScopes,
+          Function<String, Set<String>> umaIdGetter,
+          ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest)
+      throws Exception {
+
     boolean filterResponse = false;
     if (!umaScopes.isEmpty()) { // non public facets field
       var resourceIds =
-          this.adcQueryUmaFlow(request, adcSearch, umaScopes, resourceIdSearch, delayer).stream()
+          umaResources.stream()
               .filter(resource -> !Sets.intersection(umaScopes, resource.getScopes()).isEmpty())
               .map(resource -> umaIdGetter.apply(resource.getUmaResourceId()))
               .filter(Objects::nonNull)
@@ -382,46 +395,43 @@ public class AdcAuthController {
   }
 
   private Function<String, Set<String>> adcSearchFlow(
-          HttpServletRequest request,
           AdcSearchRequest adcSearch, // will be modified by reference
-          FieldClass fieldClass,
           String resourceId,
-          ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> umaIdsProducer, Delayer delayer)
-      throws Exception {
+          FieldClass fieldClass,
+          Collection<UmaResource> umaResources) {
+    final Set<String> allRequestedFields = getRegularSearchRequestedFields(adcSearch, fieldClass);
+    final Set<String> filtersFields = adcSearch.getFiltersFields();
+
+    if (!allRequestedFields.contains(resourceId)) {
+      adcSearch.addField(resourceId);
+    }
+
+    return this.buildUmaFieldMapper(umaResources, fieldClass)
+        .andThen(
+            fields -> {
+              // don't return resources where the access level does not match the one in the
+              // filters, in order to avoid information leaks
+              if (Sets.difference(filtersFields, fields).isEmpty()) {
+                return fields;
+              }
+
+              return EmptySet;
+            })
+        .andThen(set -> Sets.intersection(set, allRequestedFields));
+  }
+
+  private Set<String> getRegularSearchRequestedFields(
+      AdcSearchRequest adcSearch, FieldClass fieldClass) {
     final Set<String> adcFields = adcSearch.isFieldsEmpty() ? Set.of() : adcSearch.getFields();
     final Set<String> adcIncludeFields =
         adcSearch.isIncludeFieldsEmpty()
             ? Set.of()
             : this.csvConfig.getFields(fieldClass, adcSearch.getIncludeFields());
     final Set<String> requestedFields = Sets.union(adcFields, adcIncludeFields);
-    final Set<String> allReturnFields =
-        new HashSet<>(
-            requestedFields.isEmpty()
-                ? this.csvConfig.getFields(fieldClass).keySet()
-                : requestedFields);
-    final Set<String> filtersFields = adcSearch.getFiltersFields();
-    final Set<String> allConsideredFields = Sets.union(allReturnFields, filtersFields);
-
-    var umaScopes = this.csvConfig.getUmaScopes(fieldClass, allConsideredFields);
-    // empty means public
-    List<UmaResource> umaResources =
-        umaScopes.isEmpty() ? EmptyResources :
-            this.adcQueryUmaFlow(request, adcSearch, umaScopes, umaIdsProducer, delayer);
-
-    if (!allReturnFields.contains(resourceId)) {
-      adcSearch.addField(resourceId);
-    }
-
-    return this.buildUmaFieldMapper(umaResources, fieldClass)
-        .andThen(fields -> {
-          // don't return resources where the access level does not match the one in the filters, in order to avoid information leaks
-          if (Sets.difference(filtersFields, fields).isEmpty()) {
-            return fields;
-          }
-
-          return EmptySet;
-        })
-        .andThen(set -> Sets.intersection(set, allReturnFields));
+    return new HashSet<>(
+        requestedFields.isEmpty()
+            ? this.csvConfig.getFields(fieldClass).keySet()
+            : requestedFields);
   }
 
   private void validateAdcSearch(AdcSearchRequest adcSearch, FieldClass fieldClass)
@@ -442,10 +452,12 @@ public class AdcAuthController {
     var filtersBlacklist = this.appConfig.getFiltersOperatorsBlacklist();
     Set<String> actualFiltersOperators = adcSearch.getFiltersOperators();
     Sets.SetView<String> operatorDiff = Sets.intersection(filtersBlacklist, actualFiltersOperators);
-    if (! operatorDiff.isEmpty()) {
+    if (!operatorDiff.isEmpty()) {
       throw SpringUtils.buildHttpException(
           HttpStatus.NOT_IMPLEMENTED,
-          "Invalid input JSON: 'filters' operators: " + CollectionsUtils.toString(operatorDiff)  + " are blacklisted");
+          "Invalid input JSON: 'filters' operators: "
+              + CollectionsUtils.toString(operatorDiff)
+              + " are blacklisted");
     }
 
     var fieldTypes = this.csvConfig.getFields(fieldClass);
@@ -464,18 +476,20 @@ public class AdcAuthController {
   }
 
   private Function<String, Set<String>> buildUmaFieldMapper(
-      List<UmaResource> resources, FieldClass fieldClass) { // TODO extract into class
+      Collection<UmaResource> resources, FieldClass fieldClass) { // TODO extract into class
     var validUmaFields =
         resources.stream()
-            .collect(Collectors.toMap(UmaResource::getUmaResourceId, uma ->
-                this.csvConfig.getFields(fieldClass, uma.getScopes())
-            ));
+            .collect(
+                Collectors.toMap(
+                    UmaResource::getUmaResourceId,
+                    uma -> this.csvConfig.getFields(fieldClass, uma.getScopes())));
 
     var publicFields = this.csvConfig.getPublicFields(fieldClass);
 
     return umaId -> {
       if (umaId == null) {
-        Logger.warn("A resource was returned by the repository with no mapping from resource ID to UMA ID. Consider synchronizing.");
+        Logger.warn(
+            "A resource was returned by the repository with no mapping from resource ID to UMA ID. Consider synchronizing.");
         return publicFields;
       }
 
