@@ -100,8 +100,7 @@ public class AdcClient {
     var facets =
             HttpFacade.makeExpectJsonRequest(request, AdcFacetsResponse.class).getFacets();
 
-    // TODO update field once ireceptor-turnkey fixes their facets bug
-    return processStringFacets(facets, AdcConstants.REPERTOIRE_STUDY_ID_BASE);
+    return processStringFacets(facets, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
   }
 
   public Set<String> getRearrangementRepertoireIds(AdcSearchRequest adcRequest) throws Exception {
