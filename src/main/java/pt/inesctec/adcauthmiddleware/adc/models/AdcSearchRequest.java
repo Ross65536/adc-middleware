@@ -208,4 +208,11 @@ public class AdcSearchRequest {
 
     return operators;
   }
+
+  @JsonIgnore
+  public AdcSearchRequest withFacets(String field) {
+    this.setFacets(field);
+
+    return this;
+  }
 }

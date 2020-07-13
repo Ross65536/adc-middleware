@@ -52,6 +52,16 @@ public final class CollectionsUtils {
     }
   }
 
+  public static <T, V> void assertMapListContainsKeys(Collection<Map<T, V>> list, T... fields) throws Exception {
+    for (var map : list) {
+      for (T field : fields) {
+        if (!map.containsKey(field)) {
+          throw new Exception("list object missing field " + field);
+        }
+      }
+    }
+  }
+
   public static <E, K1, K2, K3> Map<K1, Map<K2, Map<K3, E>>> buildMap(
       Collection<E> list,
       Function<E, K1> keyOuterFunc,
