@@ -25,7 +25,8 @@ public class AdcAuthEndpointTests extends TestBase {
       Set.of(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
   private static final Set<String> RearrangementIdFields =
       Set.of(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
-  private static final WireMockServer umaMock = new WireMockRule(options().port(TestConstants.UMA_PORT));
+  private static final WireMockServer umaMock =
+      new WireMockRule(options().port(TestConstants.UMA_PORT));
   Set<String> RepertoireStatisticsScopeFields =
       Set.of(
           AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
@@ -505,6 +506,66 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
+  public void repertoireSearchTicketFiltersEscalation() {
+    Map<String, Object> filters =
+        ModelFactory.buildAdcFilters(
+            ModelFactory.buildSimpleFilter(
+                "=", TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD, 12));
+    var request =
+        TestCollections.mapMerge(
+            ModelFactory.buildAdcFields(TestConstants.REPERTOIRE_PUBLIC_FIELDS), filters);
+    var ticketRequest =
+        TestCollections.mapMerge(ModelFactory.buildAdcFields(RepertoireIdFields), filters);
+
+    var repertoiresResponse =
+        ModelFactory.buildRepertoiresDocumentWithInfo(
+            TestCollections.mapSubset(firstRepertoire, RepertoireIdFields));
+
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, ticketRequest);
+
+    var ticket =
+        UmaWireMocker.wireGetTicket(
+            umaMock,
+            this.accessToken,
+            ModelFactory.buildUmaResource(
+                this.firstRepertoireUmaId, Set.of(TestConstants.UMA_SEQUENCE_SCOPE)));
+
+    this.requests.postJsonTicket(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
+        TestJson.toJson(request),
+        ticket);
+  }
+
+  @Test
+  public void repertoireSearchTicketIncludeFieldsEscalation() {
+    var request =
+        TestCollections.mapMerge(
+            ModelFactory.buildAdcFields(TestConstants.REPERTOIRE_PUBLIC_FIELDS),
+            ModelFactory.buildAdcIncludeFields("airr-core"));
+    var ticketRequest = ModelFactory.buildAdcFields(RepertoireIdFields);
+
+    var repertoiresResponse =
+        ModelFactory.buildRepertoiresDocumentWithInfo(
+            TestCollections.mapSubset(firstRepertoire, RepertoireIdFields));
+
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, ticketRequest);
+
+    var ticket =
+        UmaWireMocker.wireGetTicket(
+            umaMock,
+            this.accessToken,
+            ModelFactory.buildUmaResource(
+                this.firstRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE)));
+
+    this.requests.postJsonTicket(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
+        TestJson.toJson(request),
+        ticket);
+  }
+
+  @Test
   public void repertoireSearchIncludeFieldsTicketScopeLimit() {
     // based on fields limits to 'raw_sequence' scope
     var request = ModelFactory.buildAdcIncludeFields("airr-core");
@@ -793,6 +854,104 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
+  public void repertoireSearchDenyFiltersMatchPublicLeak() {
+    var request =
+        TestCollections.mapMerge(
+            ModelFactory.buildAdcFields(TestConstants.REPERTOIRE_PUBLIC_FIELDS),
+            ModelFactory.buildAdcFilters(
+                ModelFactory.buildSimpleFilter(
+                    "=", TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD, 12)));
+
+    var repertoiresResponse =
+        ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire, this.secondRepertoire);
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
+
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES));
+
+    var actual =
+        this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token);
+
+    // second repertoire is filtered out because of the "filters"
+    assertThat(actual)
+        .isEqualTo(
+            ModelFactory.buildRepertoiresDocumentWithInfo(
+                TestCollections.mapSubset(
+                    this.firstRepertoire, TestConstants.REPERTOIRE_PUBLIC_FIELDS)));
+  }
+
+  @Test
+  public void repertoireSearchDenyFiltersMatchScopeLeak() {
+    var request =
+            TestCollections.mapMerge(
+                    ModelFactory.buildAdcFields(TestConstants.REPERTOIRE_PUBLIC_FIELDS),
+                    ModelFactory.buildAdcFilters(
+                            ModelFactory.buildSimpleFilter(
+                                    "=", TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD, 12)));
+
+    var repertoiresResponse =
+            ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire, this.secondRepertoire);
+    WireMocker.wirePostJson(
+            backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
+
+    var token =
+            UmaWireMocker.wireTokenIntrospection(
+                    umaMock,
+                    ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES),
+                    ModelFactory.buildUmaResource(this.secondRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE))
+            );
+
+    var actual =
+            this.requests.postJson(
+                    this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token);
+
+    // second repertoire is filtered out because of the "filters"
+    assertThat(actual)
+            .isEqualTo(
+                    ModelFactory.buildRepertoiresDocumentWithInfo(
+                            TestCollections.mapSubset(
+                                    this.firstRepertoire, TestConstants.REPERTOIRE_PUBLIC_FIELDS)));
+  }
+
+  @Test
+  public void repertoireSearchPrivateFiltersGrant() {
+    var request =
+        TestCollections.mapMerge(
+            ModelFactory.buildAdcFields(TestConstants.REPERTOIRE_PUBLIC_FIELDS),
+            ModelFactory.buildAdcFilters(
+                ModelFactory.buildSimpleFilter(
+                    "=", TestConstants.REPERTOIRE_PRIVATE_STATISTICS_FIELD, "12")));
+
+    var repertoiresResponse =
+        ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire, this.secondRepertoire);
+    WireMocker.wirePostJson(
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
+
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES),
+            ModelFactory.buildUmaResource(
+                this.secondRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE)));
+
+    var actual =
+        this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token);
+
+    assertThat(actual)
+        .isEqualTo(
+            ModelFactory.buildRepertoiresDocumentWithInfo(
+                TestCollections.mapSubset(
+                    this.firstRepertoire, TestConstants.REPERTOIRE_PUBLIC_FIELDS),
+                TestCollections.mapSubset(
+                    this.secondRepertoire, TestConstants.REPERTOIRE_PUBLIC_FIELDS)));
+  }
+
+  @Test
   public void rearrangementSearchAllAccess() {
     var repertoireId1 =
         TestCollections.getString(
@@ -967,7 +1126,8 @@ public class AdcAuthEndpointTests extends TestBase {
 
   @Test
   public void repertoireFacetsFiltersComposition() {
-    Map<String, Object> requestFilter = ModelFactory.buildComplexFilter(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+    Map<String, Object> requestFilter =
+        ModelFactory.buildComplexFilter(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
     var request =
         TestCollections.mapMerge(
@@ -984,13 +1144,8 @@ public class AdcAuthEndpointTests extends TestBase {
                         AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
                         List.of(
                             TestCollections.getString(
-                                this.firstRepertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD)
-                        )
-                    ),
-                    requestFilter
-                )
-            )
-        );
+                                this.firstRepertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD))),
+                    requestFilter)));
 
     var repertoiresResponse = ModelFactory.buildFacetsDocumentWithInfo(facet);
     WireMocker.wirePostJson(
