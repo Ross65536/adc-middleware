@@ -2,7 +2,7 @@
 
 [![pipeline status](https://gitlab.com/Ross65536/adc-middleware/badges/master/pipeline.svg)](https://gitlab.com/Ross65536/adc-middleware/commits/master)
 
-Middleware server for handling access control for ADC API compliant repositories.
+Middleware server for handling access control for [ADC v1 HTTP API](https://docs.airr-community.org/en/latest/api/adc_api.html) compliant repositories.
 
 Check out Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middleware)
 
