@@ -39,12 +39,4 @@ public final class Utils {
     }
   }
 
-  public static String getNestedExceptionMessage(Throwable e) {
-    var cause = e.getCause();
-    if (cause == null) {
-      return e.getMessage();
-    }
-
-    return Utils.getNestedExceptionMessage(cause);
-  }
 }
