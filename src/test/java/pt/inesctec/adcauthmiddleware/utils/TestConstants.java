@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 /**
  * These constants should match the values in file 'src/test/resources/application.properties',
@@ -32,6 +33,8 @@ public final class TestConstants {
   public static final String REPERTOIRE_PATH = TestConstants.buildAirrPath(TestConstants.REPERTOIRE_PATH_FRAGMENT);
   public static final String REARRANGEMENT_PATH = TestConstants.buildAirrPath(TestConstants.REARRANGEMENT_PATH_FRAGMENT);
   public static final String REPERTOIRE_PRIVATE_SEQUENCE_FIELD = "data_processing.numbo";
+  public static final String REPERTOIRE_PRIVATE_STATISTICS_FIELD = "study.study_type.value";
+  public static final Set<String> REPERTOIRE_PUBLIC_FIELDS = Set.of("repertoire_id", "study.study_id", "study.study_title");
   public static final String REARRANGEMENT_PRIVATE_FIELD = "sequence_aa";
 
   public static String buildAirrPath(String... path) {
