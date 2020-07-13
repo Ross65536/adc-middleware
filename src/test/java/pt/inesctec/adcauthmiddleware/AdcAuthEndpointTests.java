@@ -1,21 +1,29 @@
 package pt.inesctec.adcauthmiddleware;
 
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.assertj.core.api.Assertions.assertThat;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.Sets;
-import org.junit.jupiter.api.*;
-import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
-import pt.inesctec.adcauthmiddleware.config.csv.IncludeField;
-import pt.inesctec.adcauthmiddleware.utils.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
-
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+import pt.inesctec.adcauthmiddleware.config.csv.IncludeField;
+import pt.inesctec.adcauthmiddleware.utils.ModelFactory;
+import pt.inesctec.adcauthmiddleware.utils.Pair;
+import pt.inesctec.adcauthmiddleware.utils.TestCollections;
+import pt.inesctec.adcauthmiddleware.utils.TestConstants;
+import pt.inesctec.adcauthmiddleware.utils.TestJson;
+import pt.inesctec.adcauthmiddleware.utils.UmaWireMocker;
+import pt.inesctec.adcauthmiddleware.utils.WireMocker;
 
 // cache must be disabled for these tests
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -424,12 +432,21 @@ public class AdcAuthEndpointTests extends TestBase {
         ModelFactory.buildAdcFilters(
             ModelFactory.buildComplexFilter(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD));
     var ticketRequest =
-        TestCollections.mapMerge(request, ModelFactory.buildAdcFields(repertoireIdFields));
+        TestCollections.mapMerge(
+            request, ModelFactory.buildAdcFacets(AdcConstants.REPERTOIRE_STUDY_ID_FIELD));
 
     var repertoiresResponse =
-        ModelFactory.buildRepertoiresDocumentWithInfo(
-            TestCollections.mapSubset(firstRepertoire, repertoireIdFields),
-            TestCollections.mapSubset(secondRepertoire, repertoireIdFields));
+        ModelFactory.buildFacetsDocumentWithInfo(
+            ModelFactory.buildFacets(
+                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+                Pair.of(
+                    TestCollections.getString(
+                        firstRepertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD),
+                    1),
+                Pair.of(
+                    TestCollections.getString(
+                        secondRepertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD),
+                    2)));
 
     WireMocker.wirePostJson(
         backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, ticketRequest);
@@ -456,11 +473,17 @@ public class AdcAuthEndpointTests extends TestBase {
         ModelFactory.buildAdcFilters(
             ModelFactory.buildComplexFilter(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD));
     var ticketRequest =
-        TestCollections.mapMerge(request, ModelFactory.buildAdcFields(RepertoireIdFields));
+        TestCollections.mapMerge(
+            request, ModelFactory.buildAdcFacets(AdcConstants.REPERTOIRE_STUDY_ID_FIELD));
 
     var repertoiresResponse =
-        ModelFactory.buildRepertoiresDocumentWithInfo(
-            TestCollections.mapSubset(firstRepertoire, RepertoireIdFields));
+        ModelFactory.buildFacetsDocumentWithInfo(
+            ModelFactory.buildFacets(
+                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+                Pair.of(
+                    TestCollections.getString(
+                        firstRepertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD),
+                    1)));
 
     WireMocker.wirePostJson(
         backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, ticketRequest);
@@ -483,11 +506,16 @@ public class AdcAuthEndpointTests extends TestBase {
   public void repertoireSearchTicketScopeLimit() {
     // based on fields limits to 'raw_sequence' scope
     var request = ModelFactory.buildAdcFields(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
-    var ticketRequest = ModelFactory.buildAdcFields(RepertoireIdFields);
+    var ticketRequest = ModelFactory.buildAdcFacets(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
     var repertoiresResponse =
-        ModelFactory.buildRepertoiresDocumentWithInfo(
-            TestCollections.mapSubset(firstRepertoire, RepertoireIdFields));
+        ModelFactory.buildFacetsDocumentWithInfo(
+            ModelFactory.buildFacets(
+                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+                Pair.of(
+                    TestCollections.getString(
+                        firstRepertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD),
+                    1)));
 
     WireMocker.wirePostJson(
         backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, ticketRequest);
@@ -515,11 +543,17 @@ public class AdcAuthEndpointTests extends TestBase {
         TestCollections.mapMerge(
             ModelFactory.buildAdcFields(TestConstants.REPERTOIRE_PUBLIC_FIELDS), filters);
     var ticketRequest =
-        TestCollections.mapMerge(ModelFactory.buildAdcFields(RepertoireIdFields), filters);
+        TestCollections.mapMerge(
+            filters, ModelFactory.buildAdcFacets(AdcConstants.REPERTOIRE_STUDY_ID_FIELD));
 
     var repertoiresResponse =
-        ModelFactory.buildRepertoiresDocumentWithInfo(
-            TestCollections.mapSubset(firstRepertoire, RepertoireIdFields));
+        ModelFactory.buildFacetsDocumentWithInfo(
+            ModelFactory.buildFacets(
+                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+                Pair.of(
+                    TestCollections.getString(
+                        firstRepertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD),
+                    1)));
 
     WireMocker.wirePostJson(
         backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, ticketRequest);
@@ -543,11 +577,16 @@ public class AdcAuthEndpointTests extends TestBase {
         TestCollections.mapMerge(
             ModelFactory.buildAdcFields(TestConstants.REPERTOIRE_PUBLIC_FIELDS),
             ModelFactory.buildAdcIncludeFields("airr-core"));
-    var ticketRequest = ModelFactory.buildAdcFields(RepertoireIdFields);
+    var ticketRequest = ModelFactory.buildAdcFacets(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
     var repertoiresResponse =
-        ModelFactory.buildRepertoiresDocumentWithInfo(
-            TestCollections.mapSubset(firstRepertoire, RepertoireIdFields));
+        ModelFactory.buildFacetsDocumentWithInfo(
+            ModelFactory.buildFacets(
+                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+                Pair.of(
+                    TestCollections.getString(
+                        firstRepertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD),
+                    1)));
 
     WireMocker.wirePostJson(
         backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, ticketRequest);
@@ -569,11 +608,16 @@ public class AdcAuthEndpointTests extends TestBase {
   public void repertoireSearchIncludeFieldsTicketScopeLimit() {
     // based on fields limits to 'raw_sequence' scope
     var request = ModelFactory.buildAdcIncludeFields("airr-core");
-    var ticketRequest = ModelFactory.buildAdcFields(RepertoireIdFields);
+    var ticketRequest = ModelFactory.buildAdcFacets(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
     var repertoiresResponse =
-        ModelFactory.buildRepertoiresDocumentWithInfo(
-            TestCollections.mapSubset(firstRepertoire, RepertoireIdFields));
+        ModelFactory.buildFacetsDocumentWithInfo(
+            ModelFactory.buildFacets(
+                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+                Pair.of(
+                    TestCollections.getString(
+                        firstRepertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD),
+                    1)));
 
     WireMocker.wirePostJson(
         backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, ticketRequest);
@@ -595,11 +639,16 @@ public class AdcAuthEndpointTests extends TestBase {
   public void repertoireFacetsTicket() {
     // based on facets limits to 'raw_sequence' scope
     var request = ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
-    var ticketRequest = ModelFactory.buildAdcFields(RepertoireIdFields);
+    var ticketRequest = ModelFactory.buildAdcFacets(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
     var repertoiresResponse =
-        ModelFactory.buildRepertoiresDocumentWithInfo(
-            TestCollections.mapSubset(firstRepertoire, RepertoireIdFields));
+        ModelFactory.buildFacetsDocumentWithInfo(
+            ModelFactory.buildFacets(
+                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+                Pair.of(
+                    TestCollections.getString(
+                        firstRepertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD),
+                    1)));
 
     WireMocker.wirePostJson(
         backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, ticketRequest);
@@ -626,12 +675,19 @@ public class AdcAuthEndpointTests extends TestBase {
     var request = ModelFactory.buildAdcFacets(TestConstants.REARRANGEMENT_PRIVATE_FIELD);
 
     var rearrangement = ModelFactory.buildRearrangement(repertoireId, "1");
-    var ticketRequest = ModelFactory.buildAdcFields(RearrangementIdFields);
-    var repertoiresResponse =
-        ModelFactory.buildRearrangementsDocumentWithInfo(
-            TestCollections.mapSubset(rearrangement, RearrangementIdFields));
+    var ticketRequest = ModelFactory.buildAdcFacets(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
+
+    var response =
+        ModelFactory.buildFacetsDocumentWithInfo(
+            ModelFactory.buildFacets(
+                AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+                Pair.of(
+                    TestCollections.getString(
+                        rearrangement, AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD),
+                    1)));
+
     WireMocker.wirePostJson(
-        backendMock, TestConstants.REARRANGEMENT_PATH, 200, repertoiresResponse, ticketRequest);
+        backendMock, TestConstants.REARRANGEMENT_PATH, 200, response, ticketRequest);
 
     var ticket =
         UmaWireMocker.wireGetTicket(
@@ -887,34 +943,34 @@ public class AdcAuthEndpointTests extends TestBase {
   @Test
   public void repertoireSearchDenyFiltersMatchScopeLeak() {
     var request =
-            TestCollections.mapMerge(
-                    ModelFactory.buildAdcFields(TestConstants.REPERTOIRE_PUBLIC_FIELDS),
-                    ModelFactory.buildAdcFilters(
-                            ModelFactory.buildSimpleFilter(
-                                    "=", TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD, 12)));
+        TestCollections.mapMerge(
+            ModelFactory.buildAdcFields(TestConstants.REPERTOIRE_PUBLIC_FIELDS),
+            ModelFactory.buildAdcFilters(
+                ModelFactory.buildSimpleFilter(
+                    "=", TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD, 12)));
 
     var repertoiresResponse =
-            ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire, this.secondRepertoire);
+        ModelFactory.buildRepertoiresDocumentWithInfo(this.firstRepertoire, this.secondRepertoire);
     WireMocker.wirePostJson(
-            backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
+        backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, request);
 
     var token =
-            UmaWireMocker.wireTokenIntrospection(
-                    umaMock,
-                    ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES),
-                    ModelFactory.buildUmaResource(this.secondRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE))
-            );
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES),
+            ModelFactory.buildUmaResource(
+                this.secondRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE)));
 
     var actual =
-            this.requests.postJson(
-                    this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token);
+        this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token);
 
     // second repertoire is filtered out because of the "filters"
     assertThat(actual)
-            .isEqualTo(
-                    ModelFactory.buildRepertoiresDocumentWithInfo(
-                            TestCollections.mapSubset(
-                                    this.firstRepertoire, TestConstants.REPERTOIRE_PUBLIC_FIELDS)));
+        .isEqualTo(
+            ModelFactory.buildRepertoiresDocumentWithInfo(
+                TestCollections.mapSubset(
+                    this.firstRepertoire, TestConstants.REPERTOIRE_PUBLIC_FIELDS)));
   }
 
   @Test
@@ -1092,7 +1148,7 @@ public class AdcAuthEndpointTests extends TestBase {
   @Test
   public void repertoireFacetsAllAccess() {
     var request = ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
-    var facet = ModelFactory.buildFacet(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
+    var facet = ModelFactory.buildFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
 
     var backendRequest =
         TestCollections.mapMerge(
@@ -1133,7 +1189,7 @@ public class AdcAuthEndpointTests extends TestBase {
         TestCollections.mapMerge(
             ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD),
             ModelFactory.buildAdcFilters(requestFilter));
-    var facet = ModelFactory.buildFacet(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
+    var facet = ModelFactory.buildFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
 
     var backendRequest =
         TestCollections.mapMerge(
@@ -1166,7 +1222,7 @@ public class AdcAuthEndpointTests extends TestBase {
   @Test
   public void repertoireFacetsPublicAccess() {
     var request = ModelFactory.buildAdcFacets(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
-    var facet = ModelFactory.buildFacet(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+    var facet = ModelFactory.buildFacets(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
 
     var repertoiresResponse = ModelFactory.buildFacetsDocumentWithInfo(facet);
     WireMocker.wirePostJson(
@@ -1212,7 +1268,7 @@ public class AdcAuthEndpointTests extends TestBase {
   public void repertoireFacetsDenyAccessWhitelisting() {
     var request = ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
     List<Map<String, Object>> facet =
-        ModelFactory.buildFacet(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
+        ModelFactory.buildFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD);
 
     var backendRequest =
         TestCollections.mapMerge(
@@ -1240,7 +1296,7 @@ public class AdcAuthEndpointTests extends TestBase {
   @Test
   public void rearrangementFacetsAllAccess() {
     var request = ModelFactory.buildAdcFacets(TestConstants.REARRANGEMENT_PRIVATE_FIELD);
-    var facet = ModelFactory.buildFacet(TestConstants.REARRANGEMENT_PRIVATE_FIELD);
+    var facet = ModelFactory.buildFacets(TestConstants.REARRANGEMENT_PRIVATE_FIELD);
 
     var backendRequest =
         TestCollections.mapMerge(
