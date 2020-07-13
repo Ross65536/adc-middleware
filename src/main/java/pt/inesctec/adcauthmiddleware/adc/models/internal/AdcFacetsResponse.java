@@ -7,14 +7,14 @@ import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AdcFacetsResponse {
-    @JsonProperty("Facet")
-    private List<Map<String, Object>> facets;
+  @JsonProperty("Facet")
+  private List<Map<String, Object>> facets;
 
-    public List<Map<String, Object>> getFacets() {
-        return facets;
-    }
+  public List<Map<String, Object>> getFacets() {
+    return facets;
+  }
 
-    public void setFacets(List<Map<String, Object>> facets) {
-        this.facets = facets;
-    }
+  public void setFacets(List<Map<String, Object>> facets) {
+    this.facets = facets;
+  }
 }
