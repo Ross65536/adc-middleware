@@ -377,7 +377,7 @@ To be able to make use of this middleware the backend **MUST** implement the fol
 3. POST /repertoire
 4. POST /rearrangement
 
-For endpoints 3. and 4. the backend must be able to accept a string body (that can be discarded).
+For endpoints 3. and 4. the backend can discard the other query fields **except** the `"facets"` field which must be processed and returned correctly.
 
 The following public endpoints are not mandatory and access to them can be disabled in the middleware:
 
@@ -385,7 +385,7 @@ The following public endpoints are not mandatory and access to them can be disab
 - GET /info
 - GET /swagger
 
-The `Repertoire`s responses (1. and 3.) must be of (minimal) format:
+The `Repertoire`s regular responses (1. and 3.) must be of (minimal) format:
 ```yaml
 {
   "Repertoire": [ 
@@ -400,7 +400,7 @@ The `Repertoire`s responses (1. and 3.) must be of (minimal) format:
 }
 ```
 
-The `Rearrangement`s responses (2. and 4.) must be of (minimal) format:
+The `Rearrangement`s regular responses (2. and 4.) must be of (minimal) format:
 ```yaml
 {
   "Rearrangement": [
@@ -414,11 +414,60 @@ The `Rearrangement`s responses (2. and 4.) must be of (minimal) format:
 
 Any extra fields used for Repertoire or Rearrangement can be used if they are set in the CSV config file.
 
+As mentioned, facets must be supported. 
+The middleware when receiving a user query for repertoires of the like:
+```yaml
+{
+    "filters": {
+        "op": "=",
+        "content": {
+            "field": "repertoire_id",
+            "value": "5e53dead4d808a03178c7891"
+        }
+    },
+    "from": 5,
+    "size": 10
+}
+```
+
+Will modify the request to before sending it to the repository:
+```yaml
+{
+    "filters": {
+        "op": "=",
+        "content": {
+            "field": "repertoire_id",
+            "value": "5e53dead4d808a03178c7891"
+        }
+    },
+    "from": 5,
+    "size": 10,
+    "facets": "study.study_id"
+}
+```
+
+The middleware expects a minimal facets response of the like: 
+```yaml
+{
+    "Facet": [
+        {
+            "study.study_id": "s1", // string
+            "count": 130 // integer
+        },
+        ...
+    ]
+}
+```
+
+In the example above the `filters`, `from` and `size` parameters can be discarded by the repository.
+If the `filters` support is not compliant enough as discussed below the facets feature **MUST** be disabled in the middleware to avoid security issues (even though the middleware makes use of the repository's facets function).
+The official documentation (ADC v1) does not specify that the parameters `from` and `size` can be used with the `facets` parameter, and they can be safely discarded by the repository, but in order to improve security (by limitting the scope of the emitted tokens) and avoid UI clutter these should be supported and should perform the same query along with `filters` as done in a regular search without facets, that is, the set of field values returned by a regular search, and by using facets must be the same.
+
 #### Facets 
 
-To use facets the backend **MUST** support the ADC `filters` query feature, otherwise this feature **MUST** be disabled in the middleware's config.
+To use facets the repository backend **MUST** support the ADC `filters` query feature as described here, otherwise this feature **MUST** be disabled in the middleware's config.
 
-More specifically the `in` `filters` operator must be supported (and the `and` operator for chaining with user requests). If a user makes a Repertoires search request like:
+More specifically the `in` `filters` operator must be supported, and the `and` operator for chaining with user requests. If a user makes a Repertoires search request like:
 
 ```yaml
 {
@@ -459,7 +508,7 @@ The middleware modifies the request and sends:
 
 Likewise for Rearrangements but with the `repertoire_id` value for `in`'s `field`.
 
-It is assumed that like in the AIRR ADC API, an empty `in`:
+It is assumed that, like in the AIRR ADC API, an empty `in`:
 ```yaml
 {
     "op":"in",
@@ -471,7 +520,7 @@ It is assumed that like in the AIRR ADC API, an empty `in`:
 ```
 would make the backend return an empty `Facet` response. 
 
-If there are values for the array sent the ids **MUST** be matched against the response, otherwise an information leak is created. 
+If there are values for the array sent in the `in` operator the ids **MUST** be matched against the response, otherwise an information leak is created. 
 
 ### Adding OpenID Connect third-party Identity Providers
 
