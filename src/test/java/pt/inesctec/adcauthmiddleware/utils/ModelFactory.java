@@ -3,6 +3,7 @@ package pt.inesctec.adcauthmiddleware.utils;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ModelFactory {
 
@@ -93,7 +94,7 @@ public class ModelFactory {
         Pair.of("sequence_aa", stringPrefix + TestConstants.generateHexString(10)));
   }
 
-  public static List<Map<String, Object>> buildFacet(String field) {
+  public static List<Map<String, Object>> buildFacets(String field) {
     return List.of(
         Map.of(
             field,
@@ -110,6 +111,18 @@ public class ModelFactory {
             TestConstants.generateHexString(10),
             "count",
             TestConstants.Random.nextInt(20) + 1));
+  }
+
+  public static Map<String, Object> buildFacet(String field, String value, int count) {
+    return Map.of(
+            field, value,
+            "count", count);
+  }
+
+  public static List<Map<String, Object>> buildFacets(String field, Pair<String, Integer> ... facets) {
+    return Arrays.stream(facets)
+            .map(f -> buildFacet(field, f.first, f.second))
+            .collect(Collectors.toList());
   }
 
   public static Map<String, Object> buildUmaResource(String id, Collection<String> scopes) {
