@@ -14,18 +14,19 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.http.Json;
 
-public abstract class BaseJsonMapper implements StreamingResponseBody {
+public class BaseJsonMapper implements StreamingResponseBody {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(BaseJsonMapper.class);
-  protected static com.fasterxml.jackson.core.JsonFactory JsonFactory = new JsonFactory();
-
+  private static JsonFactory JsonFactory = new JsonFactory();
   static {
     JsonFactory.setCodec(Json.JsonObjectMapper);
   }
 
+  private final IFieldsFilter filter;
   protected final InputStream response;
   protected final String mappedField;
 
-  public BaseJsonMapper(InputStream response, String mappedField) {
+  public BaseJsonMapper(InputStream response, String mappedField, IFieldsFilter filter) {
+    this.filter = filter;
     this.response = response;
     this.mappedField = mappedField;
   }
@@ -57,7 +58,7 @@ public abstract class BaseJsonMapper implements StreamingResponseBody {
         var map = parser.readValueAs(ObjectNode.class);
         generator.writeObjectField(AdcConstants.ADC_INFO, map);
       } else if (fieldName.equals(this.mappedField)) {
-        guts(parser, generator);
+        processNode(parser, generator);
       } else {
         parser.skipChildren();
       }
@@ -69,5 +70,17 @@ public abstract class BaseJsonMapper implements StreamingResponseBody {
     generator.close();
   }
 
-  protected abstract void guts(JsonParser parser, JsonGenerator generator) throws IOException;
+  private void processNode(JsonParser parser, JsonGenerator generator) throws IOException {
+    generator.writeArrayFieldStart(this.mappedField);
+
+    while (parser.nextToken() != JsonToken.END_ARRAY) {
+      var map = parser.readValueAs(ObjectNode.class);
+      var mapped = this.filter.mapResource(map);
+      if (mapped.isPresent()) {
+        generator.writeObject(mapped.get());
+      }
+    }
+
+    generator.writeEndArray();
+  }
 }
