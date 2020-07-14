@@ -1,14 +1,9 @@
 package pt.inesctec.adcauthmiddleware.adc.jsonfilter;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -18,35 +13,15 @@ import java.util.function.Function;
 import org.slf4j.LoggerFactory;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
-public class ResourceJsonMapper extends BaseJsonMapper {
-  private static org.slf4j.Logger Logger = LoggerFactory.getLogger(ResourceJsonMapper.class);
+public class FieldsFilter implements IFieldsFilter {
+  private static org.slf4j.Logger Logger = LoggerFactory.getLogger(FieldsFilter.class);
 
   private final Function<String, Set<String>> fieldMapper;
   private final String idField;
 
-  public ResourceJsonMapper(
-      InputStream response,
-      String mappedField,
-      Function<String, Set<String>> fieldMapper,
-      String idField) {
-    super(response, mappedField);
+  public FieldsFilter(Function<String, Set<String>> fieldMapper, String idField) {
     this.fieldMapper = fieldMapper;
     this.idField = idField;
-  }
-
-  @Override
-  protected void guts(JsonParser parser, JsonGenerator generator) throws IOException {
-    generator.writeArrayFieldStart(this.mappedField);
-
-    while (parser.nextToken() != JsonToken.END_ARRAY) {
-      var map = parser.readValueAs(ObjectNode.class);
-      var mapped = this.mapResource(map);
-      if (mapped.isPresent()) {
-        generator.writeObject(mapped.get());
-      }
-    }
-
-    generator.writeEndArray();
   }
 
   private static Optional<String> getFieldRecursive(ObjectNode obj, String[] fieldParts) {
@@ -68,7 +43,7 @@ public class ResourceJsonMapper extends BaseJsonMapper {
       }
 
       var childObj = (ObjectNode) fieldNode;
-      return ResourceJsonMapper.getFieldRecursive(childObj, remainder);
+      return FieldsFilter.getFieldRecursive(childObj, remainder);
     }
 
     if (!fieldNode.isTextual()) {
@@ -102,7 +77,7 @@ public class ResourceJsonMapper extends BaseJsonMapper {
 
   private static void unsetObjectFieldsRecursive(ObjectNode node, Set<String> fields) {
 
-    var reducedFields = ResourceJsonMapper.reduceFieldsLevel(fields);
+    var reducedFields = FieldsFilter.reduceFieldsLevel(fields);
 
     for (String fieldName : ImmutableList.copyOf(node.fieldNames())) {
       if (!reducedFields.containsKey(fieldName)) {
@@ -118,7 +93,7 @@ public class ResourceJsonMapper extends BaseJsonMapper {
       var childNode = node.get(fieldName);
       if (childNode.isObject()) {
         var childObj = (ObjectNode) childNode;
-        ResourceJsonMapper.unsetObjectFieldsRecursive(childObj, fieldRemainders);
+        FieldsFilter.unsetObjectFieldsRecursive(childObj, fieldRemainders);
         if (childObj.isEmpty()) {
           node.remove(fieldName);
         }
@@ -134,7 +109,7 @@ public class ResourceJsonMapper extends BaseJsonMapper {
           }
 
           var elemObj = (ObjectNode) elem;
-          ResourceJsonMapper.unsetObjectFieldsRecursive(elemObj, fieldRemainders);
+          FieldsFilter.unsetObjectFieldsRecursive(elemObj, fieldRemainders);
           if (elemObj.isEmpty()) {
             childArr.remove(i);
             continue;
@@ -154,14 +129,15 @@ public class ResourceJsonMapper extends BaseJsonMapper {
     }
   }
 
-  private Optional<ObjectNode> mapResource(ObjectNode resource) {
+  @Override
+  public Optional<ObjectNode> mapResource(ObjectNode resource) {
 
     var names = ImmutableSet.copyOf(resource.fieldNames());
     if (names.size() == 0) {
       return Optional.empty();
     }
 
-    var resourceId = ResourceJsonMapper.getFieldRecursive(resource, this.idField.split(SEPARATOR));
+    var resourceId = FieldsFilter.getFieldRecursive(resource, this.idField.split(SEPARATOR));
     if (resourceId.isEmpty()) {
       Logger.error("Id field " + this.idField + " not present in returned JSON object");
       return Optional.empty();
@@ -172,7 +148,7 @@ public class ResourceJsonMapper extends BaseJsonMapper {
       return Optional.empty();
     }
 
-    ResourceJsonMapper.unsetObjectFieldsRecursive(resource, fields);
+    FieldsFilter.unsetObjectFieldsRecursive(resource, fields);
 
     if (resource.isEmpty()) {
       return Optional.empty();

@@ -36,8 +36,9 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
-import pt.inesctec.adcauthmiddleware.adc.jsonfilter.ResourceJsonMapper;
-import pt.inesctec.adcauthmiddleware.adc.jsonfilter.SimpleJsonFilter;
+import pt.inesctec.adcauthmiddleware.adc.jsonfilter.BaseJsonMapper;
+import pt.inesctec.adcauthmiddleware.adc.jsonfilter.FieldsFilter;
+import pt.inesctec.adcauthmiddleware.adc.jsonfilter.IFieldsFilter;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
@@ -387,8 +388,8 @@ public class AdcAuthController {
     var is = SpringUtils.catchForwardingError(() -> adcRequest.apply(adcSearch));
     // will only perform whitelist filtering if rpt grants access to nothing, for partial access the
     // backend must perform the filtering
-    return SpringUtils.buildJsonStream(
-        new SimpleJsonFilter(is, AdcConstants.ADC_FACETS, filterResponse));
+    IFieldsFilter filter = filterResponse ? FieldsFilter.BlockingFilter : FieldsFilter.OpenFilter;
+    return SpringUtils.buildJsonStream(new BaseJsonMapper(is, AdcConstants.ADC_FACETS, filter));
   }
 
   private List<String> calcValidFacetsResources(
@@ -516,7 +517,8 @@ public class AdcAuthController {
       ThrowingProducer<InputStream, Exception> adcRequest)
       throws Exception {
     var response = SpringUtils.catchForwardingError(adcRequest);
-    var mapper = new ResourceJsonMapper(response, responseFilterField, fieldMapper, resourceId);
+    var filter = new FieldsFilter(fieldMapper, resourceId);
+    var mapper = new BaseJsonMapper(response, responseFilterField, filter);
     return SpringUtils.buildJsonStream(mapper);
   }
 }
