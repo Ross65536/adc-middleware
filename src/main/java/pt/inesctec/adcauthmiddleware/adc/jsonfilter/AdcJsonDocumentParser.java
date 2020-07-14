@@ -1,8 +1,6 @@
 package pt.inesctec.adcauthmiddleware.adc.jsonfilter;
 
-import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -14,9 +12,10 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.http.Json;
 
-public class BaseJsonMapper implements StreamingResponseBody {
-  private static org.slf4j.Logger Logger = LoggerFactory.getLogger(BaseJsonMapper.class);
-  private static JsonFactory JsonFactory = new JsonFactory();
+public class AdcJsonDocumentParser {
+  private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcJsonDocumentParser.class);
+  public static JsonFactory JsonFactory = new JsonFactory();
+
   static {
     JsonFactory.setCodec(Json.JsonObjectMapper);
   }
@@ -24,23 +23,21 @@ public class BaseJsonMapper implements StreamingResponseBody {
   private final IFieldsFilter filter;
   protected final InputStream response;
   protected final String mappedField;
+  private IAdcWriter adcWriter;
 
-  public BaseJsonMapper(InputStream response, String mappedField, IFieldsFilter filter) {
+  private AdcJsonDocumentParser(InputStream response, String mappedField, IFieldsFilter filter, IAdcWriter adcWriter) {
     this.filter = filter;
     this.response = response;
     this.mappedField = mappedField;
+    this.adcWriter = adcWriter;
   }
 
-  @Override
-  public void writeTo(OutputStream outputStream) throws IOException {
+  private void process() throws IOException {
     var parser = JsonFactory.createParser(response);
-    var generator = JsonFactory.createGenerator(outputStream, JsonEncoding.UTF8);
-
-    generator.writeStartObject();
 
     if (parser.nextToken() != JsonToken.START_OBJECT) {
-      Logger.error("Received response isn't a JSON object");
-      generator.close();
+      Logger.error("Received repository response isn't a JSON object");
+      this.adcWriter.close();
       return;
     }
 
@@ -49,38 +46,41 @@ public class BaseJsonMapper implements StreamingResponseBody {
       var nextToken = parser.nextToken();
       if (fieldName == null
           || (nextToken != JsonToken.START_OBJECT && nextToken != JsonToken.START_ARRAY)) {
-        Logger.error("Malformed JSON received");
-        generator.close();
+        Logger.error("Malformed JSON received from repository");
+        this.adcWriter.close();
         return;
       }
 
       if (fieldName.equals(AdcConstants.ADC_INFO)) {
         var map = parser.readValueAs(ObjectNode.class);
-        generator.writeObjectField(AdcConstants.ADC_INFO, map);
+        this.adcWriter.writeField(AdcConstants.ADC_INFO, map);
       } else if (fieldName.equals(this.mappedField)) {
-        processNode(parser, generator);
+        processNode(parser);
       } else {
         parser.skipChildren();
       }
-
-      generator.flush();
     }
 
-    generator.writeEndObject();
-    generator.close();
+    this.adcWriter.close();
   }
 
-  private void processNode(JsonParser parser, JsonGenerator generator) throws IOException {
-    generator.writeArrayFieldStart(this.mappedField);
+  private void processNode(JsonParser parser) throws IOException {
+    var consumer = this.adcWriter.buildArrayWriter(this.mappedField);
 
     while (parser.nextToken() != JsonToken.END_ARRAY) {
       var map = parser.readValueAs(ObjectNode.class);
       var mapped = this.filter.mapResource(map);
       if (mapped.isPresent()) {
-        generator.writeObject(mapped.get());
+        consumer.accept(mapped.get());
       }
     }
+  }
 
-    generator.writeEndArray();
+  public static StreamingResponseBody buildJsonMapper(InputStream response, String mappedField, IFieldsFilter filter) {
+    return os -> {
+      var jsonWriter = new AdcJsonWriter(os);
+      var mapper = new AdcJsonDocumentParser(response, mappedField, filter, jsonWriter);
+      mapper.process();
+    };
   }
 }
