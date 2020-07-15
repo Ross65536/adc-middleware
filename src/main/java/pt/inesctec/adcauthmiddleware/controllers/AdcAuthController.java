@@ -36,11 +36,11 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.AdcJsonDocumentParser;
 import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.FieldsFilter;
 import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.IFieldsFilter;
-import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
-import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
