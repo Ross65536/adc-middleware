@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware.adc.jsonfilter;
+package pt.inesctec.adcauthmiddleware.adc.resourceprocessing;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
