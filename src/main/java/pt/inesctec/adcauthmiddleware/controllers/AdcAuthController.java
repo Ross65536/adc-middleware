@@ -566,16 +566,9 @@ public class AdcAuthController {
             : requestedFields);
   }
 
-  private Map<String, FieldType> calcFacetsFieldTypes(
-      Map<String, FieldType> allFieldTypes, Set<String> requestedFields) {
-    return allFieldTypes.entrySet().stream()
-        .filter(e -> requestedFields.contains(e.getKey()))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  }
-
   private Map<String, FieldType> calcFacetsFieldTypes(AdcSearchRequest request, FieldClass fieldClass) {
     var requestedFields = getRegularSearchRequestedFields(request, fieldClass);
     Map<String, FieldType> allFields = this.csvConfig.getFieldsAndTypes(fieldClass);
-    return calcFacetsFieldTypes(allFields, requestedFields);
+    return CollectionsUtils.intersectMapWithSet(allFields, requestedFields);
   }
 }

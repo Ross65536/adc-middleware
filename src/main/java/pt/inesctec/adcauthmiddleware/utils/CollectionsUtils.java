@@ -102,4 +102,11 @@ public final class CollectionsUtils {
   public static <K, V> void stripNestedMaps(Map<K, V> map) {
     map.entrySet().removeIf(e -> e.getValue() instanceof Map);
   }
+
+  public static <K,V> Map<K, V> intersectMapWithSet(
+      Map<K, V> allFieldTypes, Set<K> requestedFields) {
+    return allFieldTypes.entrySet().stream()
+        .filter(e -> requestedFields.contains(e.getKey()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
 }
