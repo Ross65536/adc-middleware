@@ -44,6 +44,7 @@ import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
+import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.db.DbRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
@@ -206,7 +207,7 @@ public class AdcAuthController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<StreamingResponseBody> repertoireSearch(
       HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
-    this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE);
+    this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
 
     Set<String> umaScopes = this.getAdcRequestUmaScopes(adcSearch, FieldClass.REPERTOIRE);
     var umaResources =
@@ -245,7 +246,9 @@ public class AdcAuthController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<StreamingResponseBody> rearrangementSearch(
       HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
-    this.validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT);
+    this.validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT, true);
+    final boolean isJsonFormat = adcSearch.isJsonFormat();
+    adcSearch.unsetFormat();
 
     Set<String> umaScopes = this.getAdcRequestUmaScopes(adcSearch, FieldClass.REARRANGEMENT);
     var umaResources =
@@ -275,11 +278,21 @@ public class AdcAuthController {
             FieldClass.REARRANGEMENT,
             umaResources);
 
-    return buildFilteredJsonResponse(
+    if (isJsonFormat) {
+      return buildFilteredJsonResponse(
+          AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+          AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
+          fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
+          () -> this.adcClient.searchRearrangementsAsStream(adcSearch));
+    }
+
+    var requestedFieldTypes = calcFacetsFieldTypes(adcSearch, FieldClass.REARRANGEMENT);
+    return buildFilteredTsvResponse(
         AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
         AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
         fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
-        () -> this.adcClient.searchRearrangementsAsStream(adcSearch));
+        () -> this.adcClient.searchRearrangementsAsStream(adcSearch),
+        requestedFieldTypes);
   }
 
   @RequestMapping(value = "/public_fields", method = RequestMethod.GET)
@@ -433,22 +446,8 @@ public class AdcAuthController {
         .andThen(set -> Sets.intersection(set, allRequestedFields));
   }
 
-  private Set<String> getRegularSearchRequestedFields(
-      AdcSearchRequest adcSearch, FieldClass fieldClass) {
-    final Set<String> adcFields = adcSearch.isFieldsEmpty() ? Set.of() : adcSearch.getFields();
-    final Set<String> adcIncludeFields =
-        adcSearch.isIncludeFieldsEmpty()
-            ? Set.of()
-            : this.csvConfig.getFields(fieldClass, adcSearch.getIncludeFields());
-    final Set<String> requestedFields = Sets.union(adcFields, adcIncludeFields);
-    return new HashSet<>(
-        requestedFields.isEmpty()
-            ? this.csvConfig.getFields(fieldClass).keySet()
-            : requestedFields);
-  }
-
-  private void validateAdcSearch(AdcSearchRequest adcSearch, FieldClass fieldClass)
-      throws HttpException {
+  private void validateAdcSearch(
+      AdcSearchRequest adcSearch, FieldClass fieldClass, boolean tsvEnabled) throws HttpException {
 
     if (adcSearch.isFacetsSearch() && !this.appConfig.isFacetsEnabled()) {
       throw SpringUtils.buildHttpException(
@@ -473,7 +472,7 @@ public class AdcAuthController {
               + " are blacklisted");
     }
 
-    var fieldTypes = this.csvConfig.getFields(fieldClass);
+    var fieldTypes = this.csvConfig.getFieldsAndTypes(fieldClass);
     try {
       AdcSearchRequest.validate(adcSearch, fieldTypes);
     } catch (AdcException e) {
@@ -481,10 +480,26 @@ public class AdcAuthController {
           HttpStatus.UNPROCESSABLE_ENTITY, "Invalid input JSON: " + e.getMessage());
     }
 
-    if (!adcSearch.isJsonFormat()) {
-      Logger.error("TSV support not implemented");
-      throw SpringUtils.buildHttpException(
-          HttpStatus.UNPROCESSABLE_ENTITY, "TSV format not supported yet");
+    final boolean isTsv = !adcSearch.isJsonFormat();
+    if (isTsv) {
+      if (!tsvEnabled) {
+        throw SpringUtils.buildHttpException(
+            HttpStatus.UNPROCESSABLE_ENTITY, "TSV format not enabled for this endpoint");
+      }
+
+      if (adcSearch.isFacetsSearch()) {
+        throw SpringUtils.buildHttpException(
+            HttpStatus.UNPROCESSABLE_ENTITY, "can't return TSV format for facets");
+      }
+
+      var requestedFields = getRegularSearchRequestedFields(adcSearch, FieldClass.REARRANGEMENT);
+      for (var field : requestedFields) {
+        if (field.contains(AdcConstants.ADC_FIELD_SEPERATOR)) {
+          throw SpringUtils.buildHttpException(
+              HttpStatus.UNPROCESSABLE_ENTITY,
+              String.format("TSV: The field %s requested cannot be a nested document", field));
+        }
+      }
     }
   }
 
@@ -521,5 +536,46 @@ public class AdcAuthController {
     var filter = new FieldsFilter(fieldMapper, resourceId);
     var mapper = AdcJsonDocumentParser.buildJsonMapper(response, responseFilterField, filter);
     return SpringUtils.buildJsonStream(mapper);
+  }
+
+  private ResponseEntity<StreamingResponseBody> buildFilteredTsvResponse(
+      String resourceId,
+      String responseFilterField,
+      Function<String, Set<String>> fieldMapper,
+      ThrowingProducer<InputStream, Exception> adcRequest,
+      Map<String, FieldType> headerFields)
+      throws Exception {
+    var response = SpringUtils.catchForwardingError(adcRequest);
+    var filter = new FieldsFilter(fieldMapper, resourceId);
+    var mapper =
+        AdcJsonDocumentParser.buildTsvMapper(response, responseFilterField, filter, headerFields);
+    return SpringUtils.buildTsvStream(mapper);
+  }
+
+  private Set<String> getRegularSearchRequestedFields(
+      AdcSearchRequest adcSearch, FieldClass fieldClass) {
+    final Set<String> adcFields = adcSearch.isFieldsEmpty() ? Set.of() : adcSearch.getFields();
+    final Set<String> adcIncludeFields =
+        adcSearch.isIncludeFieldsEmpty()
+            ? Set.of()
+            : this.csvConfig.getFields(fieldClass, adcSearch.getIncludeFields());
+    final Set<String> requestedFields = Sets.union(adcFields, adcIncludeFields);
+    return new HashSet<>(
+        requestedFields.isEmpty()
+            ? this.csvConfig.getFieldsAndTypes(fieldClass).keySet()
+            : requestedFields);
+  }
+
+  private Map<String, FieldType> calcFacetsFieldTypes(
+      Map<String, FieldType> allFieldTypes, Set<String> requestedFields) {
+    return allFieldTypes.entrySet().stream()
+        .filter(e -> requestedFields.contains(e.getKey()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  private Map<String, FieldType> calcFacetsFieldTypes(AdcSearchRequest request, FieldClass fieldClass) {
+    var requestedFields = getRegularSearchRequestedFields(request, fieldClass);
+    Map<String, FieldType> allFields = this.csvConfig.getFieldsAndTypes(fieldClass);
+    return calcFacetsFieldTypes(allFields, requestedFields);
   }
 }

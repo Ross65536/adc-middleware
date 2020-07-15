@@ -26,4 +26,5 @@ public final class AdcConstants {
   public static final String REARRANGEMENT_RESPONSE_FILTER_FIELD = "Rearrangement";
   public static final String ADC_INFO = "Info";
   public static final String ADC_FACETS = "Facet";
+  public static final String ADC_FIELD_SEPERATOR = ".";
 }

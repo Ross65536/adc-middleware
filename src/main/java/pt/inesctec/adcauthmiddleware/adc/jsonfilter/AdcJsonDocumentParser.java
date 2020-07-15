@@ -7,9 +7,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
+import java.util.Set;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.http.Json;
 
 public class AdcJsonDocumentParser {
@@ -79,6 +82,15 @@ public class AdcJsonDocumentParser {
   public static StreamingResponseBody buildJsonMapper(InputStream response, String mappedField, IFieldsFilter filter) {
     return os -> {
       var jsonWriter = new AdcJsonWriter(os);
+      var mapper = new AdcJsonDocumentParser(response, mappedField, filter, jsonWriter);
+      mapper.process();
+    };
+  }
+
+  public static StreamingResponseBody buildTsvMapper(InputStream response, String mappedField, IFieldsFilter filter, Map<String, FieldType> headerFields) {
+    return os -> {
+
+      var jsonWriter = new AdcTsvWriter(os, headerFields);
       var mapper = new AdcJsonDocumentParser(response, mappedField, filter, jsonWriter);
       mapper.process();
     };

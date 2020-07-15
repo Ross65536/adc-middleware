@@ -65,6 +65,11 @@ public class AdcSearchRequest {
     this.format = format;
   }
 
+  @JsonIgnore
+  public void unsetFormat() {
+    this.format = null;
+  }
+
   public String getFacets() {
     return facets;
   }
