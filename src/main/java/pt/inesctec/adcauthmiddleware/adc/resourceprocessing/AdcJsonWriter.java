@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware.adc.jsonfilter;
+package pt.inesctec.adcauthmiddleware.adc.resourceprocessing;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonGenerator;
