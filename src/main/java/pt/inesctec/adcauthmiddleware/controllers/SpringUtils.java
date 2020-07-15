@@ -80,6 +80,11 @@ public final class SpringUtils {
     return SpringUtils.buildJsonStream((OutputStream os) -> IOUtils.copy(is, os));
   }
 
+  public static ResponseEntity<StreamingResponseBody> buildTsvStream(
+      StreamingResponseBody streamer) {
+    return ResponseEntity.ok().header("Content-Type","text/tab-separated-values").body(streamer);
+  }
+
   private static String errorToJson(int statusCode, String msg) {
     Map<String, Object> error = buildStatusMessage(statusCode, msg);
 

@@ -82,7 +82,7 @@ public class CsvConfig {
         .flatMap(Collection::stream);
   }
 
-  public Map<String, FieldType> getFields(FieldClass fieldClass) {
+  public Map<String, FieldType> getFieldsAndTypes(FieldClass fieldClass) {
     return getAllClassFields(fieldClass)
         .collect(Collectors.toMap(CsvField::getField, CsvField::getFieldType));
   }

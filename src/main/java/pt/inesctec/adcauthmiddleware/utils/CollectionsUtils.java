@@ -98,4 +98,8 @@ public final class CollectionsUtils {
 
     return Collections.unmodifiableSet(set);
   }
+
+  public static <K, V> void stripNestedMaps(Map<K, V> map) {
+    map.entrySet().removeIf(e -> e.getValue() instanceof Map);
+  }
 }
