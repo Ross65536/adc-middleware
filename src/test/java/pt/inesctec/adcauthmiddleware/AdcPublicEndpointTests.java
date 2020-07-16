@@ -1,16 +1,14 @@
 package pt.inesctec.adcauthmiddleware;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static pt.inesctec.adcauthmiddleware.utils.WireMocker.wireGetJson;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.utils.Pair;
 import pt.inesctec.adcauthmiddleware.utils.TestCollections;
 import pt.inesctec.adcauthmiddleware.utils.TestConstants;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static pt.inesctec.adcauthmiddleware.utils.WireMocker.wireGetJson;
 
 class AdcPublicEndpointTests extends TestBase {
 

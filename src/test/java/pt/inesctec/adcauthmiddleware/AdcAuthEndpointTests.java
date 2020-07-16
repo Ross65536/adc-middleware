@@ -1359,4 +1359,56 @@ public class AdcAuthEndpointTests extends TestBase {
 
     assertThat(actual).isEqualTo(ModelFactory.buildFacetsDocumentWithInfo(facet));
   }
+
+  @Test
+  public void postEndpointsErrorValidation() {
+
+    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), "invalid json \';>,{", 400);
+
+    var request = TestCollections.mapMerge(
+        ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD),
+        ModelFactory.buildAdcFields(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD)
+    );
+    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
+
+    request = TestCollections.mapMerge(
+        ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD),
+        ModelFactory.buildAdcIncludeFields("miairr")
+    );
+    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
+
+    request = ModelFactory.buildAdcIncludeFields("xyz029");
+    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 400);
+
+    request = Map.of("fields", "invalid_schema");
+    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 400);
+
+    String invalidField = "invalid_field_xyz2345";
+    request = ModelFactory.buildAdcFacets(invalidField);
+    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
+
+    request = ModelFactory.buildAdcFields(invalidField);
+    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
+
+    request = ModelFactory.buildAdcFilters(ModelFactory.buildSimpleFilter("=", invalidField, "1"));
+    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
+
+    // invalid filter's value type
+    request = ModelFactory.buildAdcFilters(ModelFactory.buildSimpleFilter("contains", "repertoire_id", 1));
+    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 400);
+
+    // incompatible field type as specified in the CSV and the provided type
+    request = ModelFactory.buildAdcFilters(ModelFactory.buildSimpleFilter("=", "data_processing.boolo", "1"));
+    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
+
+    request = ModelFactory.buildTsvFormat();
+    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
+
+    request = TestCollections.mapMerge(
+        ModelFactory.buildTsvFormat(),
+        ModelFactory.buildAdcFacets(TestConstants.REARRANGEMENT_PRIVATE_FIELD)
+    );
+    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT), request, 422);
+
+  }
 }

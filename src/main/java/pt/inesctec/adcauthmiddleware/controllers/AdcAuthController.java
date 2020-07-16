@@ -472,34 +472,19 @@ public class AdcAuthController {
               + " are blacklisted");
     }
 
+    final boolean isTsv = !adcSearch.isJsonFormat();
+    if (isTsv && !tsvEnabled) {
+      throw SpringUtils.buildHttpException(
+          HttpStatus.UNPROCESSABLE_ENTITY, "TSV format not enabled for this endpoint");
+    }
+
     var fieldTypes = this.csvConfig.getFieldsAndTypes(fieldClass);
+    var requestedFields = getRegularSearchRequestedFields(adcSearch, FieldClass.REARRANGEMENT);
     try {
-      AdcSearchRequest.validate(adcSearch, fieldTypes);
+      AdcSearchRequest.validate(adcSearch, fieldTypes, requestedFields);
     } catch (AdcException e) {
       throw SpringUtils.buildHttpException(
           HttpStatus.UNPROCESSABLE_ENTITY, "Invalid input JSON: " + e.getMessage());
-    }
-
-    final boolean isTsv = !adcSearch.isJsonFormat();
-    if (isTsv) {
-      if (!tsvEnabled) {
-        throw SpringUtils.buildHttpException(
-            HttpStatus.UNPROCESSABLE_ENTITY, "TSV format not enabled for this endpoint");
-      }
-
-      if (adcSearch.isFacetsSearch()) {
-        throw SpringUtils.buildHttpException(
-            HttpStatus.UNPROCESSABLE_ENTITY, "can't return TSV format for facets");
-      }
-
-      var requestedFields = getRegularSearchRequestedFields(adcSearch, FieldClass.REARRANGEMENT);
-      for (var field : requestedFields) {
-        if (field.contains(AdcConstants.ADC_FIELD_SEPERATOR)) {
-          throw SpringUtils.buildHttpException(
-              HttpStatus.UNPROCESSABLE_ENTITY,
-              String.format("TSV: The field %s requested cannot be a nested document", field));
-        }
-      }
     }
   }
 
@@ -566,7 +551,8 @@ public class AdcAuthController {
             : requestedFields);
   }
 
-  private Map<String, FieldType> calcFacetsFieldTypes(AdcSearchRequest request, FieldClass fieldClass) {
+  private Map<String, FieldType> calcFacetsFieldTypes(
+      AdcSearchRequest request, FieldClass fieldClass) {
     var requestedFields = getRegularSearchRequestedFields(request, fieldClass);
     Map<String, FieldType> allFields = this.csvConfig.getFieldsAndTypes(fieldClass);
     return CollectionsUtils.intersectMapWithSet(allFields, requestedFields);

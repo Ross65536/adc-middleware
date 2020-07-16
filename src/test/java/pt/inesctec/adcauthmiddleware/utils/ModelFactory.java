@@ -177,4 +177,8 @@ public class ModelFactory {
   public static Map<String, Object> buildAndFilter(Map<String, Object>... filters) {
     return Map.of("op", "and", "content", List.of(filters));
   }
+
+  public static Map<String, Object> buildTsvFormat() {
+    return Map.of("format", "tsv");
+  }
 }
