@@ -522,6 +522,15 @@ would make the backend return an empty `Facet` response.
 
 If there are values for the array sent in the `in` operator the ids **MUST** be matched against the response, otherwise an information leak is created. 
 
+### TSV format
+
+TSV format is supported for the `POST /v1/rearrangement` endpoint.
+
+The user's requested fields cannot be nested documents/objects (in the default CSV configuration no rearrangement fields are nested objects). 
+
+TSV support is implemented in the middleware itself by translating JSON to TSV.
+ 
+
 ### Adding OpenID Connect third-party Identity Providers
 
 1. Login to keycloak's admin panel.
