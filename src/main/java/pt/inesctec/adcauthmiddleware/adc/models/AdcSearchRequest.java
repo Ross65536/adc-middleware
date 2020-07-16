@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.AdcFilter;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.LogicalFilter;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.PrimitiveListContent;
@@ -23,6 +24,7 @@ public class AdcSearchRequest {
   private Long size;
   private String format;
   private String facets;
+
   @JsonProperty("include_fields")
   private IncludeField includeFields;
 
@@ -130,7 +132,10 @@ public class AdcSearchRequest {
     this.filters = filters;
   }
 
-  public static void validate(AdcSearchRequest adcSearch, Map<String, FieldType> validFieldTypes)
+  public static void validate(
+      AdcSearchRequest adcSearch,
+      Map<String, FieldType> validFieldTypes,
+      Set<String> tsvRequestedFields)
       throws AdcException {
     var fields = adcSearch.getFields();
     if (fields != null && adcSearch.getFacets() != null) {
@@ -155,6 +160,20 @@ public class AdcSearchRequest {
 
     if (adcSearch.filters != null) {
       adcSearch.filters.validate("filters", validFieldTypes);
+    }
+
+    final boolean isTsv = !adcSearch.isJsonFormat();
+    if (isTsv) {
+      if (adcSearch.isFacetsSearch()) {
+        throw new AdcException("can't return TSV format for facets");
+      }
+
+      for (var field : tsvRequestedFields) {
+        if (field.contains(AdcConstants.ADC_FIELD_SEPERATOR)) {
+          throw new AdcException(
+              String.format("TSV: The field %s requested cannot be a nested document", field));
+        }
+      }
     }
   }
 

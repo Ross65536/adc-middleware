@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -29,10 +28,6 @@ public final class CollectionsUtils {
     return "["
         + list.stream().map(e -> String.format("'%s'", e)).collect(Collectors.joining(", "))
         + "]";
-  }
-
-  public static <T> T[] toArray(List<T> list) {
-    return (T[]) list.toArray();
   }
 
   public static <T> void assertList(Iterable<T> list, Function<T, Boolean> checker, String errorMsg)
