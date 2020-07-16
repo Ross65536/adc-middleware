@@ -61,7 +61,7 @@ Example deployment for testing in localhost.
 3. Configure keycloak:
 
   Keycloak admin login page is now accessible at `http://localhost/auth`. Regular user login at `http://localhost/auth/realms/master/account`.
-  Then see below how to [configure keycloak for first use](./README.md#Keycloak%20Configuration).
+  Then see below how to [configure keycloak for first use](./README.md#keycloak-configuration).
   Make note of the generated client secret (`$MIDDLEWARE_UMA_CLIENT_SECRET`) for the created `adc-middleware` client.
   You also need to create an additional client in the Keycloak's `Clients` side bar tab, load (import) and save the client from the file `./example/config/keycloak/front-end.json`.
 
@@ -153,7 +153,7 @@ docker-compose --file docker-compose.dev.yml up keycloak
 
 Keycloak is now hosted on `http://localhost:8082`.
 
-Then see [above how to configure keycloak](./README.md#Keycloak%20Configuration).
+Then see [above how to configure keycloak](./README.md#keycloak-configuration).
 
 
 #### To install, build and run for development:
@@ -234,7 +234,7 @@ To run style checker run:
 Dockerhub has setup a hook to automatically pull and build images from repository commits that are tagged like `v1.0.1` using semantic versioning.
 
 ```shell script
-git tag -a v<VERSION> -m <MESSAGE> # tak latest commit
+git tag -a v<VERSION> -m <MESSAGE> # tag latest commit
 git push origin --tags # This should trigger a build in dockerhub
 ```
 
@@ -442,7 +442,7 @@ Will modify the request to before sending it to the repository:
     },
     "from": 5,
     "size": 10,
-    "facets": "study.study_id"
+    "facets": "study.study_id" // For rearrangements the field is "repertoire_id"
 }
 ```
 
@@ -451,7 +451,7 @@ The middleware expects a minimal facets response of the like:
 {
     "Facet": [
         {
-            "study.study_id": "s1", // string
+            "study.study_id": "s1", // string. For rearrangements the field is "repertoire_id"
             "count": 130 // integer
         },
         ...
