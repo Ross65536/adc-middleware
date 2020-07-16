@@ -2,9 +2,13 @@ package pt.inesctec.adcauthmiddleware;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvParser;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.Sets;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1045,6 +1049,58 @@ public class AdcAuthEndpointTests extends TestBase {
   }
 
   @Test
+  public void rearrangementSearchTsv() throws IOException {
+    var repertoireId1 =
+        TestCollections.getString(
+            this.firstRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var repertoireId2 =
+        TestCollections.getString(
+            this.secondRepertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+    var rearrangementFields =
+        Set.of(
+            AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+            AdcConstants.REARRANGEMENT_REARRANGEMENT_ID_FIELD,
+            "sequence");
+
+    var repositoryRequest = ModelFactory.buildAdcFields(rearrangementFields);
+    var userRequest = TestCollections.mapMerge(repositoryRequest, ModelFactory.buildTsvFormat());
+
+    Map<String, Object> rearrangement1 = ModelFactory.buildRearrangement(repertoireId1, "1");
+    Map<String, Object> rearrangement2 = ModelFactory.buildRearrangement(repertoireId2, "2");
+    var rearrangementResponse =
+        ModelFactory.buildRearrangementsDocumentWithInfo(rearrangement1, rearrangement2);
+
+    WireMocker.wirePostJson(
+        backendMock,
+        TestConstants.REARRANGEMENT_PATH,
+        200,
+        rearrangementResponse,
+        repositoryRequest);
+
+    var token =
+        UmaWireMocker.wireTokenIntrospection(
+            umaMock,
+            ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES),
+            ModelFactory.buildUmaResource(
+                this.secondRepertoireUmaId, TestConstants.UMA_ALL_SCOPES));
+
+    var actual =
+        this.requests.postJsonPlain(
+            this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT),
+            userRequest,
+            200,
+            token);
+
+    var actualRearrangements = parseTsv(actual);
+
+    assertThat(actualRearrangements)
+        .isEqualTo(
+            List.of(
+                TestCollections.mapSubset(rearrangement1, rearrangementFields),
+                TestCollections.mapSubset(rearrangement2, rearrangementFields)));
+  }
+
+  @Test
   public void rearrangementSearchAllAccessSameRepertoire() {
     var repertoireId =
         TestCollections.getString(
@@ -1363,52 +1419,86 @@ public class AdcAuthEndpointTests extends TestBase {
   @Test
   public void postEndpointsErrorValidation() {
 
-    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), "invalid json \';>,{", 400);
+    this.requests.postJson(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT),
+        "invalid json \';>,{",
+        400);
 
-    var request = TestCollections.mapMerge(
-        ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD),
-        ModelFactory.buildAdcFields(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD)
-    );
-    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
+    var request =
+        TestCollections.mapMerge(
+            ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD),
+            ModelFactory.buildAdcFields(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD));
+    this.requests.postJson(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
 
-    request = TestCollections.mapMerge(
-        ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD),
-        ModelFactory.buildAdcIncludeFields("miairr")
-    );
-    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
+    request =
+        TestCollections.mapMerge(
+            ModelFactory.buildAdcFacets(TestConstants.REPERTOIRE_PRIVATE_SEQUENCE_FIELD),
+            ModelFactory.buildAdcIncludeFields("miairr"));
+    this.requests.postJson(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
 
     request = ModelFactory.buildAdcIncludeFields("xyz029");
-    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 400);
+    this.requests.postJson(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 400);
 
     request = Map.of("fields", "invalid_schema");
-    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 400);
+    this.requests.postJson(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 400);
 
     String invalidField = "invalid_field_xyz2345";
     request = ModelFactory.buildAdcFacets(invalidField);
-    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
+    this.requests.postJson(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
 
     request = ModelFactory.buildAdcFields(invalidField);
-    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
+    this.requests.postJson(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
 
     request = ModelFactory.buildAdcFilters(ModelFactory.buildSimpleFilter("=", invalidField, "1"));
-    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
+    this.requests.postJson(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
 
     // invalid filter's value type
-    request = ModelFactory.buildAdcFilters(ModelFactory.buildSimpleFilter("contains", "repertoire_id", 1));
-    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 400);
+    request =
+        ModelFactory.buildAdcFilters(
+            ModelFactory.buildSimpleFilter("contains", "repertoire_id", 1));
+    this.requests.postJson(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 400);
 
     // incompatible field type as specified in the CSV and the provided type
-    request = ModelFactory.buildAdcFilters(ModelFactory.buildSimpleFilter("=", "data_processing.boolo", "1"));
-    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
+    request =
+        ModelFactory.buildAdcFilters(
+            ModelFactory.buildSimpleFilter("=", "data_processing.boolo", "1"));
+    this.requests.postJson(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
 
     request = ModelFactory.buildTsvFormat();
-    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
+    this.requests.postJson(
+        this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 422);
 
-    request = TestCollections.mapMerge(
-        ModelFactory.buildTsvFormat(),
-        ModelFactory.buildAdcFacets(TestConstants.REARRANGEMENT_PRIVATE_FIELD)
-    );
-    this.requests.postJson(this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT), request, 422);
+    request =
+        TestCollections.mapMerge(
+            ModelFactory.buildTsvFormat(),
+            ModelFactory.buildAdcFacets(TestConstants.REARRANGEMENT_PRIVATE_FIELD));
+    this.requests.postJson(
+        this.buildMiddlewareUrl(TestConstants.REARRANGEMENT_PATH_FRAGMENT), request, 422);
+  }
 
+  private static List<Map<String, Object>> parseTsv(String actual) throws IOException {
+    var schema = CsvSchema.builder();
+    schema.setColumnSeparator('\t');
+    schema.setLineSeparator('\n');
+    schema.setArrayElementSeparator(",");
+    return (List<Map<String, Object>>)
+        (List<?>)
+            new CsvMapper()
+                .enable(CsvParser.Feature.IGNORE_TRAILING_UNMAPPABLE)
+                .enable(CsvParser.Feature.INSERT_NULLS_FOR_MISSING_COLUMNS)
+                .enable(CsvParser.Feature.TRIM_SPACES)
+                .readerFor(Map.class)
+                .with(schema.build().withHeader())
+                .readValues(actual)
+                .readAll();
   }
 }

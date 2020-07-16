@@ -57,12 +57,7 @@ public class Requests {
 
   public void postJsonTicket(String url, String json, String expectedTicket) {
     HttpHeaders headers = new HttpHeaders();
-    headers.set(WireMocker.CONTENT_TYPE_HEADER, WireMocker.JSON_MIME);
-    headers.set(WireMocker.ACCEPT_HEADER, WireMocker.JSON_MIME);
-    HttpEntity<String> entity = new HttpEntity<>(json, headers);
-
-    var restEntity = this.restTemplate.postForEntity(url, entity, String.class);
-    assertThat(restEntity.getStatusCodeValue()).isEqualTo(401);
+    ResponseEntity<String> restEntity = postJsonPlain(url, json, 401, headers);
 
     checkTicket(expectedTicket, restEntity);
   }
@@ -88,14 +83,24 @@ public class Requests {
     return postJson(url, TestJson.toJson(request), expectedStatus, headers);
   }
 
+  public String postJsonPlain(String url, Object request, int expectedStatus, String token) {
+    var headers = buildAuthorizationHeader(token);
+    return postJsonPlain(url, TestJson.toJson(request), expectedStatus, headers).getBody();
+  }
+
   private Map<String, Object> postJson(String url, String json, int expectedStatus, HttpHeaders headers) {
+    ResponseEntity<String> restEntity = postJsonPlain(url, json, expectedStatus, headers);
+    return TestJson.fromJson(restEntity.getBody(), Map.class);
+  }
+
+  private ResponseEntity<String> postJsonPlain(String url, String json, int expectedStatus, HttpHeaders headers) {
     headers.set(WireMocker.CONTENT_TYPE_HEADER, WireMocker.JSON_MIME);
     headers.set(WireMocker.ACCEPT_HEADER, WireMocker.JSON_MIME);
     HttpEntity<String> entity = new HttpEntity<>(json, headers);
 
     var restEntity = this.restTemplate.postForEntity(url, entity, String.class);
     assertThat(restEntity.getStatusCodeValue()).isEqualTo(expectedStatus);
-    return TestJson.fromJson(restEntity.getBody(), Map.class);
+    return restEntity;
   }
 
 
