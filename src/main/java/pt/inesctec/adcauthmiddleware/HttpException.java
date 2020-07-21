@@ -2,6 +2,9 @@ package pt.inesctec.adcauthmiddleware;
 
 import java.util.Optional;
 
+/**
+ * Generic exception that carries HTTP status code, error message and content type.
+ */
 public class HttpException extends Exception {
   public final int statusCode;
   public final String errorMsg;

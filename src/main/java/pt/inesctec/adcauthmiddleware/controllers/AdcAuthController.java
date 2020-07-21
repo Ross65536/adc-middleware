@@ -56,6 +56,9 @@ import pt.inesctec.adcauthmiddleware.utils.Delayer;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingProducer;
 
+/**
+ * class responsible for the protected endpoints.
+ */
 @RestController
 public class AdcAuthController {
   private static Set<String> EmptySet = ImmutableSet.of();
@@ -83,6 +86,11 @@ public class AdcAuthController {
   private static final Pattern JsonErrorPattern =
       Pattern.compile(".*line: (\\d+), column: (\\d+).*");
 
+  /**
+   * Handles and logs errors on invalid user JSON body (on POST endpoints) such as invalid syntax or some invalid schema.
+   * @param e exception
+   * @return error message
+   */
   @ExceptionHandler(HttpMessageNotReadableException.class)
   public ResponseEntity<String> badInputHandler(HttpMessageNotReadableException e) {
     Logger.info("User input JSON error: {}", e.getMessage());
@@ -105,12 +113,22 @@ public class AdcAuthController {
     return SpringUtils.buildJsonErrorResponse(HttpStatus.BAD_REQUEST, "Invalid input JSON" + msg);
   }
 
+  /**
+   * Used when an application wants to return a specific error code.
+   * @param e exception
+   * @return error code + message
+   */
   @ExceptionHandler(HttpException.class)
   public ResponseEntity<String> httpExceptionForward(HttpException e) {
     Logger.debug("Stacktrace: ", e);
     return SpringUtils.buildResponse(e.statusCode, e.errorMsg, e.contentType.orElse(null));
   }
 
+  /**
+   * Not actually a logic error. Returns the UMA permissions ticket to the user.
+   * @param e exception
+   * @return 401 + permissions ticket
+   */
   @ExceptionHandler(TicketException.class)
   public ResponseEntity<String> ticketHandler(TicketException e) {
     var headers = ImmutableMap.of(HttpHeaders.WWW_AUTHENTICATE, e.buildAuthenticateHeader());
@@ -118,6 +136,11 @@ public class AdcAuthController {
         HttpStatus.UNAUTHORIZED, "UMA permissions ticket emitted", headers);
   }
 
+  /**
+   * Logs errors related to the UMA flow (UMA client and UMA flow).
+   * @param e Exception
+   * @return 401 status code
+   */
   @ExceptionHandler(UmaFlowException.class)
   public ResponseEntity<String> umaFlowHandler(Exception e) {
     Logger.info("Uma flow access error {}", e.getMessage());
@@ -126,12 +149,22 @@ public class AdcAuthController {
     return SpringUtils.buildJsonErrorResponse(HttpStatus.UNAUTHORIZED, null);
   }
 
+  /**
+   * Logs synchronization endpoint user errors.
+   * @param e exception
+   * @return 401 status code
+   */
   @ExceptionHandler(SyncException.class)
   public ResponseEntity<String> synchronizeErrorHandler(SyncException e) {
     Logger.info("Synchronize: {}", e.getMessage());
     return SpringUtils.buildJsonErrorResponse(HttpStatus.UNAUTHORIZED, null);
   }
 
+  /**
+   * Logs unhandled internal exceptions. Errors here can indicate a logic error or bug.
+   * @param e exception
+   * @return 401 status code
+   */
   @ExceptionHandler(Throwable.class)
   public ResponseEntity<String> internalErrorHandler(Exception e) {
     Logger.error("Internal error occurred: {}", e.getMessage());
@@ -139,6 +172,13 @@ public class AdcAuthController {
     return SpringUtils.buildJsonErrorResponse(HttpStatus.UNAUTHORIZED, null);
   }
 
+  /**
+   * Protected by UMA. Individual repertoire. Part of ADC v1.
+   * @param request user request
+   * @param repertoireId repertoire ID
+   * @return the filtered repertoire
+   * @throws Exception if user does not have permissions or some other error occurs
+   */
   @RequestMapping(
       value = "/repertoire/{repertoireId}",
       method = RequestMethod.GET,
@@ -169,6 +209,13 @@ public class AdcAuthController {
         () -> this.adcClient.getRepertoireAsStream(repertoireId));
   }
 
+  /**
+   * Protected by UMA. Individual rearrangement. Part of ADC v1.
+   * @param request user request
+   * @param rearrangementId rearrangement ID
+   * @return the filtered rearrangement
+   * @throws Exception if user does not have permissions or some other error occurs
+   */
   @RequestMapping(
       value = "/rearrangement/{rearrangementId}",
       method = RequestMethod.GET,
@@ -200,6 +247,14 @@ public class AdcAuthController {
         () -> this.adcClient.getRearrangementAsStream(rearrangementId));
   }
 
+  /**
+   * Protected by UMA. Repertoires search. Part of ADC v1.
+   * JSON processed in streaming mode. Can return resource public fields if not given access to a resource.
+   *
+   * @param request user request
+   * @return the filtered repertoires stream
+   * @throws Exception if some error occurs
+   */
   @RequestMapping(
       value = "/repertoire",
       method = RequestMethod.POST,
@@ -230,7 +285,7 @@ public class AdcAuthController {
     }
 
     var fieldMapper =
-        this.adcSearchFlow(
+        this.adcRegularSearchSetup(
             adcSearch, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, FieldClass.REPERTOIRE, umaResources);
     return buildFilteredJsonResponse(
         AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
@@ -239,6 +294,14 @@ public class AdcAuthController {
         () -> this.adcClient.searchRepertoiresAsStream(adcSearch));
   }
 
+  /**
+   * Protected by UMA. Rearrangements search. Part of ADC v1.
+   * JSON processed in streaming mode. Can return resource public fields if not given access to a resource.
+   *
+   * @param request user request
+   * @return the filtered rearrangements stream
+   * @throws Exception if some error occurs
+   */
   @RequestMapping(
       value = "/rearrangement",
       method = RequestMethod.POST,
@@ -272,7 +335,7 @@ public class AdcAuthController {
     }
 
     var fieldMapper =
-        this.adcSearchFlow(
+        this.adcRegularSearchSetup(
             adcSearch,
             AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
             FieldClass.REARRANGEMENT,
@@ -286,7 +349,7 @@ public class AdcAuthController {
           () -> this.adcClient.searchRearrangementsAsStream(adcSearch));
     }
 
-    var requestedFieldTypes = calcFacetsFieldTypes(adcSearch, FieldClass.REARRANGEMENT);
+    var requestedFieldTypes = getRegularSearchRequestedFieldsAndTypes(adcSearch, FieldClass.REARRANGEMENT);
     return buildFilteredTsvResponse(
         AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
         AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
@@ -295,6 +358,11 @@ public class AdcAuthController {
         requestedFieldTypes);
   }
 
+  /**
+   * The public fields endpoint. Not part of ADC v1. Unprotected. Extension of the middleware.
+   *
+   * @return the public fields for each resource type
+   */
   @RequestMapping(value = "/public_fields", method = RequestMethod.GET)
   public Map<FieldClass, Set<String>> publicFields() {
 
@@ -307,6 +375,15 @@ public class AdcAuthController {
     return map;
   }
 
+  /**
+   * The synchronize endpoint. Not part of ADC v1. Protected by password set in the configuration file. Extension of the middleware.
+   * Performs state synchronization between the repository and the UMA authorization server and this middleware's DB.
+   * Resets the delays pool request times.
+   *
+   * @param request the user request
+   * @return OK on successfull synchronization or an error code when a process(es) in the synchronization fails.
+   * @throws Exception on user errors such as invalid password or some internal errors.
+   */
   @RequestMapping(value = "/synchronize", method = RequestMethod.POST)
   public Map<String, Object> synchronize(HttpServletRequest request) throws Exception {
     String bearer = SpringUtils.getBearer(request);
@@ -330,18 +407,40 @@ public class AdcAuthController {
     return SpringUtils.buildStatusMessage(200, null);
   }
 
-  private List<String> getRearrangementsRepertoireIds(AdcSearchRequest idsQuery) throws Exception {
+  /**
+   * Function to obtain the unique study UMA IDs that correspond to the user's repertoire ADC query search.
+   * @param idsQuery the ADC query
+   * @return the UMA IDs
+   * @throws Exception on error
+   */
+  private Set<String> getRearrangementsRepertoireIds(AdcSearchRequest idsQuery) throws Exception {
     return this.adcClient.getRearrangementRepertoireIds(idsQuery).stream()
         .map(id -> this.dbRepository.getRepertoireUmaId(id))
-        .collect(Collectors.toList());
+        .collect(Collectors.toSet());
   }
 
-  private List<String> getRepertoireStudyIds(AdcSearchRequest idsQuery) throws Exception {
+  /**
+   * Function to obtain the unique study UMA IDs that correspond to the user's rearrangement ADC query search.
+   * @param idsQuery the ADC query
+   * @return the UMA IDs
+   * @throws Exception on error
+   */
+  private Set<String> getRepertoireStudyIds(AdcSearchRequest idsQuery) throws Exception {
     return this.adcClient.getRepertoireStudyIds(idsQuery).stream()
         .map(id -> this.dbRepository.getStudyUmaId(id))
-        .collect(Collectors.toList());
+        .collect(Collectors.toSet());
   }
 
+  /**
+   * The common UMA flow for POST endpoints. Emits a permissions ticket or returns the introspected RPT token resources.
+   * @param request the user request
+   * @param adcSearch the user ADC query
+   * @param umaIdsProducer the producer that will return the resources matching the user query
+   * @param delayer the delayer to make all requests take the same time.
+   * @param umaScopes the scopes set for the request (for emitting permissions ticket).
+   * @return the introspected RPT resources.
+   * @throws Exception when emitting a permission ticket or an internal error occurs.
+   */
   private List<UmaResource> adcQueryUmaFlow(
       HttpServletRequest request,
       AdcSearchRequest adcSearch,
@@ -351,7 +450,7 @@ public class AdcAuthController {
       throws Exception {
     var startTime = LocalDateTime.now();
 
-    // empty scopes means public access
+    // empty scopes means public access, no UMA flow followed
     if (umaScopes.isEmpty()) {
       return EmptyResources;
     }
@@ -372,6 +471,13 @@ public class AdcAuthController {
     throw this.umaFlow.noRptToken(umaIds, umaScopes);
   }
 
+  /**
+   * Returns the UMA scopes for the fields that are being requested in the ADC query. The considered parameters are: "facets", "fields", "include_fields", and "filters". Filters operators can reference a field for the search and these are the fields considered.
+   *
+   * @param adcSearch the ADC query
+   * @param fieldClass the resource type
+   * @return the UMA scopes.
+   */
   private Set<String> getAdcRequestUmaScopes(AdcSearchRequest adcSearch, FieldClass fieldClass) {
     final Set<String> requestedFields =
         adcSearch.isFacetsSearch()
@@ -384,6 +490,17 @@ public class AdcAuthController {
     return this.csvConfig.getUmaScopes(fieldClass, allConsideredFields);
   }
 
+  /**
+   * Core facets request.
+   *
+   * @param adcSearch the user's ADC query.
+   * @param resourceId the resource's ID field
+   * @param adcRequest the request function
+   * @param resourceIds the permitted list of resource IDs for facets.
+   * @param restrictedAccess wheter the request made is protected or public.
+   * @return the streamed facets.
+   * @throws Exception on error.
+   */
   private ResponseEntity<StreamingResponseBody> facetsRequest(
       AdcSearchRequest adcSearch,
       String resourceId,
@@ -406,6 +523,14 @@ public class AdcAuthController {
     return SpringUtils.buildJsonStream(mapper);
   }
 
+  /**
+   * From the UMA resource list and scopes obtain the list of resource IDs that can be safely processed for the resource type.
+   *
+   * @param umaResources the UMA resources and scopes.
+   * @param umaScopes the UMA scopes that the user must have access to for the resource, otherwise the resource is not considered.
+   * @param umaIdGetter function that returns the collection of resource IDs given the UMA ID.
+   * @return the filtered collection of resource IDs.
+   */
   private List<String> calcValidFacetsResources(
       Collection<UmaResource> umaResources,
       Set<String> umaScopes,
@@ -420,7 +545,16 @@ public class AdcAuthController {
         .collect(Collectors.toList());
   }
 
-  private Function<String, Set<String>> adcSearchFlow(
+  /**
+   * Setup the ADC request and build the mapper for the regular search.
+   *
+   * @param adcSearch the user's ADC query. Can be modified by reference.
+   * @param resourceId the resource's ID field.
+   * @param fieldClass the resource type.
+   * @param umaResources the UMA resources and scopes.
+   * @return the UMA ID to permitted fields mapper
+   */
+  private Function<String, Set<String>> adcRegularSearchSetup(
       AdcSearchRequest adcSearch, // will be modified by reference
       String resourceId,
       FieldClass fieldClass,
@@ -446,6 +580,13 @@ public class AdcAuthController {
         .andThen(set -> Sets.intersection(set, allRequestedFields));
   }
 
+  /**
+   * Validate that the user's ADC query is semantically correct. Also enforces disabled features as set in the configuration.
+   * @param adcSearch the user's ADC query
+   * @param fieldClass the resource type
+   * @param tsvEnabled whether TSV is enabled for the considered endpoint.
+   * @throws HttpException on validation error
+   */
   private void validateAdcSearch(
       AdcSearchRequest adcSearch, FieldClass fieldClass, boolean tsvEnabled) throws HttpException {
 
@@ -488,8 +629,17 @@ public class AdcAuthController {
     }
   }
 
+  /**
+   * Build mapper function from UMA ID to the permitted fields for each resource for the user, given by the UMA resource list.
+   * If access is not granted for a resource the public fields for the resource type are returned, if there are any.
+   * Used for non-facets regular searches or individual endpoints.
+   *
+   * @param resources the UMA resource list with their scopes
+   * @param fieldClass the resource type
+   * @return the mapper function
+   */
   private Function<String, Set<String>> buildUmaFieldMapper(
-      Collection<UmaResource> resources, FieldClass fieldClass) { // TODO extract into class
+      Collection<UmaResource> resources, FieldClass fieldClass) {
     var validUmaFields =
         resources.stream()
             .collect(
@@ -511,6 +661,16 @@ public class AdcAuthController {
     };
   }
 
+  /**
+   * Build JSON streaming, filtered response.
+   *
+   * @param resourceId the resource's ID fields
+   * @param responseFilterField the response's field where the resources are set
+   * @param fieldMapper the ID to granted fields mapper
+   * @param adcRequest the ADC request producer.
+   * @return streaming response
+   * @throws Exception on error
+   */
   private static ResponseEntity<StreamingResponseBody> buildFilteredJsonResponse(
       String resourceId,
       String responseFilterField,
@@ -523,6 +683,16 @@ public class AdcAuthController {
     return SpringUtils.buildJsonStream(mapper);
   }
 
+  /**
+   * Build TSV streaming, filtered, response
+   * @param resourceId the resource's ID fields
+   * @param responseFilterField the response's field where the resources are set
+   * @param fieldMapper the ID to granted fields mapper
+   * @param adcRequest the ADC request producer.
+   * @param headerFields the TSV header fields which will be the response's first line.
+   * @return streaming response
+   * @throws Exception on error
+   */
   private ResponseEntity<StreamingResponseBody> buildFilteredTsvResponse(
       String resourceId,
       String responseFilterField,
@@ -537,6 +707,14 @@ public class AdcAuthController {
     return SpringUtils.buildTsvStream(mapper);
   }
 
+  /**
+   * Get the fields that correspond to the ADC query, non-facets. Facets presence should be checked previously.
+   * Only the "fields" and "include_fields" parameters are considered. If both empty all of the resource's fields are returned.
+   *
+   * @param adcSearch the user's ADC query
+   * @param fieldClass the resource type
+   * @return the set of fields that were requested.
+   */
   private Set<String> getRegularSearchRequestedFields(
       AdcSearchRequest adcSearch, FieldClass fieldClass) {
     final Set<String> adcFields = adcSearch.isFieldsEmpty() ? Set.of() : adcSearch.getFields();
@@ -551,7 +729,14 @@ public class AdcAuthController {
             : requestedFields);
   }
 
-  private Map<String, FieldType> calcFacetsFieldTypes(
+  /**
+   * Obtain the fields and their types from the user's regular ADC request. Should check previously that the request is not facets.
+   *
+   * @param request The user's ADC query
+   * @param fieldClass the resource type
+   * @return the fields and types
+   */
+  private Map<String, FieldType> getRegularSearchRequestedFieldsAndTypes(
       AdcSearchRequest request, FieldClass fieldClass) {
     var requestedFields = getRegularSearchRequestedFields(request, fieldClass);
     Map<String, FieldType> allFields = this.csvConfig.getFieldsAndTypes(fieldClass);
