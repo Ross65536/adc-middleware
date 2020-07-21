@@ -7,16 +7,29 @@ import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Class responsible for sleeping the invoking thread if execution time is below the Nth worst case that was recorded in the pool.
+ */
 public class Delayer {
   private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(Delayer.class);
 
   private final SortedMultiset<Duration> durations = TreeMultiset.create();
   private final long maxPoolSize;
 
+  /**
+   * constructor.
+   * @param requestDelaysPoolSize the pool size (parameter N).
+   */
   public Delayer(long requestDelaysPoolSize) {
     this.maxPoolSize = requestDelaysPoolSize;
   }
 
+  /**
+   * Entrypoint to instance. Will calculate the difference between the start time and current time to determine execution time, which will be placed in a pool if it's one of the worst N times. The calling thread will be slept if the execution time is below the Nth worst time in the pool. If the pool is not full the worst execution time in the pool is considered as the threshold.
+   * The pool is a collection of previous execution times.
+   *
+   * @param startTime the start time of the code execution.
+   */
   public void delay(LocalDateTime startTime) {
     if (this.maxPoolSize <= 0) {
       return;
@@ -55,6 +68,9 @@ public class Delayer {
     return durations.firstEntry().getElement();
   }
 
+  /**
+   * Empties the pool.
+   */
   public void reset() {
     synchronized (this) {
       this.durations.clear();
