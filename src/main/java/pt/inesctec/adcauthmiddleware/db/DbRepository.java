@@ -26,6 +26,9 @@ import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
+/**
+ * Responsible for managing, synchronizing the middleware's DB, cache and Keycloak's (or other authorization sercer) DB.
+ */
 @Component
 public class DbRepository {
   private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(DbRepository.class);
@@ -53,6 +56,13 @@ public class DbRepository {
     this.csvConfig = csvConfig;
   }
 
+  /**
+   * Synchronize endpoint entrypoint.
+   * @return true on 100% successful synchronization. On false synchronization may have failed for some resources.
+   * Clears out the middleware's cache.
+   *
+   * @throws Exception on internal error.
+   */
   @CacheEvict(
       cacheNames = {STUDIES_CACHE_NAME, REPERTOIRES_CACHE_NAME, REARRANGEMENTS_CACHE_NAME},
       allEntries = true)
@@ -62,6 +72,11 @@ public class DbRepository {
     }
   }
 
+  /**
+   * Get UMA ID given an ADC Study ID. Cached.
+   * @param studyId the study ID
+   * @return UMA ID. Null if no mapping exists.
+   */
   @Cacheable(value = STUDIES_CACHE_NAME, unless = "#result==null")
   public String getStudyUmaId(String studyId) {
     var study = this.studyRepository.findByStudyId(studyId);
@@ -72,6 +87,11 @@ public class DbRepository {
     return study.getUmaId();
   }
 
+  /**
+   * Get UMA ID given an ADC Repertoire ID. Cached.
+   * @param repertoireId the repertoire ID
+   * @return UMA ID. Null if no mapping exists.
+   */
   @Cacheable(value = REPERTOIRES_CACHE_NAME, unless = "#result==null")
   public String getRepertoireUmaId(String repertoireId) {
     var repertoire = this.repertoireRepository.findByRepertoireId(repertoireId);
@@ -82,6 +102,13 @@ public class DbRepository {
     return repertoire.getStudy().getUmaId();
   }
 
+  /**
+   * Get UMA ID given an ADC Rearrangement ID. Cached.
+   * In contrast to other getters the rearrangement IDs are not backed in the middleware's DB, if cache misses a request is made to the repository to obtain the rearrangement's repertoire ID, which is stored in the DB.
+   *
+   * @param rearrangementId the rearrangement ID
+   * @return UMA ID. Null if no mapping exists.
+   */
   @Cacheable(value = REARRANGEMENTS_CACHE_NAME, unless = "#result==null")
   public String getRearrangementUmaId(String rearrangementId) {
     List<RearrangementIds> rearrangements;
@@ -110,11 +137,22 @@ public class DbRepository {
     return this.getRepertoireUmaId(repertoireId);
   }
 
+  /**
+   * Get ADC study ID given an UMA ID. Not cached.
+   *
+   * @param umaId the UMA ID.
+   * @return study ID. Null if no mapping exists.
+   */
   public String getUmaStudyId(String umaId) {
     var study = this.studyRepository.findByUmaId(umaId);
     return study == null ? null : study.getStudyId();
   }
 
+  /**
+   * Get the set of repertoire IDs given an UMA ID.
+   * @param umaId the UMA ID.
+   * @return repertoire IDs. null if a mapping in the chain does not exist.
+   */
   public Set<String> getUmaRepertoireIds(String umaId) {
     var study = this.studyRepository.findByUmaId(umaId);
     if (study == null) {
@@ -129,6 +167,16 @@ public class DbRepository {
     return repertoires.stream().map(Repertoire::getRepertoireId).collect(Collectors.toSet());
   }
 
+  /**
+   * The synchronize method.
+   * Will request repertoires form the repository to obtain the repertoire IDs and their matching study ID and study titles.
+   * Will delete the DB associations from repertoire to study used previously.
+   * Will create DB associations between the created UMA resource IDs and ADC study IDs, and additionally between the repertoire IDs and study IDs.
+   * Will create, update, "delete" resources in Keycloak as needed.
+   *
+   * @return true on 100% correct synchronization.
+   * @throws Exception on internal error.
+   */
   @Transactional
   protected boolean synchronizeGuts() throws Exception {
     Logger.info("Synchronizing DB and cache");
@@ -165,6 +213,13 @@ public class DbRepository {
     return ok;
   }
 
+  /**
+   * Synchronize repertoire to study DB associations.
+   * Some associations might fail, which will be skipped.
+   *
+   * @param backendRepertoires list of repertoire resources.
+   * @return true on 100% sucessfull synchronization.
+   */
   protected boolean synchronizeRepertoires(List<RepertoireIds> backendRepertoires) {
     boolean ok = true;
 
@@ -185,10 +240,23 @@ public class DbRepository {
     return ok;
   }
 
+  /**
+   * Delete DB associations between repertoire IDs and study IDs.
+   */
   protected void deleteCache() {
     this.repertoireRepository.deleteAll();
   }
 
+  /**
+   * Synchronize the studies state between keycloak, middleware and repository. Will create, update, "delete" UMA resources as needed.
+   * UMA resources are not deleted, instead the resource type is set from "study" to "deleted".
+   * Will also create the UMA ID to study ID DB associations as needed.
+   * Some steps such as deletion or updating might fail, which will be skipped and false returned.
+   *
+   * @param backendStudyMap map with the study IDs and their titles.
+   * @return true on 100% successful synchronization.
+   * @throws Exception on internal error.
+   */
   protected boolean synchronizeStudies(Map<String, String> backendStudyMap) throws Exception {
     boolean ok = true;
 
@@ -213,7 +281,7 @@ public class DbRepository {
     this.studyRepository.flush();
 
     var dbUmaIds = loadDbUmaStudyMapping().keySet();
-    // delete dangling UMA resources
+    // 'delete' dangling UMA resources
     for (String danglingUmaId : Sets.difference(keycloakUmaIds, dbUmaIds)) {
       try {
         var resource = this.umaClient.getResource(danglingUmaId);
@@ -292,7 +360,6 @@ public class DbRepository {
         }
 
         // update resource if scopes are not matching
-
         var updateResources = Sets.union(actualResources, allUmaScopes);
         var updateResource = new UmaRegistrationResource();
         updateResource.setName(resource.getName()); // mandatory by keycloak
@@ -313,12 +380,24 @@ public class DbRepository {
     return ok;
   }
 
+  /**
+   * Get the DB's UMA ID to study ID mapping.
+   *
+   * @return DB's UMA ID to study ID mapping
+   */
   private Map<String, String> loadDbUmaStudyMapping() {
     return this.studyRepository.findAll()
         .stream()
         .collect(Collectors.toMap(Study::getUmaId, Study::getStudyId));
   }
 
+  /**
+   * Save resource in the DB
+   * @param repository the repository
+   * @param resource the resource
+   * @param <T> resource type
+   * @return true on successful save.
+   */
   public static <T> boolean saveResource(CrudRepository<T, ?> repository, T resource) {
     Logger.debug("Saving resource {}", resource);
 
