@@ -12,7 +12,8 @@ import java.util.stream.Collectors;
 
 public final class CollectionsUtils {
   /**
-   * Turns a stream of objects to a map
+   * Turns a stream of objects to a map.
+   *
    * @param stream the source elements
    * @param keyBuilder function to obtain key from element
    * @param valueBuilder function to obtain value from element
@@ -31,7 +32,8 @@ public final class CollectionsUtils {
   }
 
   /**
-   * Returns string representation of a collection
+   * Returns string representation of a collection.
+   *
    * @param list the source collection
    * @param <T> the element type
    * @return the string representation
@@ -47,7 +49,8 @@ public final class CollectionsUtils {
   }
 
   /**
-   * Allows asserting for each element in collection
+   * Allows asserting for each element in collection.
+   *
    * @param list the source collection
    * @param checker the assertion function
    * @param errorMsg error message for exception
@@ -64,7 +67,8 @@ public final class CollectionsUtils {
   }
 
   /**
-   * Checks that the collection contains the specified list of elements
+   * Checks that the collection contains the specified list of elements.
+   *
    * @param list the source collection
    * @param elements list to check against
    * @param <T> element type
@@ -80,6 +84,7 @@ public final class CollectionsUtils {
 
   /**
    * Checks that map contains the specified list of keys.
+   *
    * @param list source map
    * @param fields the keys to check against
    * @param <T> key type
@@ -97,7 +102,8 @@ public final class CollectionsUtils {
   }
 
   /**
-   * Build mutable triple nested map from collection
+   * Build mutable triple nested map from collection.
+   *
    * @param list source collection
    * @param keyOuterFunc outer ket getter from collection element
    * @param keyMidFunc middle key getter from collection element
@@ -132,6 +138,7 @@ public final class CollectionsUtils {
 
   /**
    * Turns list to set. Useful for adding nulls values.
+   *
    * @param values source value list.
    * @param <K> type
    * @return built set
@@ -141,7 +148,8 @@ public final class CollectionsUtils {
   }
 
   /**
-   * Returns copy of of array without front element
+   * Returns copy of of array without front element.
+   *
    * @param elems source array.
    * @param <E> type
    * @return array copy
@@ -152,6 +160,7 @@ public final class CollectionsUtils {
 
   /**
    * Returns set with only one element: null value.
+   *
    * @param <T> set type
    * @return set
    */
@@ -164,6 +173,7 @@ public final class CollectionsUtils {
 
   /**
    * Remove values that are maps from the source map.
+   *
    * @param map source map
    * @param <K> key type
    * @param <V> value type
@@ -173,7 +183,8 @@ public final class CollectionsUtils {
   }
 
   /**
-   * Returns copy of map whose keys match the elements in the set
+   * Returns copy of map whose keys match the elements in the set.
+   *
    * @param allFieldTypes source map
    * @param requestedFields keys to match against
    * @param <K> key type

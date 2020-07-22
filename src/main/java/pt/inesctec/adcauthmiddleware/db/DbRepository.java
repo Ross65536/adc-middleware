@@ -58,9 +58,9 @@ public class DbRepository {
 
   /**
    * Synchronize endpoint entrypoint.
-   * @return true on 100% successful synchronization. On false synchronization may have failed for some resources.
-   * Clears out the middleware's cache.
+   * Clears out the middleware's Redis cache.
    *
+   * @return true on 100% successful synchronization. On false synchronization may have failed for some resources.
    * @throws Exception on internal error.
    */
   @CacheEvict(
@@ -104,7 +104,8 @@ public class DbRepository {
 
   /**
    * Get UMA ID given an ADC Rearrangement ID. Cached.
-   * In contrast to other getters the rearrangement IDs are not backed in the middleware's DB, if cache misses a request is made to the repository to obtain the rearrangement's repertoire ID, which is stored in the DB.
+   * In contrast to other getters the rearrangement IDs are not backed in the middleware's DB,
+   * if cache misses a request is made to the repository to obtain the rearrangement's repertoire ID, which is stored in the DB.
    *
    * @param rearrangementId the rearrangement ID
    * @return UMA ID. Null if no mapping exists.
@@ -392,7 +393,8 @@ public class DbRepository {
   }
 
   /**
-   * Save resource in the DB
+   * Save resource in the DB.
+   *
    * @param repository the repository
    * @param resource the resource
    * @param <T> resource type

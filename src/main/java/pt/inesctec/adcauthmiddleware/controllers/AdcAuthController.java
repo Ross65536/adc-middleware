@@ -472,7 +472,9 @@ public class AdcAuthController {
   }
 
   /**
-   * Returns the UMA scopes for the fields that are being requested in the ADC query. The considered parameters are: "facets", "fields", "include_fields", and "filters". Filters operators can reference a field for the search and these are the fields considered.
+   * Returns the UMA scopes for the fields that are being requested in the ADC query.
+   * The considered parameters are: "facets", "fields", "include_fields", and "filters".
+   * Filters operators can reference a field for the search and these are the fields considered.
    *
    * @param adcSearch the ADC query
    * @param fieldClass the resource type
@@ -684,7 +686,8 @@ public class AdcAuthController {
   }
 
   /**
-   * Build TSV streaming, filtered, response
+   * Build TSV streaming, filtered, response.
+   *
    * @param resourceId the resource's ID fields
    * @param responseFilterField the response's field where the resources are set
    * @param fieldMapper the ID to granted fields mapper
