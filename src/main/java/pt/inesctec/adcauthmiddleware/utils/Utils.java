@@ -11,7 +11,7 @@ public final class Utils {
   private static ValidatorFactory ValidatorFactory = Validation.buildDefaultValidatorFactory();
 
   /**
-   * Join URL parts with '/'
+   * Join URL parts with '/'.
    *
    * @param baseUrl the base url
    * @param pathParts the url parts
@@ -51,9 +51,10 @@ public final class Utils {
   }
 
   /**
-   * Assert argument not null
+   * Assert argument not null.
+   *
    * @param arg the argument
-   * @throws Exception
+   * @throws Exception on error
    */
   public static void assertNotNull(Object arg) throws Exception {
     if (arg == null) {

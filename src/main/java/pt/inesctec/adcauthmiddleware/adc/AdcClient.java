@@ -23,7 +23,7 @@ import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Utils;
 
 /**
- * Client for makings requests to an ADC compliant repository
+ * Client for makings requests to an ADC compliant repository.
  */
 @Component
 public class AdcClient {
@@ -51,7 +51,7 @@ public class AdcClient {
   }
 
   /**
-   * GET /v1/repertoire/:id
+   * GET /v1/repertoire/:id.
    *
    * @param repertoireId the repertoire's ID (repertoire_id)
    * @return repertoire byte stream
@@ -68,7 +68,7 @@ public class AdcClient {
   }
 
   /**
-   * GET /v1/rearrangement/:id
+   * GET /v1/rearrangement/:id.
    *
    * @param rearrangementId the rearrangement's ID (sequence_id)
    * @return rearrangement byte stream
@@ -102,7 +102,7 @@ public class AdcClient {
   }
 
   /**
-   * POST /v1/repertoire
+   * POST /v1/repertoire.
    *
    * @param adcRequest the user's ADC request
    * @return the matching repertoires byte stream
@@ -116,7 +116,7 @@ public class AdcClient {
   }
 
   /**
-   * POST /v1/rearrangement
+   * POST /v1/rearrangement.
    *
    * @param adcRequest the user's ADC request
    * @return the matching rearrangements byte stream

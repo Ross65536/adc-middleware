@@ -25,7 +25,11 @@ public class Delayer {
   }
 
   /**
-   * Entrypoint to instance. Will calculate the difference between the start time and current time to determine execution time, which will be placed in a pool if it's one of the worst N times. The calling thread will be slept if the execution time is below the Nth worst time in the pool. If the pool is not full the worst execution time in the pool is considered as the threshold.
+   * Entrypoint to instance.
+   * Will calculate the difference between the start time and current time to determine execution time,
+   * which will be placed in a pool if it's one of the worst N times.
+   * The calling thread will be slept if the execution time is below the Nth worst time in the pool.
+   * If the pool is not full the worst execution time in the pool is considered as the threshold.
    * The pool is a collection of previous execution times.
    *
    * @param startTime the start time of the code execution.

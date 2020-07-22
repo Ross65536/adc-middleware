@@ -93,10 +93,11 @@ public final class SpringUtils {
 
   /**
    * Build Spring error response JSON with additional header.
-   * @param status
-   * @param msg
+   *
+   * @param status status code
+   * @param msg error message
    * @param headers additional headers
-   * @return
+   * @return the spring response model
    */
   public static ResponseEntity<String> buildJsonErrorResponse(
       HttpStatus status, String msg, Map<String, String> headers) {
@@ -155,7 +156,8 @@ public final class SpringUtils {
   }
 
   /**
-   * Build error map from status code and error message
+   * Build error map from status code and error message.
+   *
    * @param statusCode status code
    * @param msg error message.
    * @return map
