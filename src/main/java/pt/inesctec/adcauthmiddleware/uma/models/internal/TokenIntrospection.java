@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
+/**
+ * Models the result of a UMA RPT token introspection response.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TokenIntrospection {
   private boolean active;
