@@ -54,7 +54,7 @@ import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
-import pt.inesctec.adcauthmiddleware.utils.ThrowingProducer;
+import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
 
 /**
  * class responsible for the protected endpoints.
@@ -677,7 +677,7 @@ public class AdcAuthController {
       String resourceId,
       String responseFilterField,
       Function<String, Set<String>> fieldMapper,
-      ThrowingProducer<InputStream, Exception> adcRequest)
+      ThrowingSupplier<InputStream, Exception> adcRequest)
       throws Exception {
     var response = SpringUtils.catchForwardingError(adcRequest);
     var filter = new FieldsFilter(fieldMapper, resourceId);
@@ -700,7 +700,7 @@ public class AdcAuthController {
       String resourceId,
       String responseFilterField,
       Function<String, Set<String>> fieldMapper,
-      ThrowingProducer<InputStream, Exception> adcRequest,
+      ThrowingSupplier<InputStream, Exception> adcRequest,
       Map<String, FieldType> headerFields)
       throws Exception {
     var response = SpringUtils.catchForwardingError(adcRequest);

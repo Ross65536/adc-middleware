@@ -17,7 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.http.ClientError;
 import pt.inesctec.adcauthmiddleware.http.Json;
-import pt.inesctec.adcauthmiddleware.utils.ThrowingProducer;
+import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
 
 public final class SpringUtils {
 
@@ -47,7 +47,7 @@ public final class SpringUtils {
    * @throws Exception when request fails
    */
   public static InputStream catchForwardingError(
-      ThrowingProducer<InputStream, Exception> httpRequest) throws Exception {
+      ThrowingSupplier<InputStream, Exception> httpRequest) throws Exception {
     try {
       return httpRequest.get();
     } catch (ClientError e) {
