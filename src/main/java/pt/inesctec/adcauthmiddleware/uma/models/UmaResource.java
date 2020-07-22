@@ -6,6 +6,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Models a UMA resource with ID and scope.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UmaResource {
 

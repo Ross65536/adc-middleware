@@ -4,6 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.validation.constraints.NotNull;
 
+/**
+ * Models the UMA's well known document, which contains the paths for the various endpoints
+ * as specified in the UMA spec.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UmaWellKnown {
 

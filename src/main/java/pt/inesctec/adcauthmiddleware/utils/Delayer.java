@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class responsible for sleeping the invoking thread if execution time is below the Nth worst case that was recorded in the pool.
+ * Class responsible for sleeping the invoking thread if execution time is below a certain computed threshold.
  */
 public class Delayer {
   private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(Delayer.class);
@@ -60,6 +60,12 @@ public class Delayer {
     }
   }
 
+  /**
+   * Calculate the sleep threshold.
+   *
+   * @param duration the caller's execution time.
+   * @return the threshold.
+   */
   private Duration calcThresholdDuration(Duration duration) {
     durations.add(duration);
 

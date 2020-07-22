@@ -10,6 +10,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
+/**
+ * Models a UMA resource used when creating a resource. Has some fields specific to Keycloak.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UmaRegistrationResource {
@@ -20,9 +23,8 @@ public class UmaRegistrationResource {
   private String type;
   @JsonIgnore private Set<String> resourceScopes;
 
-  // keycloak specific
-  @JsonIgnore private String owner;
-  private Boolean ownerManagedAccess;
+  @JsonIgnore private String owner; // keycloak specific
+  private Boolean ownerManagedAccess; // keycloak specific
 
   public UmaRegistrationResource() {}
 
