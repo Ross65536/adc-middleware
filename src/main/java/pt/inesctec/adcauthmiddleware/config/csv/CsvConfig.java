@@ -25,7 +25,9 @@ import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Utils;
 
-
+/**
+ * Repository for querying the CSV configuration file.
+ */
 @Component
 public class CsvConfig {
   private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(CsvConfig.class);
@@ -47,6 +49,11 @@ public class CsvConfig {
         this.fieldsMapping.keySet(), FieldClass.REPERTOIRE, FieldClass.REARRANGEMENT);
   }
 
+  /**
+   * Get the complete set of scopes present in the CSV in any field for any resource.
+   *
+   * @return the scopes
+   */
   public Set<String> getAllUmaScopes() {
     return this.fieldsMapping.values().stream()
         .map(Map::keySet)
@@ -55,6 +62,12 @@ public class CsvConfig {
         .collect(Collectors.toSet());
   }
 
+  /**
+   * Get the complete set of scopes that correspond to a specific type of resource.
+   *
+   * @param fieldClass the resource type
+   * @return the scopes.
+   */
   public Set<String> getUmaScopes(FieldClass fieldClass) {
 
     return this.fieldsMapping.get(fieldClass).keySet().stream()
@@ -62,6 +75,13 @@ public class CsvConfig {
         .collect(Collectors.toSet());
   }
 
+  /**
+   * Get the set of UMA scopes that correspond to a specific resource type and specific list of files.
+   *
+   * @param fieldClass resource type
+   * @param fieldsFilter fields names to filter against
+   * @return the scopes
+   */
   public Set<String> getUmaScopes(FieldClass fieldClass, Collection<String> fieldsFilter) {
     var fields = new HashSet<>(fieldsFilter);
     var classScopes = this.fieldsMapping.get(fieldClass);
@@ -73,27 +93,44 @@ public class CsvConfig {
         .collect(Collectors.toSet());
   }
 
+  /**
+   * Get the public fields for a specific resource type.
+   *
+   * @param fieldClass resource type.
+   * @return the fields.
+   */
   public Set<String> getPublicFields(FieldClass fieldClass) {
     return this.getFields(fieldClass, FilterPublicScopes);
   }
 
+  /**
+   * Get all the CSV rows for a specific resource type.
+   * @param fieldClass resource type.
+   * @return the rows.
+   */
   private Stream<CsvField> getAllClassFields(FieldClass fieldClass) {
     return this.fieldsMapping.get(fieldClass).values().stream()
         .map(Map::values)
         .flatMap(Collection::stream);
   }
 
+  /**
+   * Get the map of fields and their corresponding data types that correspond to a specific resource type.
+   *
+   * @param fieldClass the resource type.
+   * @return the fields and types map.
+   */
   public Map<String, FieldType> getFieldsAndTypes(FieldClass fieldClass) {
     return getAllClassFields(fieldClass)
         .collect(Collectors.toMap(CsvField::getField, CsvField::getFieldType));
   }
 
   /**
-   * Get fields for class and scopes.
+   * Get the set of fields that correspond to a resource type and match a set of scopes.
    *
-   * @param fieldClass the class
-   * @param scopes a null scope element value will return public fields
-   * @return the fields
+   * @param fieldClass the resource type
+   * @param scopes the scopes to match against. A null scope element in the set value will return public fields for the resource.
+   * @return the matching fields
    */
   public Set<String> getFields(FieldClass fieldClass, Set<String> scopes) {
     var classFields = this.fieldsMapping.get(fieldClass);
@@ -104,6 +141,13 @@ public class CsvConfig {
         .reduce(new HashSet<>(), Sets::union);
   }
 
+  /**
+   * Get the set of fields that correspond to a resource type and match a specific 'include_field' type.
+   *
+   * @param fieldClass resource type
+   * @param includeFields the 'include_field' parameter
+   * @return the matching fields
+   */
   public Set<String> getFields(FieldClass fieldClass, IncludeField includeFields) {
     Set<IncludeField> filterInclude = IncludeField.getIncludeFieldScoping(includeFields);
 
@@ -113,6 +157,12 @@ public class CsvConfig {
         .collect(Collectors.toSet());
   }
 
+  /**
+   * Validates the CSV file for consistency.
+   *
+   * @param fields the parsed CSV rows.
+   * @throws Exception on an inconsistency
+   */
   private static void validateCsvFields(List<CsvField> fields) throws Exception {
     Utils.jaxValidateList(fields);
     Map<FieldClass, Set<String>> uniqueFields = new HashMap<>();
@@ -159,6 +209,12 @@ public class CsvConfig {
     }
   }
 
+  /**
+   * Loads a file (the CSV configuration file), either the default packaged with the middleware or the one specified in the parameter.
+   *
+   * @param userCsvPath the CSV file system path. If 'null' the default shipped with the middleware is used.
+   * @return the file byte stream.
+   */
   private InputStream loadCsvFile(String userCsvPath) {
     if (userCsvPath == null) {
       Logger.info("Loading default field mapping csv file from resources folder");
@@ -187,6 +243,13 @@ public class CsvConfig {
     }
   }
 
+  /**
+   * Parse the configuration CSV file byte stream into the corresponding rows.
+   *
+   * @param file the CSV file byte stream.
+   * @return the parsed rows.
+   * @throws IOException on error.
+   */
   private static List<CsvField> parseCsv(InputStream file) throws IOException {
 
     var schema = CsvSchema.emptySchema().withHeader();

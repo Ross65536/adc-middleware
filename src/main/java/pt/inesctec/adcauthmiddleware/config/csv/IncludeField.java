@@ -3,6 +3,9 @@ package pt.inesctec.adcauthmiddleware.config.csv;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
 
+/**
+ * Models the configuration CSV's 'include_fields' column. Corresponds to the ADC query parameter with the same name.
+ */
 public enum IncludeField {
   @JsonProperty("miairr")
   MIAIRR,
