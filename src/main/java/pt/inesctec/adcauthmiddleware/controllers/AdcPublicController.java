@@ -75,6 +75,13 @@ public class AdcPublicController {
     return forward("info");
   }
 
+  /**
+   * The forwarding logic.
+   *
+   * @param path the API subpath fragment.
+   * @return the spring response.
+   * @throws Exception on HTTP error or if public endpoints are disabled.
+   */
   private ResponseEntity<StreamingResponseBody> forward(String path) throws Exception {
     if (! appConfig.isPublicEndpointsEnabled()) {
       throw SpringUtils.buildHttpException(

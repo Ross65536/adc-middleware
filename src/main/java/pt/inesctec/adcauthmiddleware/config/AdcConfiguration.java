@@ -7,12 +7,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.validation.annotation.Validated;
 
+/**
+ * Model for the configuration file. ADC repository specific
+ */
 @Primary
 @Validated
 @Configuration
 @ConfigurationProperties(prefix = "adc")
 public class AdcConfiguration {
 
+  /**
+   * The complete URL of the repository.
+   */
   @NotNull
   @URL(regexp = "^(http|https).*")
   private String resourceServerUrl;

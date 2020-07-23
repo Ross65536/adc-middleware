@@ -10,6 +10,9 @@ import javax.validation.constraints.NotNull;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+/**
+ * Models the DB's repertoire ID to study ID associations.
+ */
 @Entity
 public class Repertoire {
   @Id
