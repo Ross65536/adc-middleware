@@ -11,6 +11,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
+/**
+ * Models the DB's study ID to UMA ID associations.
+ */
 @Entity
 public class Study {
 

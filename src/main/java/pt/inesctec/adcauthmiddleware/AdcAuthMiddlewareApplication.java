@@ -7,7 +7,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
 
 /**
- * Spring's 'entrypoint'.a
+ * Spring's 'entrypoint'.
  */
 @SpringBootApplication(exclude = {
     org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class

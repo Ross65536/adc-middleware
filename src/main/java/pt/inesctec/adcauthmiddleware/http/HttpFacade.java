@@ -11,20 +11,51 @@ import java.net.http.HttpResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
+/**
+ * Utility methods for making HTTP requests using java 11 HTTP library.
+ */
 public class HttpFacade {
-  public static final HttpClient Client = HttpClient.newBuilder().build();
+  private static final HttpClient Client = HttpClient.newBuilder().build();
 
+  /**
+   * Make the HTTP request while discarding the response. Will validate that the response if OK.
+   *
+   * @param request the HTTP request
+   * @throws IOException on error
+   * @throws InterruptedException on error
+   */
   public static void makeRequest(HttpRequest request) throws IOException, InterruptedException {
     var response = HttpFacade.Client.send(request, HttpResponse.BodyHandlers.discarding());
     HttpFacade.validateOkResponseDiscarding(response);
   }
 
+  /**
+   * Make the HTTP request and expect JSON response. Parse the response into model.
+   * Will validate that the response if OK.
+   *
+   * @param request the HTTP request
+   * @param respClass the target model
+   * @param <T> the target model type
+   * @return the model
+   * @throws IOException on error
+   * @throws InterruptedException on error
+   */
   public static <T> T makeExpectJsonRequest(HttpRequest request, Class<T> respClass)
       throws IOException, InterruptedException {
     var inputStream = HttpFacade.makeExpectJsonAsStreamRequest(request);
     return Json.parseJson(respClass, inputStream);
   }
 
+  /**
+   * Make the HTTP request and expect JSON stream.
+   * Like {@link #makeExpectJsonRequest(HttpRequest, Class)} but the response isn't parsed and instead the byte stream is returned.
+   * Will validate that the response if OK.
+   *
+   * @param request the HTTP request.
+   * @return the byte stream
+   * @throws IOException on error
+   * @throws InterruptedException on error
+   */
   public static InputStream makeExpectJsonAsStreamRequest(HttpRequest request)
       throws IOException, InterruptedException {
     var response = HttpFacade.Client.send(request, HttpResponse.BodyHandlers.ofInputStream());
@@ -35,6 +66,12 @@ public class HttpFacade {
     return response.body();
   }
 
+  /**
+   * Validate that the response OK and discard the response body on error (status family != 2).
+   *
+   * @param response the HTTP response.
+   * @throws IOException when not OK response.
+   */
   private static void validateOkResponseDiscarding(HttpResponse response) throws IOException {
     int statusCode = response.statusCode();
     int respFamily = statusCode / 100;
@@ -43,6 +80,13 @@ public class HttpFacade {
     }
   }
 
+  /**
+   * Like {@link #validateOkResponse(HttpResponse)} but the body and content type header
+   * is saved in the exception on HTTP error.
+   *
+   * @param response the HTTP response.
+   * @throws IOException when not OK response.
+   */
   private static void validateOkResponse(HttpResponse<InputStream> response) throws IOException {
     int statusCode = response.statusCode();
     int respFamily = statusCode / 100;
@@ -54,6 +98,12 @@ public class HttpFacade {
     }
   }
 
+  /**
+   * Checks that the HTTP response has the header content-type set to JSON.
+   *
+   * @param response the HTTP response
+   * @throws IOException when header is missing.
+   */
   private static void validateJsonResponseHeader(HttpResponse response) throws IOException {
     var values = response.headers().allValues(HttpHeaders.CONTENT_TYPE);
     if (values.size() == 0) {

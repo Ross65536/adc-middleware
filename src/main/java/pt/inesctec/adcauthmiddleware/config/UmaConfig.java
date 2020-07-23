@@ -7,18 +7,34 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.validation.annotation.Validated;
 
+/**
+ * Model for the configuration file, UMA/Keycloak specific.
+ */
 @Validated
 @Configuration
 @ConfigurationProperties(prefix = "uma")
 public class UmaConfig {
+
+  /**
+   * complete URL for the UMA well known document (discovery document).
+   */
   @NonNull
   @URL(regexp = "^(http|https).*")
   private String wellKnownUrl;
 
+  /**
+   * The client ID set for the middleware in Keycloak.
+   */
   @NonNull @NotBlank private String clientId;
 
+  /**
+   * The client secret set for the middleware in Keycloak.
+   */
   @NonNull @NotBlank private String clientSecret;
 
+  /**
+   * Keycloak specific. The username of the Keycloak user which will be set as the resource owner for all of the created resources.
+   */
   @NonNull @NotBlank private String resourceOwner;
 
   @NonNull

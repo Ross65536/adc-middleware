@@ -25,6 +25,7 @@ import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Utils;
 
+
 @Component
 public class CsvConfig {
   private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(CsvConfig.class);

@@ -11,19 +11,48 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
+
+/**
+ * Model for the configuration file. Middleware specific.
+ */
 @Validated
 @Configuration
 @ConfigurationProperties(prefix = "app")
 public class AppConfig {
 
+  /**
+   * File system path for the CSV configuration file with the fields configuration.
+   * If not set the default CSV will be used.
+   */
   private String adcCsvConfigPath;
+  /**
+   * Whether the facets are enabled from the user's perspective.
+   */
   private boolean facetsEnabled = true;
+  /**
+   * Whether the unprotected public endpoints are enabled. Such as /v1 or /v1/info.
+   */
   private boolean publicEndpointsEnabled = true;
+  /**
+   * Whether the "filters" ADC query parameter is enabled and usable by the user in POST requests.
+   */
   private boolean adcFiltersEnabled = true;
+  /**
+   * Delayer pool size.
+   * The number of request timings to memorize when delaying the permissions ticket emission.
+   */
   @NotNull
   private Long requestDelaysPoolSize;
+  /**
+   * The "filters" operators that are blacklisted and therefore not usable by the user.
+   * Format is a string: "op1,op2,etc"
+   */
   private Set<String> filtersOperatorsBlacklist = Set.of();
   @NotNull @NotBlank
+  /**
+   * The hash of the password used for the synchronize endpoint.
+   * Must be a BCrypt hash with strength 10.
+   */
   private String synchronizePasswordHash;
 
   public String getAdcCsvConfigPath() {
