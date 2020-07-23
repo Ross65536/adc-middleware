@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.validation.constraints.NotNull;
 
+/**
+ * Model's the configuration CSV rows.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CsvField {
   @JsonProperty("class")
