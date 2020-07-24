@@ -48,11 +48,11 @@ public class AppConfig {
    * Format is a string: "op1,op2,etc"
    */
   private Set<String> filtersOperatorsBlacklist = Set.of();
-  @NotNull @NotBlank
   /**
    * The hash of the password used for the synchronize endpoint.
    * Must be a BCrypt hash with strength 10.
    */
+  @NotNull @NotBlank
   private String synchronizePasswordHash;
 
   public String getAdcCsvConfigPath() {
