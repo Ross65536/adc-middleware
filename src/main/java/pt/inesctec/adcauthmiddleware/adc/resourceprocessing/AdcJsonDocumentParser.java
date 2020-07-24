@@ -13,6 +13,10 @@ import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.http.Json;
 
+/**
+ * JSON parser for repository response. Both regular and facets.
+ * Response must follow ADC JSON schema.
+ */
 public class AdcJsonDocumentParser {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcJsonDocumentParser.class);
   public static JsonFactory JsonFactory = new JsonFactory();
