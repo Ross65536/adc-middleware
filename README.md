@@ -549,10 +549,6 @@ TSV support is implemented in the middleware itself by translating JSON to TSV.
 
 You can see [here](./PSEUDOCODE.md) a python-like pseudo-code which describes this whole middleware server's working.
 
-## Profilling
+## Notes
 
-### Flamegraphs
-
-1. Install JavaFX
-2. Follow https://blog.codecentric.de/en/2017/09/jvm-fire-using-flame-graphs-analyse-performance/
-
+You can obtain the Postman folder that you can use to test the middleware solution's ADC features in more depth [here](https://github.com/Ross65536/adc-middleware/releases/download/docs/adc-middleware.postman_collection.json)
