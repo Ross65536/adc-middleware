@@ -13,17 +13,35 @@ import java.util.function.Function;
 import org.slf4j.LoggerFactory;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
+/**
+ * Responsible for filtering out nested JSON fields from resources to which access was denied.
+ * Field fragments as used here are the values between the fields separator.
+ */
 public class FieldsFilter implements IFieldsFilter {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(FieldsFilter.class);
 
   private final Function<String, Set<String>> fieldMapper;
   private final String idField;
 
+  /**
+   * constructor.
+   *
+   * @param fieldMapper maps an ADC resource's ID to the corresponding allowed fields for that specific resource. Fields not in the set will be removed.
+   * @param idField the name of the resource's ID field (key name).
+   */
   public FieldsFilter(Function<String, Set<String>> fieldMapper, String idField) {
     this.fieldMapper = fieldMapper;
     this.idField = idField;
   }
 
+  /**
+   * Get a string field from a nested JSON objects given the complete field fragments.
+   * Used for obtaining the resource's ID string.
+   *
+   * @param obj JSON object
+   * @param fieldParts field fragments.
+   * @return the found string.
+   */
   private static Optional<String> getFieldRecursive(ObjectNode obj, String[] fieldParts) {
     if (fieldParts.length == 0) {
       return Optional.empty();
@@ -53,8 +71,18 @@ public class FieldsFilter implements IFieldsFilter {
     return Optional.of(fieldNode.textValue());
   }
 
+  /**
+   * The fields separator REGEX.
+   */
   private static final String SEPARATOR = "\\.";
 
+  /**
+   * Splits a set of fields on the fields separator ('.').
+   * The first level fields (outermost fragments) are used as keys and inner field fragments are used as map values.
+   *
+   * @param fields fields to reduce
+   * @return the map
+   */
   private static Map<String, Set<String>> reduceFieldsLevel(Set<String> fields) {
     var map = new HashMap<String, Set<String>>();
 
@@ -75,6 +103,12 @@ public class FieldsFilter implements IFieldsFilter {
     return map;
   }
 
+  /**
+   * Removes fields from an JSON Object and call itself on fields that are nested JSON Objects.
+   *
+   * @param node the JSON object.
+   * @param fields the fields to permit, with separator but with the outer fragments removed.
+   */
   private static void unsetObjectFieldsRecursive(ObjectNode node, Set<String> fields) {
 
     var reducedFields = FieldsFilter.reduceFieldsLevel(fields);
@@ -129,6 +163,11 @@ public class FieldsFilter implements IFieldsFilter {
     }
   }
 
+  /**
+   * The filtering entrypoint.
+   * @param resource the resource to remove fields from. Modified by reference.
+   * @return the filtered resource or empty. Empty can occur on an error or on an empty resource.
+   */
   @Override
   public Optional<ObjectNode> mapResource(ObjectNode resource) {
 
