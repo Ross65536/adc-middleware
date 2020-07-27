@@ -16,6 +16,9 @@ import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.Primitiv
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.config.csv.IncludeField;
 
+/**
+ * Models a user's ADC search request body.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdcSearchRequest {
   private AdcFilter filters;
@@ -24,7 +27,6 @@ public class AdcSearchRequest {
   private Long size;
   private String format;
   private String facets;
-
   @JsonProperty("include_fields")
   private IncludeField includeFields;
 
@@ -115,6 +117,12 @@ public class AdcSearchRequest {
     return this;
   }
 
+  /**
+   * Copies this instance but only with the query parameters 'from', 'size', 'filters'.
+   * Filters is copied by reference.
+   *
+   * @return the clone
+   */
   public AdcSearchRequest queryClone() {
     var ret = new AdcSearchRequest();
     ret.from = from;
@@ -132,6 +140,14 @@ public class AdcSearchRequest {
     this.filters = filters;
   }
 
+  /**
+   * Validates that the user request is semantically correct.
+   *
+   * @param adcSearch the user's request
+   * @param validFieldTypes map of all the valid fields for the resource type of the endpoint and their corresponding types.
+   * @param tsvRequestedFields the set of fields that are requested (from 'fields', 'include_fields'). Only applicable in a TSV request.
+   * @throws AdcException on validation error.
+   */
   public static void validate(
       AdcSearchRequest adcSearch,
       Map<String, FieldType> validFieldTypes,

@@ -6,6 +6,9 @@ import java.util.List;
 import pt.inesctec.adcauthmiddleware.adc.models.RearrangementIds;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireIds;
 
+/**
+ * Models an ADC document Repertoire or Rearrangement Response.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AdcIdsResponse {
   @JsonProperty("Repertoire")

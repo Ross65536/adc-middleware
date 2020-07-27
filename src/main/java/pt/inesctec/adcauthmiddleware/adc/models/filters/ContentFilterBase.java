@@ -22,7 +22,6 @@ public class ContentFilterBase<T extends FieldContent> extends AdcFilter {
     super.validate(field, validFieldTypes);
     FiltersUtils.assertNonNull(field + ".content", content);
     content.validate(field + ".content", validFieldTypes);
-    //    for
   }
 
   @Override

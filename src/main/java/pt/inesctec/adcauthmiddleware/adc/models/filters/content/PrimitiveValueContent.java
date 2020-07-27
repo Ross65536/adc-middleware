@@ -5,6 +5,9 @@ import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.FiltersUtils;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 
+/**
+ * Models a filter's content with an arbitrary value type, except arrays.
+ */
 public class PrimitiveValueContent extends FieldContent {
   private Object value;
 

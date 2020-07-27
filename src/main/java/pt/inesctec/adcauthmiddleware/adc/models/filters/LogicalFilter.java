@@ -6,6 +6,9 @@ import java.util.Set;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 
+/**
+ * An adc logical filter, like 'and', 'or'.
+ */
 public class LogicalFilter extends AdcFilter {
   private List<AdcFilter> content;
 

@@ -19,6 +19,9 @@ import pt.inesctec.adcauthmiddleware.http.Json;
  */
 public class AdcJsonDocumentParser {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcJsonDocumentParser.class);
+  /**
+   * Shared JSON factory singleton.
+   */
   public static JsonFactory JsonFactory = new JsonFactory();
 
   static {
@@ -26,10 +29,18 @@ public class AdcJsonDocumentParser {
   }
 
   private final IFieldsFilter filter;
-  protected final InputStream response;
-  protected final String mappedField;
+  private final InputStream response;
+  private final String mappedField;
   private IAdcWriter adcWriter;
 
+  /**
+   * constructor.
+   *
+   * @param response the input ADC JSON byte stream
+   * @param mappedField the ADC response document's field name of the resources.
+   * @param filter the filter function. Will modify the resource by removing/adding fields
+   * @param adcWriter the writer interface.
+   */
   private AdcJsonDocumentParser(InputStream response, String mappedField, IFieldsFilter filter, IAdcWriter adcWriter) {
     this.filter = filter;
     this.response = response;
@@ -37,6 +48,10 @@ public class AdcJsonDocumentParser {
     this.adcWriter = adcWriter;
   }
 
+  /**
+   * Entrypoint for starting the processing.
+   * @throws IOException on error.
+   */
   private void process() throws IOException {
     var parser = JsonFactory.createParser(response);
 
@@ -60,7 +75,7 @@ public class AdcJsonDocumentParser {
         var map = parser.readValueAs(ObjectNode.class);
         this.adcWriter.writeField(AdcConstants.ADC_INFO, map);
       } else if (fieldName.equals(this.mappedField)) {
-        processNode(parser);
+        processResources(parser);
       } else {
         parser.skipChildren();
       }
@@ -69,7 +84,13 @@ public class AdcJsonDocumentParser {
     this.adcWriter.close();
   }
 
-  private void processNode(JsonParser parser) throws IOException {
+  /**
+   * Process the resource list. Each resource's fields are filtered and then written to a specific format.
+   *
+   * @param parser the input JSON parser.
+   * @throws IOException on error.
+   */
+  private void processResources(JsonParser parser) throws IOException {
     var consumer = this.adcWriter.buildArrayWriter(this.mappedField);
 
     while (parser.nextToken() != JsonToken.END_ARRAY) {
@@ -81,6 +102,13 @@ public class AdcJsonDocumentParser {
     }
   }
 
+  /**
+   * Build a JSON to JSON processor.
+   * @param response the JSON input
+   * @param mappedField the mapped ADC field name
+   * @param filter the resource filter
+   * @return spring streaming JSON response
+   */
   public static StreamingResponseBody buildJsonMapper(InputStream response, String mappedField, IFieldsFilter filter) {
     return os -> {
       var jsonWriter = new AdcJsonWriter(os);
@@ -89,6 +117,14 @@ public class AdcJsonDocumentParser {
     };
   }
 
+  /**
+   * Build a JSON to TSV processor.
+   * @param response the JSON input
+   * @param mappedField the mapped ADC field name
+   * @param filter the resource filter
+   * @param headerFields the TSV header fields and their types
+   * @return spring streaming TSV response
+   */
   public static StreamingResponseBody buildTsvMapper(InputStream response, String mappedField, IFieldsFilter filter, Map<String, FieldType> headerFields) {
     return os -> {
 
