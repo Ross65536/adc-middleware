@@ -7,11 +7,20 @@ import java.io.IOException;
 import java.io.OutputStream;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingConsumer;
 
+/**
+ * Class responsible for writing JSON objects to output stream in JSON format.
+ */
 public class AdcJsonWriter implements IAdcWriter {
 
   private final JsonGenerator generator;
   private boolean arrayMode = false;
 
+  /**
+   * constructor.
+   *
+   * @param outputStream the response byte stream.
+   * @throws IOException on error.
+   */
   public AdcJsonWriter(OutputStream outputStream) throws IOException {
     this.generator =
         AdcJsonDocumentParser.JsonFactory.createGenerator(outputStream, JsonEncoding.UTF8);

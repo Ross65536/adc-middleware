@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.validation.constraints.NotNull;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 
+/**
+ * Models a rearrangement response but only with the ID fields.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RearrangementIds {
   @JsonProperty(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD)

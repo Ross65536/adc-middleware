@@ -17,6 +17,9 @@ import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingConsumer;
 
+/**
+ * Class responsible for converting JSON fields and values to TSV format.
+ */
 public class AdcTsvWriter implements IAdcWriter {
 
   public static class TsvBooleanSerializer extends JsonSerializer<Boolean> {
@@ -33,6 +36,12 @@ public class AdcTsvWriter implements IAdcWriter {
   private Map<String, FieldType> headerFields;
   private ObjectWriter csvMapper;
 
+  /**
+   * construtor.
+   *
+   * @param os the output byte stream
+   * @param headerFields the TSV header line values and their types
+   */
   public AdcTsvWriter(OutputStream os, Map<String, FieldType> headerFields) {
     this.os = os;
     this.headerFields = headerFields;
@@ -53,7 +62,9 @@ public class AdcTsvWriter implements IAdcWriter {
       var map = Mapper.convertValue(elem, new TypeReference<Map<String, Object>>() {});
       CollectionsUtils.stripNestedMaps(map);
 
-      // workaround since jackson CSV doesn't seem to support streaming CSV writers
+      // workaround since jackson CSV doesn't seem to support streaming CSV writers using CsvMapper
+      // for first element a writer that writes the header is built,
+      // for second and other elements a writer that doesn't write the header is built
       if (this.csvMapper == null) {
         this.csvMapper = buildCsvMapper(this.headerFields, true);
         this.csvMapper.writeValue(this.os, map);
@@ -65,6 +76,12 @@ public class AdcTsvWriter implements IAdcWriter {
     };
   }
 
+  /**
+   * Builds a TSV writer.
+   * @param headerFields the TSV header fields
+   * @param writeHeaders true if TSV header is to be written in response. false otherwise.
+   * @return the writer
+   */
   private static ObjectWriter buildCsvMapper(
       Map<String, FieldType> headerFields, boolean writeHeaders) {
     CsvSchema.Builder schema = new CsvSchema.Builder();

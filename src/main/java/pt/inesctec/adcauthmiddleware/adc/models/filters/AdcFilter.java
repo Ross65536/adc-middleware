@@ -46,13 +46,36 @@ public abstract class AdcFilter {
     this.op = op;
   }
 
+  /**
+   * Validate the user's request. Supposed to be overriden by extending filters.
+   * Implementing classes are responsible for calling their corresponding
+   * sub-filters or content objects's corresponding method.
+   *
+   * @param field the path used for emitting user friendly error messages.
+   * @param validFieldTypes the map of valid fields and their types.
+   * @throws AdcException on validation error.
+   */
   public void validate(String field, Map<String, FieldType> validFieldTypes) throws AdcException {
     FiltersUtils.assertNonNull(field + ".op", op);
   }
 
+  /**
+   * Add the fields from each operator to the parameter.
+   * Implementing classes are responsible for calling their
+   * corresponding sub-filters or content objects's corresponding method.
+   *
+   * @param fields the destination set for the fields.
+   */
   @JsonIgnore
   public abstract void loadFields(Set<String> fields);
 
+  /**
+   * Add the operators in string form from each filter to the parameter.
+   * Implementing classes are responsible for calling their corresponding
+   * sub-filters or content objects's corresponding method.
+   *
+   * @param operators the destination set for the operators.
+   */
   @JsonIgnore
   public void loadOperators(Set<String> operators) {
     operators.add(op);
