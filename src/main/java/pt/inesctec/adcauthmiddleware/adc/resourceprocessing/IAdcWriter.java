@@ -5,12 +5,12 @@ import java.io.IOException;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingConsumer;
 
 /**
- * Implementing classes are responsible for transcoding the JSON object/resource to their corresponding
- * format.
+ * Implementing classes are responsible for transcoding the JSON object/resource to their corresponding format.
  */
 public interface IAdcWriter {
   /**
    * Close stream.
+   *
    * @throws IOException on error
    */
   void close() throws IOException;
