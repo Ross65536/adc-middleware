@@ -186,6 +186,7 @@ public class AdcAuthController {
   public ResponseEntity<StreamingResponseBody> repertoire(
       HttpServletRequest request, @PathVariable String repertoireId) throws Exception {
     var bearer = SpringUtils.getBearer(request);
+    
     if (bearer == null) {
       var umaId = this.dbRepository.getRepertoireUmaId(repertoireId);
       if (umaId == null) {
