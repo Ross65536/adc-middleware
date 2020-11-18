@@ -18,10 +18,13 @@ services:
   db:
     image: postgres:12
     volumes:
-      - ./tmp/postgres:/var/lib/postgresql/data:delegated
+      - keycloak_db:/var/lib/postgresql/data:delegated
     ports:
       - 5432:5432
     environment:
       # default user is 'postgres'
       POSTGRES_DB: middleware_db
       POSTGRES_PASSWORD: password
+
+volumes:
+  keycloak_db:
