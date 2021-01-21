@@ -17,6 +17,8 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Null;
+
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -83,8 +85,7 @@ public class AdcAuthController {
     this.rearrangementsDelayer = new Delayer(appConfig.getRequestDelaysPoolSize());
   }
 
-  private static final Pattern JsonErrorPattern =
-      Pattern.compile(".*line: (\\d+), column: (\\d+).*");
+  private static final Pattern JsonErrorPattern = Pattern.compile(".*line: (\\d+), column: (\\d+).*");
 
   /**
    * Handles and logs errors on invalid user JSON body (on POST endpoints) such as invalid syntax or some invalid schema.
@@ -186,8 +187,10 @@ public class AdcAuthController {
   public ResponseEntity<StreamingResponseBody> repertoire(
       HttpServletRequest request, @PathVariable String repertoireId) throws Exception {
     var bearer = SpringUtils.getBearer(request);
+
     if (bearer == null) {
       var umaId = this.dbRepository.getRepertoireUmaId(repertoireId);
+
       if (umaId == null) {
         Logger.info("User tried accessing non-existing repertoire with ID {}", repertoireId);
         throw SpringUtils.buildHttpException(HttpStatus.NOT_FOUND, "Not found");
@@ -197,7 +200,7 @@ public class AdcAuthController {
       throw this.umaFlow.noRptToken(ImmutableList.of(umaId), umaScopes);
     }
 
-    var tokenResources = this.umaClient.introspectToken(bearer);
+    var tokenResources = this.umaClient.introspectToken(bearer, true);
     var fieldMapper =
         this.buildUmaFieldMapper(tokenResources, FieldClass.REPERTOIRE)
             .compose(this.dbRepository::getStudyUmaId);
@@ -235,7 +238,7 @@ public class AdcAuthController {
       throw this.umaFlow.noRptToken(ImmutableList.of(umaId), umaScopes);
     }
 
-    var tokenResources = this.umaClient.introspectToken(bearer);
+    var tokenResources = this.umaClient.introspectToken(bearer, true);
     var fieldMapper =
         this.buildUmaFieldMapper(tokenResources, FieldClass.REARRANGEMENT)
             .compose(this.dbRepository::getRepertoireUmaId);
@@ -262,6 +265,7 @@ public class AdcAuthController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<StreamingResponseBody> repertoireSearch(
       HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
+
     this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
 
     Set<String> umaScopes = this.getAdcRequestUmaScopes(adcSearch, FieldClass.REPERTOIRE);
@@ -318,13 +322,13 @@ public class AdcAuthController {
         this.adcQueryUmaFlow(
             request,
             adcSearch,
-            this::getRearrangementsRepertoireIds,
+            this::getRearrangementsRepertoireModel,
             rearrangementsDelayer,
             umaScopes);
 
     if (adcSearch.isFacetsSearch()) {
       final List<String> resourceIds =
-          calcValidFacetsResources(umaResources, umaScopes, this.dbRepository::getUmaRepertoireIds);
+          calcValidFacetsResources(umaResources, umaScopes, this.dbRepository::getUmaRepertoireModel);
 
       return facetsRequest(
           adcSearch,
@@ -381,7 +385,7 @@ public class AdcAuthController {
    * Resets the delays pool request times.
    *
    * @param request the user request
-   * @return OK on successfull synchronization or an error code when a process(es) in the synchronization fails.
+   * @return OK on successful synchronization or an error code when a process(es) in the synchronization fails.
    * @throws Exception on user errors such as invalid password or some internal errors.
    */
   @RequestMapping(value = "/synchronize", method = RequestMethod.POST)
@@ -390,6 +394,10 @@ public class AdcAuthController {
     if (bearer == null) {
       throw new SyncException("Invalid user credential format");
     }
+
+    var tokenResources = this.umaClient.introspectToken(bearer, false);
+
+    tokenResources = List.of();
 
     if (!PasswordEncoder.matches(bearer, appConfig.getSynchronizePasswordHash())) {
       throw new SyncException("Invalid user credential");
@@ -413,8 +421,8 @@ public class AdcAuthController {
    * @return the UMA IDs
    * @throws Exception on error
    */
-  private Set<String> getRearrangementsRepertoireIds(AdcSearchRequest idsQuery) throws Exception {
-    return this.adcClient.getRearrangementRepertoireIds(idsQuery).stream()
+  private Set<String> getRearrangementsRepertoireModel(AdcSearchRequest idsQuery) throws Exception {
+    return this.adcClient.getRearrangementRepertoireModel(idsQuery).stream()
         .map(id -> this.dbRepository.getRepertoireUmaId(id))
         .collect(Collectors.toSet());
   }
@@ -457,7 +465,7 @@ public class AdcAuthController {
 
     var bearer = SpringUtils.getBearer(request);
     if (bearer != null) {
-      return this.umaClient.introspectToken(bearer);
+      return this.umaClient.introspectToken(bearer, true);
     }
 
     Collection<String> umaIds = umaIdsProducer.apply(adcSearch);

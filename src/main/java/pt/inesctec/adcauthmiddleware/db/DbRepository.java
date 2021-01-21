@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
-import pt.inesctec.adcauthmiddleware.adc.models.RearrangementIds;
-import pt.inesctec.adcauthmiddleware.adc.models.RepertoireIds;
+import pt.inesctec.adcauthmiddleware.adc.models.RearrangementModel;
+import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
@@ -24,10 +24,11 @@ import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
+import pt.inesctec.adcauthmiddleware.uma.models.UmaResourceAttributes;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
 /**
- * Responsible for managing, synchronizing the middleware's DB, cache and Keycloak's (or other authorization sercer) DB.
+ * Responsible for managing, synchronizing the middleware's DB, cache and Keycloak's (or other authorization server) DB.
  */
 @Component
 public class DbRepository {
@@ -112,7 +113,7 @@ public class DbRepository {
    */
   @Cacheable(value = REARRANGEMENTS_CACHE_NAME, unless = "#result==null")
   public String getRearrangementUmaId(String rearrangementId) {
-    List<RearrangementIds> rearrangements;
+    List<RearrangementModel> rearrangements;
 
     try {
       rearrangements = this.adcClient.getRearrangement(rearrangementId);
@@ -154,7 +155,7 @@ public class DbRepository {
    * @param umaId the UMA ID.
    * @return repertoire IDs. null if a mapping in the chain does not exist.
    */
-  public Set<String> getUmaRepertoireIds(String umaId) {
+  public Set<String> getUmaRepertoireModel(String umaId) {
     var study = this.studyRepository.findByUmaId(umaId);
     if (study == null) {
       return null;
@@ -183,29 +184,30 @@ public class DbRepository {
     Logger.info("Synchronizing DB and cache");
 
     var repertoireSearch =
-        new AdcSearchRequest()
-            .addFields(
+        new AdcSearchRequest().addFields(
                 AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD,
                 AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
                 AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD);
-    var backendRepertoires = this.adcClient.getRepertoireIds(repertoireSearch);
+
+    var repertoires = this.adcClient.getRepertoireModel(repertoireSearch);
+
     CollectionsUtils.assertList(
-        backendRepertoires,
-        e -> e.getRepertoireId() != null,
-        "Repertoires response must have a " + AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
+            repertoires, e -> e.getRepertoireId() != null,
+            "Repertoires response must have a " + AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
 
     boolean ok = true;
+
     // sync studies
-    var backendStudyMap =
-        CollectionsUtils.toMapKeyByLatest(
-            backendRepertoires, RepertoireIds::getStudyId, RepertoireIds::getStudyTitle);
-    if (!this.synchronizeStudies(backendStudyMap)) {
+    var repositoryStudyMap = CollectionsUtils.toMapKeyByLatest(
+                repertoires, RepertoireModel::getStudyId, RepertoireModel::getStudyTitle);
+
+    if (!this.synchronizeStudies(repositoryStudyMap)) {
       ok = false;
     }
 
     // sync cache
     this.deleteCache();
-    if (!this.synchronizeRepertoires(backendRepertoires)) {
+    if (!this.synchronizeRepertoires(repertoires)) {
       ok = false;
     }
 
@@ -219,12 +221,12 @@ public class DbRepository {
    * Some associations might fail, which will be skipped.
    *
    * @param backendRepertoires list of repertoire resources.
-   * @return true on 100% sucessfull synchronization.
+   * @return true on 100% successful synchronization.
    */
-  protected boolean synchronizeRepertoires(List<RepertoireIds> backendRepertoires) {
+  protected boolean synchronizeRepertoires(List<RepertoireModel> backendRepertoires) {
     boolean ok = true;
 
-    for (RepertoireIds repertoireIds : backendRepertoires) {
+    for (RepertoireModel repertoireIds : backendRepertoires) {
       var studyId = repertoireIds.getStudyId();
       var study = this.studyRepository.findByStudyId(studyId);
       if (study == null) {
@@ -254,16 +256,16 @@ public class DbRepository {
    * Will also create the UMA ID to study ID DB associations as needed.
    * Some steps such as deletion or updating might fail, which will be skipped and false returned.
    *
-   * @param backendStudyMap map with the study IDs and their titles.
+   * @param repositoryStudyMap map with the study IDs coming from the ADC repository and their titles.
    * @return true on 100% successful synchronization.
    * @throws Exception on internal error.
    */
-  protected boolean synchronizeStudies(Map<String, String> backendStudyMap) throws Exception {
+  protected boolean synchronizeStudies(Map<String, String> repositoryStudyMap) throws Exception {
     boolean ok = true;
 
-    var keycloakUmaIds = Set.of(this.umaClient.listUmaResources());
-    var dbStudyIds = new HashSet<>(loadDbUmaStudyMapping().values());
-    var repositoryStudyIds = backendStudyMap.keySet();
+    var keycloakUmaIds     = Set.of(this.umaClient.listUmaResources());
+    var repositoryStudyIds = repositoryStudyMap.keySet();
+    var dbStudyIds                     = new HashSet<>(this.loadDbUmaStudyMapping().values());
 
     // delete dangling DB resources
     for (String danglingDbStudyId : Sets.difference(dbStudyIds, repositoryStudyIds)) {
@@ -324,15 +326,20 @@ public class DbRepository {
     // add new resources
     var allUmaScopes = this.csvConfig.getAllUmaScopes();
     dbStudyIds = new HashSet<>(loadDbUmaStudyMapping().values());
-    for (String newStudyId : Sets.difference(repositoryStudyIds, dbStudyIds)) {
-      var studyTitle = backendStudyMap.get(newStudyId);
-      var umaName = String.format("study ID: %s; title: %s", newStudyId, studyTitle);
-      var newUmaResource =
-          new UmaRegistrationResource(umaName, AdcConstants.UMA_STUDY_TYPE, allUmaScopes);
 
-      String createdUmaId = null;
+    for (String newStudyId : Sets.difference(repositoryStudyIds, dbStudyIds)) {
+      var studyTitle = repositoryStudyMap.get(newStudyId);
+      var umaName = String.format("study ID: %s; title: %s", newStudyId, studyTitle);
+      var resource = new UmaRegistrationResource(umaName, AdcConstants.UMA_STUDY_TYPE, allUmaScopes);
+
+      var umaAttributes = new UmaResourceAttributes();
+      umaAttributes.setPublicFields(Set.of("repertoire_id"));
+
+      resource.setAttributes(umaAttributes);
+
+      String createdUmaId;
       try {
-        createdUmaId = this.umaClient.createUmaResource(newUmaResource);
+        createdUmaId = this.umaClient.createUmaResource(resource);
       } catch (Exception e) {
         ok = false;
         Logger.info("Resource {} not created", umaName);
@@ -365,8 +372,7 @@ public class DbRepository {
         var updateResource = new UmaRegistrationResource();
         updateResource.setName(resource.getName()); // mandatory by keycloak
         updateResource.setResourceScopes(updateResources);
-        updateResource.setType(
-            AdcConstants.UMA_STUDY_TYPE); // keycloak will delete type if not present here
+        updateResource.setType(AdcConstants.UMA_STUDY_TYPE); // keycloak will delete type if not present here
 
         Logger.info("Updating resource {}:{} with {}", umaId, resource, updateResource);
 

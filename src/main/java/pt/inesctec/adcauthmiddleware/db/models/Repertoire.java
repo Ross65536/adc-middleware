@@ -16,7 +16,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Entity
 public class Repertoire {
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @Column(unique = true, nullable = false)
@@ -26,7 +26,6 @@ public class Repertoire {
   @OnDelete(action = OnDeleteAction.CASCADE)
   @NotNull
   private Study study;
-
 
   public Repertoire() {}
 

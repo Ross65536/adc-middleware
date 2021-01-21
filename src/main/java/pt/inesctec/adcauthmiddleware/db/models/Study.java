@@ -1,5 +1,7 @@
 package pt.inesctec.adcauthmiddleware.db.models;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -18,7 +20,7 @@ import javax.persistence.OneToMany;
 public class Study {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @Column(unique = true, nullable = false)
@@ -26,6 +28,10 @@ public class Study {
 
   @Column(unique = true, nullable = false)
   private String umaId;
+
+  @Column(nullable = false)
+  @ColumnDefault("false")
+  private boolean isPublic;
 
   @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.REMOVE)
   private List<Repertoire> repertoires = new ArrayList<>();

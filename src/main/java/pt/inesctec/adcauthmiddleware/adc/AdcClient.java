@@ -12,8 +12,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
-import pt.inesctec.adcauthmiddleware.adc.models.RearrangementIds;
-import pt.inesctec.adcauthmiddleware.adc.models.RepertoireIds;
+import pt.inesctec.adcauthmiddleware.adc.models.RearrangementModel;
+import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
 import pt.inesctec.adcauthmiddleware.adc.models.internal.AdcFacetsResponse;
 import pt.inesctec.adcauthmiddleware.adc.models.internal.AdcIdsResponse;
 import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
@@ -91,7 +91,7 @@ public class AdcClient {
    * @return the rearrangement model. empty list when ID not found, size 1 when found.
    * @throws Exception on error
    */
-  public List<RearrangementIds> getRearrangement(String rearrangementId) throws Exception {
+  public List<RearrangementModel> getRearrangement(String rearrangementId) throws Exception {
     final URI uri = this.getResourceServerPath("rearrangement", rearrangementId);
     var request = new HttpRequestBuilderFacade().getJson(uri).build();
     var rearrangements =
@@ -136,7 +136,7 @@ public class AdcClient {
    * @return the matching repertoire models.
    * @throws Exception on error
    */
-  public List<RepertoireIds> getRepertoireIds(AdcSearchRequest adcRequest) throws Exception {
+  public List<RepertoireModel> getRepertoireModel(AdcSearchRequest adcRequest) throws Exception {
     Preconditions.checkArgument(adcRequest.getFacets() == null);
     Preconditions.checkArgument(adcRequest.isJsonFormat());
 
@@ -174,7 +174,7 @@ public class AdcClient {
    * @return the set of repertoire IDs
    * @throws Exception on error
    */
-  public Set<String> getRearrangementRepertoireIds(AdcSearchRequest adcRequest) throws Exception {
+  public Set<String> getRearrangementRepertoireModel(AdcSearchRequest adcRequest) throws Exception {
     Preconditions.checkArgument(adcRequest.isJsonFormat());
 
     var idsQuery = adcRequest.queryClone().withFacets(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);

@@ -61,10 +61,13 @@ public class UmaClient {
     return this.getWellKnownInstance().getIssuer();
   }
 
-  public List<UmaResource> introspectToken(String rptToken) throws Exception {
+  public List<UmaResource> introspectToken(String token, Boolean isRpt) throws Exception {
     this.updateAccessToken();
     var uri = Utils.buildUrl(this.getWellKnownInstance().getIntrospectionEndpoint());
-    var form = ImmutableMap.of("token", rptToken, "token_type_hint", "requesting_party_token");
+    var form = ImmutableMap.of(
+            "token", token,
+            "token_type_hint", isRpt ? "requesting_party_token" : "access_token"
+    );
     var request =
         new HttpRequestBuilderFacade()
             .postForm(uri, form)
@@ -79,7 +82,7 @@ public class UmaClient {
     try {
       introspection = HttpFacade.makeExpectJsonRequest(request, TokenIntrospection.class);
     } catch (Exception e) {
-      Logger.info("Failed to get permissions ticket because: " + e.getMessage());
+      Logger.error("Failed to get permissions ticket because: " + e.getMessage());
       throw e;
     }
 
@@ -118,7 +121,7 @@ public class UmaClient {
   private static UmaWellKnown getWellKnown(String wellKnownUrl) throws Exception {
     Logger.info("Requesting UMA 2 well known doc at: {}", wellKnownUrl);
     var uri = Utils.buildUrl(wellKnownUrl);
-    var request = new HttpRequestBuilderFacade().getJson(uri).build();
+    var request= new HttpRequestBuilderFacade().getJson(uri).build();
     try {
       var obj = HttpFacade.makeExpectJsonRequest(request, UmaWellKnown.class);
       Utils.jaxValidate(obj);
@@ -138,12 +141,10 @@ public class UmaClient {
     Logger.info("Requesting UMA 2 resource list");
 
     var uri = Utils.buildUrl(this.getWellKnownInstance().getResourceRegistrationEndpoint());
-    var request =
-        new HttpRequestBuilderFacade()
+    var request= new HttpRequestBuilderFacade()
             .getJson(uri)
             .withBearer(this.accessToken.getAccessToken())
             .build();
-
     try {
       return HttpFacade.makeExpectJsonRequest(request, String[].class);
     } catch (Exception e) {
@@ -175,6 +176,7 @@ public class UmaClient {
   public String createUmaResource(UmaRegistrationResource resource) throws Exception {
     this.updateAccessToken();
 
+    // TODO It makes no sense to define this here. Move it to where the resource is first being created
     resource.setId(null);
     resource.setOwnerManagedAccess(true); // keycloak specific
     resource.setOwner(this.umaConfig.getResourceOwner()); // keycloak specific
