@@ -57,8 +57,7 @@ public final class CollectionsUtils {
    * @param <T> collection type
    * @throws Exception the exception on failed assertion
    */
-  public static <T> void assertList(Iterable<T> list, Function<T, Boolean> checker, String errorMsg)
-      throws Exception {
+  public static <T> void assertList(Iterable<T> list, Function<T, Boolean> checker, String errorMsg) throws Exception {
     for (T e : list) {
       if (!checker.apply(e)) {
         throw new Exception(errorMsg);

@@ -26,12 +26,21 @@ public class UmaRegistrationResource {
   @JsonIgnore private String owner; // keycloak specific
   private Boolean ownerManagedAccess; // keycloak specific
 
+  private UmaResourceAttributes attributes;
+
   public UmaRegistrationResource() {}
 
   public UmaRegistrationResource(String name, String type, Set<String> resourceScopes) {
     this.name = name;
     this.type = type;
     this.resourceScopes = resourceScopes;
+  }
+
+  public UmaRegistrationResource(String name, String type, Set<String> resourceScopes, UmaResourceAttributes attributes) {
+    this.name = name;
+    this.type = type;
+    this.resourceScopes = resourceScopes;
+    this.attributes = attributes;
   }
 
   public String getName() {
@@ -111,6 +120,14 @@ public class UmaRegistrationResource {
 
   public void setOwnerManagedAccess(Boolean ownerManagedAccess) {
     this.ownerManagedAccess = ownerManagedAccess;
+  }
+
+  public UmaResourceAttributes getAttributes() {
+    return attributes;
+  }
+
+  public void setAttributes(UmaResourceAttributes attributes) {
+    this.attributes = attributes;
   }
 
   @Override

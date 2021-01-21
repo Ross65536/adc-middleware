@@ -9,7 +9,7 @@ import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
  * Models a rearrangement response but only with the ID fields.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RearrangementIds {
+public class RearrangementModel {
   @JsonProperty(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD)
   @NotNull
   private String repertoireId;

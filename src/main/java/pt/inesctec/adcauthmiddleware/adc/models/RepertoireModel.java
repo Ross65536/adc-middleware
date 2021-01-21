@@ -10,7 +10,7 @@ import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
  * Models a repertoire response element, but with only the ID fields and the study title.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RepertoireIds {
+public class RepertoireModel {
   @JsonProperty(AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD)
   private String repertoireId;
 

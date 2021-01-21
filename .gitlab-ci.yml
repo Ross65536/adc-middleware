@@ -1,19 +1,19 @@
-image: gradle:jdk11
+image: docker:latest
+
+services:
+  - docker:dind
 
 before_script:
-  - export GRADLE_USER_HOME=`pwd`/.gradle
+  - docker info
+  - apk update && apk upgrade && apk add bash grep
+  - if [ -z $VERSION ]; then VERSION=$(echo $CI_COMMIT_MESSAGE | grep -oP "(?<=##)(.*)(?=##)"); fi
+  - echo $VERSION
 
-cache:
-  paths:
-    - .gradle/wrapper
-    - .gradle/caches
-
-package:
+build-master:
   stage: build
   script:
-    - ./gradlew assemble
-
-test:
-  stage: test
-  script:
-    - ./gradlew check
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE:$VERSION .
+    - docker push $CI_REGISTRY_IMAGE:$VERSION
+  only:
+    - master

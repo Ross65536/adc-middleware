@@ -2,6 +2,10 @@ package pt.inesctec.adcauthmiddleware.uma.models.internal;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
 /**
@@ -11,6 +15,13 @@ import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 public class TokenIntrospection {
   private boolean active;
   private List<UmaResource> permissions;
+  private Set<String> roles;
+
+  @JsonProperty("realm_access")
+  //@SuppressWarnings("unchecked")
+  private void rolesDeserializer(Map<String, Set<String>> realmAccess) {
+    this.roles = realmAccess.get("roles");
+  }
 
   public boolean isActive() {
     return active;
@@ -26,5 +37,13 @@ public class TokenIntrospection {
 
   public void setPermissions(List<UmaResource> permissions) {
     this.permissions = permissions;
+  }
+
+  public Set<String> getRoles() {
+    return roles;
+  }
+
+  public void setRoles(Set<String> roles) {
+    this.roles = roles;
   }
 }
