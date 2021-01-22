@@ -1,10 +1,9 @@
 package pt.inesctec.adcauthmiddleware.db.models;
 
-import org.hibernate.annotations.ColumnDefault;
-
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
 /**
  * Models the DB's study ID to UMA ID associations.

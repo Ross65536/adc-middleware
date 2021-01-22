@@ -2,10 +2,11 @@ package pt.inesctec.adcauthmiddleware.utils;
 
 import com.google.common.collect.SortedMultiset;
 import com.google.common.collect.TreeMultiset;
+import org.slf4j.LoggerFactory;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.LoggerFactory;
 
 /**
  * Class responsible for sleeping the invoking thread if execution time is below a certain computed threshold.

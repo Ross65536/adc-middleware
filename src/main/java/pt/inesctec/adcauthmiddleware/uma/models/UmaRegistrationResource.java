@@ -4,11 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
 /**
  * Models a UMA resource used when creating a resource. Has some fields specific to Keycloak.

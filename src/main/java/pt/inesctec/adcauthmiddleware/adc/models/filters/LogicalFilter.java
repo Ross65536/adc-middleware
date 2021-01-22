@@ -1,10 +1,11 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters;
 
+import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
+import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 
 /**
  * An adc logical filter, like 'and', 'or'.

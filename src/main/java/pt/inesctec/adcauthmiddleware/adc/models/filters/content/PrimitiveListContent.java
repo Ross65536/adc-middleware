@@ -1,10 +1,11 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters.content;
 
-import java.util.List;
-import java.util.Map;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.FiltersUtils;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Models a filter's content with a value of array os strings type.

@@ -2,8 +2,9 @@ package pt.inesctec.adcauthmiddleware.adc.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javax.validation.constraints.NotNull;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * Models a rearrangement response but only with the ID fields.

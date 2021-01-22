@@ -3,11 +3,6 @@ package pt.inesctec.adcauthmiddleware.adc.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.AdcFilter;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.LogicalFilter;
@@ -15,6 +10,8 @@ import pt.inesctec.adcauthmiddleware.adc.models.filters.content.PrimitiveListCon
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.PrimitiveListContentFilter;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.config.csv.IncludeField;
+
+import java.util.*;
 
 /**
  * Models a user's ADC search request body.

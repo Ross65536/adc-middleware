@@ -4,14 +4,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
 import org.slf4j.LoggerFactory;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
+
+import java.util.*;
+import java.util.function.Function;
 
 /**
  * Responsible for filtering out nested JSON fields from resources to which access was denied.

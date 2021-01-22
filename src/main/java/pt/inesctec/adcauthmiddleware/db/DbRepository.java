@@ -1,12 +1,6 @@
 package pt.inesctec.adcauthmiddleware.db;
 
 import com.google.common.collect.Sets;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.transaction.Transactional;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -26,6 +20,13 @@ import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResourceAttributes;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
+
+import javax.transaction.Transactional;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Responsible for managing, synchronizing the middleware's DB, cache and Keycloak's (or other authorization server) DB.

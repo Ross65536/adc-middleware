@@ -1,11 +1,12 @@
 package pt.inesctec.adcauthmiddleware.config;
 
-import javax.validation.constraints.NotBlank;
 import org.hibernate.validator.constraints.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.validation.annotation.Validated;
+
+import javax.validation.constraints.NotBlank;
 
 /**
  * Model for the configuration file, UMA/Keycloak specific.

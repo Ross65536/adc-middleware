@@ -4,14 +4,15 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.http.Json;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
 
 /**
  * JSON parser for repository response. Both regular and facets.

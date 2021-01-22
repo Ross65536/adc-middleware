@@ -4,21 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.Null;
-
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -28,12 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
@@ -58,17 +38,25 @@ import pt.inesctec.adcauthmiddleware.utils.Delayer;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 /**
  * class responsible for the protected endpoints.
  */
 @RestController
 public class AdcAuthController {
-  private static Set<String> EmptySet = ImmutableSet.of();
-  private static List<UmaResource> EmptyResources = ImmutableList.of();
-  private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcAuthController.class);
+  private static final Set<String> EmptySet = ImmutableSet.of();
+  private static final List<UmaResource> EmptyResources = ImmutableList.of();
+  private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcAuthController.class);
   private static final PasswordEncoder PasswordEncoder = new BCryptPasswordEncoder();
 
-  private AppConfig appConfig;
+  private final AppConfig appConfig;
   private final Delayer repertoiresDelayer;
   private final Delayer rearrangementsDelayer;
   @Autowired private AdcClient adcClient;

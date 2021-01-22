@@ -1,6 +1,7 @@
 package pt.inesctec.adcauthmiddleware.adc.resourceprocessing;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import java.util.Optional;
 
 /**

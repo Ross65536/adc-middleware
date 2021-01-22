@@ -1,15 +1,16 @@
 package pt.inesctec.adcauthmiddleware.config;
 
 import com.google.common.collect.Sets;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**

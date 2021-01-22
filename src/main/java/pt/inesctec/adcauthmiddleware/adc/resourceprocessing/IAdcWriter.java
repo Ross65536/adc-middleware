@@ -1,8 +1,9 @@
 package pt.inesctec.adcauthmiddleware.adc.resourceprocessing;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.IOException;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingConsumer;
+
+import java.io.IOException;
 
 /**
  * Implementing classes are responsible for transcoding the JSON object/resource to their corresponding format.
