@@ -1,11 +1,12 @@
 package pt.inesctec.adcauthmiddleware.uma;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
+
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Responsible for the UMA flow.

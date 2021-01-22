@@ -1,8 +1,6 @@
 package pt.inesctec.adcauthmiddleware.db.models;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Models the DB's study ID to UMA ID associations.

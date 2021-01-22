@@ -1,9 +1,10 @@
 package pt.inesctec.adcauthmiddleware.db.repository;
 
-import javax.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
+
+import javax.transaction.Transactional;
 
 /**
  * DB repository for study operations.

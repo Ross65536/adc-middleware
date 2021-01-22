@@ -10,12 +10,13 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Map;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingConsumer;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Map;
 
 /**
  * Class responsible for converting JSON fields and values to TSV format.

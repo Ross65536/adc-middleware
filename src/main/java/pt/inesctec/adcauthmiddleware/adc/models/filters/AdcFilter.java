@@ -3,15 +3,12 @@ package pt.inesctec.adcauthmiddleware.adc.models.filters;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
+import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.*;
+import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
+
 import java.util.Map;
 import java.util.Set;
-import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
-import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.NoValueContentFilter;
-import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.NumberContentFilter;
-import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.PrimitiveContentFilter;
-import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.PrimitiveListContentFilter;
-import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.StringContentFilter;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,

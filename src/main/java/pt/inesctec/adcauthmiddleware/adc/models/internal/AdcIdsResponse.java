@@ -2,9 +2,10 @@ package pt.inesctec.adcauthmiddleware.adc.models.internal;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
 import pt.inesctec.adcauthmiddleware.adc.models.RearrangementModel;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
+
+import java.util.List;
 
 /**
  * Models an ADC document Repertoire or Rearrangement Response.

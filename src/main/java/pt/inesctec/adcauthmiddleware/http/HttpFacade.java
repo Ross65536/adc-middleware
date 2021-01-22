@@ -2,14 +2,15 @@ package pt.inesctec.adcauthmiddleware.http;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 
 /**
  * Utility methods for making HTTP requests using java 11 HTTP library.

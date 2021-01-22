@@ -1,8 +1,6 @@
 package pt.inesctec.adcauthmiddleware.uma;
 
 import com.google.common.collect.ImmutableMap;
-import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -12,12 +10,10 @@ import pt.inesctec.adcauthmiddleware.http.HttpRequestBuilderFacade;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
-import pt.inesctec.adcauthmiddleware.uma.models.internal.AccessToken;
-import pt.inesctec.adcauthmiddleware.uma.models.internal.Ticket;
-import pt.inesctec.adcauthmiddleware.uma.models.internal.TokenIntrospection;
-import pt.inesctec.adcauthmiddleware.uma.models.internal.UmaResourceCreate;
-import pt.inesctec.adcauthmiddleware.uma.models.internal.UmaWellKnown;
+import pt.inesctec.adcauthmiddleware.uma.models.internal.*;
 import pt.inesctec.adcauthmiddleware.utils.Utils;
+
+import java.util.Map;
 
 @Component
 public class UmaClient {

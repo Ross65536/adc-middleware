@@ -2,9 +2,10 @@ package pt.inesctec.adcauthmiddleware.adc.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Map;
-import javax.validation.constraints.NotNull;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+
+import javax.validation.constraints.NotNull;
+import java.util.Map;
 
 /**
  * Models a repertoire response element, but with only the ID fields and the study title.

@@ -1,6 +1,7 @@
 package pt.inesctec.adcauthmiddleware.config.csv;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Set;
 
 /**

@@ -1,11 +1,12 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters.content;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.Map;
-import java.util.Set;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.FiltersUtils;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Models a filter's content with only a field and no value.

@@ -1,10 +1,11 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters;
 
-import java.util.Map;
-import java.util.Set;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.FieldContent;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
+
+import java.util.Map;
+import java.util.Set;
 
 public class ContentFilterBase<T extends FieldContent> extends AdcFilter {
   private T content;

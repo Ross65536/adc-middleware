@@ -2,14 +2,15 @@ package pt.inesctec.adcauthmiddleware.http;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Charsets;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 
 /**
  * Wraps around {@link HttpRequest.Builder} providing utility methods. Follows Builder pattern with fluent interface.

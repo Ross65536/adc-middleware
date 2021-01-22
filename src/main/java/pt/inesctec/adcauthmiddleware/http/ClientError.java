@@ -1,9 +1,10 @@
 package pt.inesctec.adcauthmiddleware.http;
 
-import java.io.IOException;
-import java.util.Optional;
 import org.springframework.http.MediaType;
 import pt.inesctec.adcauthmiddleware.HttpException;
+
+import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Represents an HTTP exception. Contains the response body and content-type.

@@ -3,9 +3,10 @@ package pt.inesctec.adcauthmiddleware.adc.resourceprocessing;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import pt.inesctec.adcauthmiddleware.utils.ThrowingConsumer;
+
 import java.io.IOException;
 import java.io.OutputStream;
-import pt.inesctec.adcauthmiddleware.utils.ThrowingConsumer;
 
 /**
  * Class responsible for writing JSON objects to output stream in JSON format.
