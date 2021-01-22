@@ -363,29 +363,12 @@ public class AdcAuthController {
   }
 
   /**
-   * The public fields endpoint. Not part of ADC v1. Unprotected. Extension of the middleware.
-   *
-   * @return the public fields for each resource type
-   */
-  @RequestMapping(value = "/public_fields", method = RequestMethod.GET)
-  public Map<FieldClass, Set<String>> publicFields() {
-
-    var map = new HashMap<FieldClass, Set<String>>();
-    for (var adcClass : FieldClass.values()) {
-      var fields = this.csvConfig.getPublicFields(adcClass);
-      map.put(adcClass, fields);
-    }
-
-    return map;
-  }
-
-  /**
    * The synchronize endpoint. Not part of ADC v1. Protected by password set in the configuration file. Extension of the middleware.
    * Performs state synchronization between the repository and the UMA authorization server and this middleware's DB.
    * Resets the delays pool request times.
    *
    * @param request the user request
-   * @return OK on successful synchronization or an error code when a process(es) in the synchronization fails.
+   * @return OK on successful synchronization or an error code when a process in the synchronization fails.
    * @throws Exception on user errors such as invalid password or some internal errors.
    */
   @RequestMapping(value = "/synchronize", method = RequestMethod.POST)
