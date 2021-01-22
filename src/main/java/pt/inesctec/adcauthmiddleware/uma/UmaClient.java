@@ -61,7 +61,7 @@ public class UmaClient {
     return this.getWellKnownInstance().getIssuer();
   }
 
-  public List<UmaResource> introspectToken(String token, Boolean isRpt) throws Exception {
+  public TokenIntrospection introspectToken(String token, Boolean isRpt) throws Exception {
     this.updateAccessToken();
     var uri = Utils.buildUrl(this.getWellKnownInstance().getIntrospectionEndpoint());
     var form = ImmutableMap.of(
@@ -90,7 +90,7 @@ public class UmaClient {
       throw new UmaFlowException("RPT token is invalid (not active)");
     }
 
-    return introspection.getPermissions();
+    return introspection;
   }
 
   private void updateAccessToken() throws Exception {

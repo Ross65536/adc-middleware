@@ -15,9 +15,9 @@ def getAllScopes():
 
 # POST /v1/synchronize
 def synchronize(password):
-  # step 1, check password
-  syncPassHash = config.load("app.synchronizePasswordHash")
-  if BCrypt.hash(password, 10) != syncPassHash:
+  # step 1, check user's roles
+  syncRole = config.load("app.synchronizeRole")
+  if (access_token.containsRole(syncRole)):
     raise "Invalid password" 
 
   repository = AdcClient("http://repository:80/airr/v1")

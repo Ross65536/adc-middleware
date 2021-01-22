@@ -90,7 +90,7 @@ Example deployment for testing in localhost.
 
 > **Important**: When deploying it's very important to make the backend's API unavailable to the public
 
-> **Important**: You must generate a new password and hash for the `app.synchronizePasswordHash` property variable, see below how. 
+> **Important**: If you want different user role to be able to call the /synchronize endpoint, make sure to define it in `app.synchronizeRole`. 
 
 > **Important**: The middleware APIs should be under a SSL connection in order not to leak user credentials or the synchronization password. If it is not under SSL you need to disable SSL connections Keycloak (see below).
 
@@ -176,8 +176,7 @@ file `dev.properties` (You need to update `uma.clientSecret`):
 adc.resourceServerUrl=http://localhost:80/airr/v1
 server.port=8080
 
-# password 'master'
-app.synchronizePasswordHash=$2a$10$qr81MrxWblqZlMAt5kf/9.xdBPubtDMuoV3DRKgTk2bu.SPazsaTm
+app.synchronizeRole=admin
 
 # UMA
 uma.wellKnownUrl=http://localhost:8082/auth/realms/master/.well-known/uma2-configuration
@@ -254,7 +253,7 @@ Required:
 - `spring.datasource.username`: DB username
 - `spring.datasource.password`: DB password
 - `spring.datasource.platform`: The platform. Omit for H2 DB, set to `postgres` for PostgreSQL DB.
-- `app.synchronizePasswordHash`: The sha256 hash of the password protecting the synchronization endpoint. See below how to generate.
+- `app.synchronizeRole`: String that defines the role of the user that's able to call the /synchronize endpoint.
 
 Optional:
 - `server.servlet.context-path`: The base path of the middleware API. Defaults to: `/airr/v1`
