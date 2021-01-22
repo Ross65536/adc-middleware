@@ -202,7 +202,7 @@ public class AdcAuthController {
 
     var tokenResources = this.umaClient.introspectToken(bearer, true);
     var fieldMapper =
-        this.buildUmaFieldMapper(tokenResources, FieldClass.REPERTOIRE)
+        this.buildUmaFieldMapper(tokenResources.getPermissions(), FieldClass.REPERTOIRE)
             .compose(this.dbRepository::getStudyUmaId);
 
     return buildFilteredJsonResponse(
@@ -240,7 +240,7 @@ public class AdcAuthController {
 
     var tokenResources = this.umaClient.introspectToken(bearer, true);
     var fieldMapper =
-        this.buildUmaFieldMapper(tokenResources, FieldClass.REARRANGEMENT)
+        this.buildUmaFieldMapper(tokenResources.getPermissions(), FieldClass.REARRANGEMENT)
             .compose(this.dbRepository::getRepertoireUmaId);
 
     return buildFilteredJsonResponse(
@@ -397,10 +397,8 @@ public class AdcAuthController {
 
     var tokenResources = this.umaClient.introspectToken(bearer, false);
 
-    tokenResources = List.of();
-
-    if (!PasswordEncoder.matches(bearer, appConfig.getSynchronizePasswordHash())) {
-      throw new SyncException("Invalid user credential");
+    if (!tokenResources.getRoles().contains(this.appConfig.getSynchronizeRole())) {
+      throw new SyncException("User not allowed to synchronize resources");
     }
 
     if (!this.dbRepository.synchronize()) {
@@ -465,7 +463,7 @@ public class AdcAuthController {
 
     var bearer = SpringUtils.getBearer(request);
     if (bearer != null) {
-      return this.umaClient.introspectToken(bearer, true);
+      return this.umaClient.introspectToken(bearer, true).getPermissions();
     }
 
     Collection<String> umaIds = umaIdsProducer.apply(adcSearch);

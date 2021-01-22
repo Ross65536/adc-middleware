@@ -48,12 +48,9 @@ public class AppConfig {
    * Format is a string: "op1,op2,etc"
    */
   private Set<String> filtersOperatorsBlacklist = Set.of();
-  /**
-   * The hash of the password used for the synchronize endpoint.
-   * Must be a BCrypt hash with strength 10.
-   */
+
   @NotNull @NotBlank
-  private String synchronizePasswordHash;
+  private String synchronizeRole = "admin";
 
   public String getAdcCsvConfigPath() {
     return adcCsvConfigPath;
@@ -63,12 +60,12 @@ public class AppConfig {
     this.adcCsvConfigPath = adcCsvConfigPath;
   }
 
-  public String getSynchronizePasswordHash() {
-    return synchronizePasswordHash;
+  public String getSynchronizeRole() {
+    return synchronizeRole;
   }
 
-  public void setSynchronizePasswordHash(String synchronizePasswordHash) {
-    this.synchronizePasswordHash = synchronizePasswordHash;
+  public void setSynchronizeRole(String synchronizeRole) {
+    this.synchronizeRole = synchronizeRole;
   }
 
   public boolean isFacetsEnabled() {
