@@ -13,6 +13,12 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
+import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
+import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * class responsible for the unprotected endpoints. Performs forwarding for these endpoints to the repository.
@@ -21,8 +27,8 @@ import pt.inesctec.adcauthmiddleware.config.AppConfig;
 public class AdcPublicController {
   private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcPublicController.class);
   @Autowired private AppConfig appConfig;
-
   @Autowired private AdcClient adcClient;
+  @Autowired private CsvConfig csvConfig;
 
   /**
    * Returns forwarding error status and body when the repository returns a non-OK status code.
@@ -73,6 +79,23 @@ public class AdcPublicController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<StreamingResponseBody> info() throws Exception {
     return forward("info");
+  }
+
+  /**
+   * The public fields endpoint. Not part of ADC v1. Unprotected. Extension of the middleware.
+   *
+   * @return the public fields for each resource type
+   */
+  @RequestMapping(value = "/public_fields", method = RequestMethod.GET)
+  public Map<FieldClass, Set<String>> publicFields() {
+
+    var map = new HashMap<FieldClass, Set<String>>();
+    for (var adcClass : FieldClass.values()) {
+      var fields = this.csvConfig.getPublicFields(adcClass);
+      map.put(adcClass, fields);
+    }
+
+    return map;
   }
 
   /**
