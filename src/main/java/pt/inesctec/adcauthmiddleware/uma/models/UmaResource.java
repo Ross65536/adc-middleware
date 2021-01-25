@@ -1,11 +1,11 @@
 package pt.inesctec.adcauthmiddleware.uma.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Models a UMA resource with ID and scope.
@@ -13,28 +13,29 @@ import java.util.Set;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UmaResource {
 
-  @JsonProperty("resource_id")
-  private String umaResourceId;
+    @JsonProperty("resource_id")
+    private String umaResourceId;
 
-  @JsonProperty("resource_scopes")
-  private Set<String> scopes;
+    @JsonProperty("resource_scopes")
+    private Set<String> scopes;
 
-  public UmaResource() {}
+    public UmaResource() {
+    }
 
-  public UmaResource(String umaResourceId, String... scopes) {
-    this(umaResourceId, new HashSet<>(List.of(scopes)));
-  }
+    public UmaResource(String umaResourceId, String... scopes) {
+        this(umaResourceId, new HashSet<>(List.of(scopes)));
+    }
 
-  public UmaResource(String umaId, Set<String> umaScopes) {
-    this.umaResourceId = umaId;
-    this.scopes = umaScopes;
-  }
+    public UmaResource(String umaId, Set<String> umaScopes) {
+        this.umaResourceId = umaId;
+        this.scopes = umaScopes;
+    }
 
-  public String getUmaResourceId() {
-    return umaResourceId;
-  }
+    public String getUmaResourceId() {
+        return umaResourceId;
+    }
 
-  public Set<String> getScopes() {
-    return scopes;
-  }
+    public Set<String> getScopes() {
+        return scopes;
+    }
 }
