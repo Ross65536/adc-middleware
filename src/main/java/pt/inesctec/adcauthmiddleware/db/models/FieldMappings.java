@@ -11,7 +11,7 @@ import javax.persistence.Id;
 @Entity
 public class FieldMappings {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 }

@@ -7,5 +7,5 @@ package pt.inesctec.adcauthmiddleware.utils;
  * @param <E> exception type
  */
 public interface ThrowingSupplier<R, E extends Throwable> {
-  R get() throws E;
+    R get() throws E;
 }

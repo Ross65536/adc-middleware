@@ -3,6 +3,7 @@ plugins {
 	id 'io.spring.dependency-management' version '1.0.9.RELEASE'
 	id 'java'
 	id 'checkstyle'
+	id "org.flywaydb.flyway" version "7.5.1"
 }
 
 group = 'pt.inesctec'

@@ -7,8 +7,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Also represents the different types of resources in the ADC API.
  */
 public enum FieldClass {
-  @JsonProperty("Repertoire")
-  REPERTOIRE,
-  @JsonProperty("Rearrangement")
-  REARRANGEMENT;
+    @JsonProperty("Repertoire")
+    REPERTOIRE,
+    @JsonProperty("Rearrangement")
+    REARRANGEMENT;
 }

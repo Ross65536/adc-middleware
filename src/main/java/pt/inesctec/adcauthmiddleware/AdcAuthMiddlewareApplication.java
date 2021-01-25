@@ -10,13 +10,13 @@ import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
  * Spring's 'entrypoint'.
  */
 @SpringBootApplication(exclude = {
-    org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class
+        org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class
 })
 @EnableConfigurationProperties(AdcConfiguration.class)
 @EnableCaching
 public class AdcAuthMiddlewareApplication {
 
-  public static void main(String[] args) {
-    SpringApplication.run(AdcAuthMiddlewareApplication.class, args);
-  }
+    public static void main(String[] args) {
+        SpringApplication.run(AdcAuthMiddlewareApplication.class, args);
+    }
 }

@@ -1,8 +1,8 @@
 package pt.inesctec.adcauthmiddleware.uma.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class UmaResourceAttributes {
     private Set<String> publicFields;
