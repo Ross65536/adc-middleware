@@ -1,14 +1,14 @@
 CREATE TABLE adc_fields (
     id SERIAL PRIMARY KEY,
-    id_type INT NOT NULL REFERENCES field_type(id),
+    id_type INT NOT NULL REFERENCES adc_field_type(id),
     name VARCHAR NOT NULL,
     UNIQUE (id_type, name)
 );
 
 DO $$
 declare
-    repertoire_type    INT := (SELECT id from field_type where name = 'repertoire');
-    rearrangement_type INT := (SELECT id from field_type where name = 'rearrangement');
+    repertoire_type    INT := (SELECT id from adc_field_type where name = 'repertoire');
+    rearrangement_type INT := (SELECT id from adc_field_type where name = 'rearrangement');
 BEGIN
     INSERT INTO adc_fields (id_type, name)
     VALUES

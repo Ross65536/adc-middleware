@@ -3,7 +3,7 @@ CREATE TABLE access_scope (
     name VARCHAR NOT NULL
 );
 
-CREATE TABLE field_type (
+CREATE TABLE adc_field_type (
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL
 );
@@ -13,6 +13,6 @@ VALUES ('public'),
        ('raw_sequence'),
        ('statistics');
 
-INSERT INTO field_type (name)
+INSERT INTO adc_field_type (name)
 VALUES ('repertoire'),
        ('rearrangement');
