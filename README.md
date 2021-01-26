@@ -24,7 +24,7 @@ Example deployment for testing in localhost.
 0. Clone the repository:
 
   ```shell script
-  git clone https://github.com/Ross65536/adc-middleware
+  git clone https://github.com/ireceptorplus-inesctec/adc-middleware
   ```
 
 1. Load repository test data:
@@ -43,7 +43,7 @@ Example deployment for testing in localhost.
 
   (Optional) build middleware docker image locally:
   ```shell script
-  docker build -t ros65536/adc-middleware .
+  docker build -t ireceptorplus-inesctec/adc-middleware .
   ```
 
   Load components
@@ -52,7 +52,7 @@ Example deployment for testing in localhost.
 
   # load all components
   MIDDLEWARE_UMA_CLIENT_SECRET=12 docker-compose up # MIDDLEWARE_UMA_CLIENT_SECRET is not important in this step but must be set
-  ````
+````
 
   You can now make requests to `http://localhost/airr/v1/`. Try with `http://localhost/airr/v1/info` to see if there is a connection to the backend. 
 
@@ -81,7 +81,7 @@ Example deployment for testing in localhost.
   # '12345abcd' is the password
   curl --location --request POST 'localhost/airr/v1/synchronize' --header 'Authorization: Bearer 12345abcd'
   ```
-  
+
   See below for a discussion on when to re-synchronize.
 
   You should now be able to access the frontend on `http://localhost`, login, and access resources.
@@ -190,11 +190,26 @@ spring.datasource.username=postgres
 spring.datasource.password=password
 spring.datasource.platform=postgres
 
-#redis
+# Flyway
+flyway.url=jdbc:postgresql://localhost:5432/middleware_db
+flyway.user=postgres
+flyway.password=password
+flyway.schemas=public
+flyway.locations=classpath:/db/postgresql
+
+# Redis
 spring.cache.type=redis
 spring.redis.host=localhost
 spring.redis.port=6379
 ```
+
+#### Creating and Migrating the Database
+Database creation and migration is manage by [Flyway](https://flywaydb.org/). Migration scripts are located in `src/main/resources/db`. To run these migrations run the following command:
+
+```shell
+./gradlew clean build flywayMigrate -Dflyway.configFiles=dev.properties 
+```
+
 
 
 #### Dev run example
@@ -528,14 +543,14 @@ TSV format is supported for the `POST /v1/rearrangement` endpoint.
 The user's requested fields cannot be nested documents/objects (in the default CSV configuration no rearrangement fields are nested objects). 
 
 TSV support is implemented in the middleware itself by translating JSON to TSV.
- 
+
 
 ### Adding OpenID Connect third-party Identity Providers
 
 1. Login to keycloak's admin panel.
 2. Go to `Identity Providers` in the side bar and add a OpenID Connect provider, set the `alias` which will be the display name (for example to `orcid`) and make note of the generated `Redirect URI`.
 3. Add keycloak to third party OIDC IdP. 
-  
+
   For ORCDID login as an account, go to developer tools, and add keycloak: set the `Your website URL` to keycloak's host (example `http://localhost:8082`) and put in `Redirect URIs` the url generated in keycloak from the previous step (example `http://localhost:8082/auth/realms/master/broker/orcid/endpoint`). Make note of the `Client ID` and `Client Secret`. Save.
 
   For EGI Checkin: In the dashboard from step 2, add generated info from previous step. 
