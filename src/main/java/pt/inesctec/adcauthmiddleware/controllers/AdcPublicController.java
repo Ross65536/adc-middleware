@@ -1,6 +1,9 @@
 package pt.inesctec.adcauthmiddleware.controllers;
 
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -10,28 +13,38 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
+import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
+import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
+import pt.inesctec.adcauthmiddleware.utils.Delayer;
 
 /**
  * class responsible for the unprotected endpoints. Performs forwarding for these endpoints to the repository.
  */
 @RestController
 public class AdcPublicController extends AdcController {
+    @Autowired
+    protected AppConfig appConfig;
+
     private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcPublicController.class);
     @Autowired
-    private AppConfig appConfig;
-    @Autowired
-    private AdcClient adcClient;
-    @Autowired
     private CsvConfig csvConfig;
+
+    @PostConstruct
+    public void initialize() {
+        this.repertoiresDelayer = new Delayer(appConfig.getRequestDelaysPoolSize());
+        this.rearrangementsDelayer = new Delayer(appConfig.getRequestDelaysPoolSize());
+    }
 
     /**
      * Returns forwarding error status and body when the repository returns a non-OK status code.
@@ -101,6 +114,54 @@ public class AdcPublicController extends AdcController {
         }
 
         return map;
+    }
+
+    /**
+     * Protected by UMA. Repertoires search. Part of ADC v1.
+     * JSON processed in streaming mode. Can return resource public fields if not given access to a resource.
+     *
+     * @param request user request
+     * @return the filtered repertoires stream
+     * @throws Exception if some error occurs
+     */
+    @RequestMapping(
+        value = "/repertoire",
+        method = RequestMethod.POST,
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<StreamingResponseBody> publicRepertoireSearch(
+        HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
+
+        this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
+
+        Set<String> umaScopes = this.getAdcRequestUmaScopes(adcSearch, FieldClass.REPERTOIRE);
+        var umaResources =
+            this.adcQueryUmaFlow(
+                request, adcSearch, this::getRepertoireStudyIds, repertoiresDelayer, umaScopes);
+
+        if (adcSearch.isFacetsSearch()) {
+            final List<String> resourceIds =
+                calcValidFacetsResources(
+                    umaResources,
+                    umaScopes,
+                    (umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId)));
+
+            return facetsRequest(
+                adcSearch,
+                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+                this.adcClient::searchRepertoiresAsStream,
+                resourceIds,
+                !umaScopes.isEmpty());
+        }
+
+        var fieldMapper =
+            this.adcRegularSearchSetup(
+                adcSearch, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, FieldClass.REPERTOIRE, umaResources);
+        return buildFilteredJsonResponse(
+            AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+            AdcConstants.REPERTOIRE_RESPONSE_FILTER_FIELD,
+            fieldMapper.compose(this.dbRepository::getStudyUmaId),
+            () -> this.adcClient.searchRepertoiresAsStream(adcSearch));
     }
 
     /**
