@@ -204,13 +204,18 @@ spring.redis.port=6379
 ```
 
 #### Creating and Migrating the Database
-Database creation and migration is manage by [Flyway](https://flywaydb.org/). Migration scripts are located in `src/main/resources/db`. To run these migrations run the following command:
+Database creation and migration is managed by [Flyway](https://flywaydb.org/). Migration scripts are located in `src/main/resources/db`. To run these migrations run the following command:
 
 ```shell
-./gradlew clean build flywayMigrate -Dflyway.configFiles=dev.properties 
+./gradlew clean build flywayMigrate -Dflyway.configFiles=dev.properties
 ```
 
+If using IntelliJ IDEA, make sure to provide `-Dflyway.configFiles=dev.properties` as `VM options`.
 
+Developer's note: **Avoid changing older/previous scripts at all costs**. Flyway is a revision-based system and bases its migration workflow by following all migration scripts sequentially. If an older existing migration script is changed, **it will cause a checksum error with any existing database** you try to migrate. If the existing data model required changes, please create a new script. More details can be found on:
+
+- [Flyway's Official Documentation](https://flywaydb.org/documentation/)
+- [Best Practices for Flyway and Hibernate with Spring Boot](https://rieckpil.de/howto-best-practices-for-flyway-and-hibernate-with-spring-boot/)
 
 #### Dev run example
 
@@ -242,6 +247,8 @@ To run style checker run:
 ```shell script
 ./gradlew test
 ```
+
+Tests may be skipped by providing the argument `-x test` in any pipeline of commands.
 
 #### Pushing docker image
 

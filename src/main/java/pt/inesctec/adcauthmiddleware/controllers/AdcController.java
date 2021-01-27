@@ -2,6 +2,6 @@ package pt.inesctec.adcauthmiddleware.controllers;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@RequestMapping("/airr/v1")
+@RequestMapping("${app.airrBasepath}")
 public abstract class AdcController {
 }
