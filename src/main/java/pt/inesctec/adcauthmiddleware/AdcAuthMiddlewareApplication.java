@@ -15,7 +15,6 @@ import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
 @EnableConfigurationProperties(AdcConfiguration.class)
 @EnableCaching
 public class AdcAuthMiddlewareApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(AdcAuthMiddlewareApplication.class, args);
     }
