@@ -11,8 +11,6 @@ import pt.inesctec.adcauthmiddleware.utils.TestCollections;
 import pt.inesctec.adcauthmiddleware.utils.TestConstants;
 
 class AdcPublicEndpointTests extends TestBase {
-
-
   @BeforeEach
   void reset() {
     backendMock.resetAll();
