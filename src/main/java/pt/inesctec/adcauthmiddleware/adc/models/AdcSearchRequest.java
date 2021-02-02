@@ -41,9 +41,8 @@ public class AdcSearchRequest {
     private IncludeField includeFields;
 
     /**
-     * TODO: Possibly delete this function and remove everywhere where its called. It serves no purpose as validation should be done on the Repository's side
-     *
      * Validates that the user request is semantically correct.
+     * TODO: Possibly delete this function and remove everywhere where its called. It serves no purpose as validation should be done on the Repository's side
      *
      * @param adcSearch          the user's request
      * @param validFieldTypes    map of all the valid fields for the resource type of the endpoint and their corresponding types.
@@ -96,14 +95,36 @@ public class AdcSearchRequest {
     }
 
     /**
+     * Returns the UMA scopes for the fields in this Request.
+     * The considered parameters are: "facets", "fields", "include_fields", and "filters".
+     * Filters operators can reference a field for the search and these are the fields considered.
+     *
+     * @param fieldClass the resource type
+     * @return the UMA scopes.
+     */
+    @JsonIgnore
+    public Set<String> getUmaScopes(FieldClass fieldClass, CsvConfig csvConfig) {
+        final Set<String> requestedFields = this.isFacetsSearch()
+            ? Set.of(this.getFacets())
+            : this.getRequestedFields(fieldClass, csvConfig);
+        final Set<String> filtersFields = this.getFiltersFields();
+        final Set<String> allConsideredFields = Sets.union(requestedFields, filtersFields);
+
+        // empty set returned means only public fields requested
+        return csvConfig.getUmaScopes(fieldClass, allConsideredFields);
+    }
+
+
+    /**
      * Setup the ADC request and build the mapper for a regular listing.
      *
-     * @param resourceId   the resource's ID field.
      * @param fieldClass   the resource type.
+     * @param resourceId   the resource's ID field.
      * @param umaResources the UMA resources and scopes.
+     * @param csvConfig CsvConfig object
      * @return the UMA ID to permitted fields mapper
      */
-    //adcRegularSearchSetup
+    @JsonIgnore
     public Function<String, Set<String>> searchSetup(
         FieldClass fieldClass,
         String resourceId,
@@ -125,30 +146,9 @@ public class AdcSearchRequest {
                 }
 
                 // Return an Empty Set
-                Set<String> EmptySet = ImmutableSet.of();
-                return EmptySet;
+                Set<String> emptySet = ImmutableSet.of();
+                return emptySet;
             }).andThen(set -> Sets.intersection(set, allRequestedFields));
-    }
-
-    @JsonIgnore
-    /**
-     * Returns the UMA scopes for the fields in this Request.
-     * The considered parameters are: "facets", "fields", "include_fields", and "filters".
-     * Filters operators can reference a field for the search and these are the fields considered.
-     *
-     * @param adcSearch  the ADC query
-     * @param fieldClass the resource type
-     * @return the UMA scopes.
-     */
-    public Set<String> getUmaScopes(FieldClass fieldClass, CsvConfig csvConfig) {
-        final Set<String> requestedFields =
-            this.isFacetsSearch() ?
-                Set.of(this.getFacets()) : this.getRequestedFields(fieldClass, csvConfig);
-        final Set<String> filtersFields = this.getFiltersFields();
-        final Set<String> allConsideredFields = Sets.union(requestedFields, filtersFields);
-
-        // empty set returned means only public fields requested
-        return csvConfig.getUmaScopes(fieldClass, allConsideredFields);
     }
 
     /**
@@ -156,12 +156,14 @@ public class AdcSearchRequest {
      * Only the "fields" and "include_fields" parameters are considered. If both empty all of the resource's fields are returned.
      *
      * @param fieldClass the resource type
+     * @param csvConfig CsvConfig object
      * @return the set of fields that were requested.
      */
     public Set<String> getRequestedFields(FieldClass fieldClass, CsvConfig csvConfig) {
         final Set<String> fields = this.isFieldsEmpty() ? Set.of() : this.getFields();
-        final Set<String> includeFields = this.isIncludeFieldsEmpty() ?
-            Set.of() : csvConfig.getFields(fieldClass, this.getIncludeFields());
+        final Set<String> includeFields = this.isIncludeFieldsEmpty()
+            ? Set.of()
+            : csvConfig.getFields(fieldClass, this.getIncludeFields());
 
         final Set<String> requestedFields = Sets.union(fields, includeFields);
 

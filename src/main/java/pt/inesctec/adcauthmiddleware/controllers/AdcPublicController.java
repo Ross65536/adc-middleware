@@ -136,7 +136,7 @@ public class AdcPublicController extends AdcController {
 
         Set<String> umaScopes = Set.of();
 
-        var umaResources= umaFlow.adcQuery(
+        var umaResources = umaFlow.adcQuery(
             request, adcSearch, this::getRepertoireStudyIds, repertoiresDelayer, umaScopes
         );
 

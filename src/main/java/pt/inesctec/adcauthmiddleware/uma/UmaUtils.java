@@ -26,8 +26,7 @@ public class UmaUtils {
      * @return the mapper function
      */
     public static Function<String, Set<String>> buildFieldMapper(
-        Collection<UmaResource> resources, FieldClass fieldClass, CsvConfig csvConfig)
-    {
+        Collection<UmaResource> resources, FieldClass fieldClass, CsvConfig csvConfig) {
         var validUmaFields = resources.stream().collect(
             Collectors.toMap(
                 UmaResource::getUmaResourceId,
