@@ -43,6 +43,8 @@ public class UmaUtils {
                 return publicFields;
             }
 
+            // TODO: Check for public study could be placed here?
+
             // Default Empty Set
             var fields = validUmaFields.getOrDefault(umaId, ImmutableSet.of());
             return Sets.union(fields, publicFields);

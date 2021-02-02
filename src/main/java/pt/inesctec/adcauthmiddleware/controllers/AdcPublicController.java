@@ -155,7 +155,7 @@ public class AdcPublicController extends AdcController {
                 !umaScopes.isEmpty());
         }
 
-        var fieldMapper = adcSearch.searchSetup(
+        var fieldMapper = adcSearch.setupFieldMapper(
             FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, umaResources, csvConfig
         );
 
