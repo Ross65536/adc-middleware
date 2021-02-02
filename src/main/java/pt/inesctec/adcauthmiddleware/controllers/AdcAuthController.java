@@ -271,7 +271,7 @@ public class AdcAuthController extends AdcController {
                 !umaScopes.isEmpty());
         }
 
-        var fieldMapper = adcSearch.searchSetup(
+        var fieldMapper = adcSearch.setupFieldMapper(
             FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, umaResources, csvConfig
         );
 
@@ -322,7 +322,7 @@ public class AdcAuthController extends AdcController {
                 !umaScopes.isEmpty());
         }
 
-        var fieldMapper = adcSearch.searchSetup(
+        var fieldMapper = adcSearch.setupFieldMapper(
             FieldClass.REARRANGEMENT,
             AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
             umaResources,

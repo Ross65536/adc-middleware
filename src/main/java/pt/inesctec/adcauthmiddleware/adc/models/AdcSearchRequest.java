@@ -125,7 +125,7 @@ public class AdcSearchRequest {
      * @return the UMA ID to permitted fields mapper
      */
     @JsonIgnore
-    public Function<String, Set<String>> searchSetup(
+    public Function<String, Set<String>> setupFieldMapper(
         FieldClass fieldClass,
         String resourceId,
         Collection<UmaResource> umaResources,
@@ -145,7 +145,6 @@ public class AdcSearchRequest {
                     return fields;
                 }
 
-                // Return an Empty Set
                 Set<String> emptySet = ImmutableSet.of();
                 return emptySet;
             }).andThen(set -> Sets.intersection(set, allRequestedFields));
