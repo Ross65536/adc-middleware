@@ -209,17 +209,18 @@ public class DbRepository {
     protected boolean synchronizeGuts() throws Exception {
         Logger.info("Synchronizing DB and cache");
 
-        var repertoireSearch =
-                new AdcSearchRequest().addFields(
-                        AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD,
-                        AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-                        AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD);
+        var repertoireSearch = new AdcSearchRequest().addFields(
+            AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD,
+            AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+            AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD
+        );
 
         var repertoires = this.adcClient.getRepertoireModel(repertoireSearch);
 
         CollectionsUtils.assertList(
-                repertoires, e -> e.getRepertoireId() != null,
-                "Repertoires response must have a " + AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
+            repertoires, e -> e.getRepertoireId() != null,
+            "Repertoires response must have a " + AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD
+        );
 
         boolean ok = true;
 

@@ -196,9 +196,8 @@ public class CsvConfig {
      * @param fieldClass the resource type.
      * @return the fields and types map.
      */
-    public Map<String, FieldType> getFieldsAndTypes(FieldClass fieldClass) {
-        return getAllClassFields(fieldClass)
-                .collect(Collectors.toMap(CsvField::getField, CsvField::getFieldType));
+    public Map<String, FieldType> getFieldsTypes(FieldClass fieldClass) {
+        return getAllClassFields(fieldClass).collect(Collectors.toMap(CsvField::getField, CsvField::getFieldType));
     }
 
     /**

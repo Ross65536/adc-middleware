@@ -1,12 +1,21 @@
 package pt.inesctec.adcauthmiddleware.uma;
 
+import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
+import pt.inesctec.adcauthmiddleware.controllers.SpringUtils;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
+import pt.inesctec.adcauthmiddleware.utils.Delayer;
+import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
 
 /**
  * Responsible for the UMA flow.
@@ -39,16 +48,56 @@ public class UmaFlow {
      * @return the ticket exception
      * @throws Exception on internal error.
      */
-    public TicketException noRptToken(Collection<String> umaIds, Set<String> umaScopes)
-            throws Exception {
+    public TicketException noRptToken(Collection<String> umaIds, Set<String> umaScopes) throws Exception {
         var umaResources =
-                umaIds.stream()
-                        .filter(Objects::nonNull)
-                        .distinct()
-                        .map(id -> new UmaResource(id, umaScopes))
-                        .toArray(UmaResource[]::new);
+            umaIds.stream()
+            .filter(Objects::nonNull)
+            .distinct()
+            .map(id -> new UmaResource(id, umaScopes))
+            .toArray(UmaResource[]::new);
 
         return this.noRptToken(umaResources); // will throw
+    }
+
+    /**
+     * The common UMA flow for POST endpoints. Emits a permissions ticket or returns the introspected RPT token resources.
+     *
+     * @param request        the user request
+     * @param adcSearch      the user ADC query
+     * @param umaIdsProducer the producer that will return the resources matching the user query
+     * @param delayer        the delayer to make all requests take the same time.
+     * @param umaScopes      the scopes set for the request (for emitting permissions ticket).
+     * @return the introspected RPT resources.
+     * @throws Exception when emitting a permission ticket or an internal error occurs.
+     */
+    public List<UmaResource> adcQuery(
+        HttpServletRequest request,
+        AdcSearchRequest adcSearch,
+        ThrowingFunction<AdcSearchRequest, Collection<String>, Exception> umaIdsProducer,
+        Delayer delayer,
+        Set<String> umaScopes)
+        throws Exception {
+        var startTime = LocalDateTime.now();
+
+        // empty scopes means public access, no UMA flow followed
+        if (umaScopes.isEmpty()) {
+            return ImmutableList.of();
+        }
+
+        var bearer = SpringUtils.getBearer(request);
+        if (bearer != null) {
+            return this.umaClient.introspectToken(bearer, true).getPermissions();
+        }
+
+        Collection<String> umaIds = umaIdsProducer.apply(adcSearch);
+        delayer.delay(startTime);
+
+        if (umaIds.isEmpty()) {
+            // when no resources return, just err
+            throw SpringUtils.buildHttpException(HttpStatus.UNAUTHORIZED, null);
+        }
+
+        throw this.noRptToken(umaIds, umaScopes);
     }
 
 }
