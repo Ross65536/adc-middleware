@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.HttpException;
-import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
@@ -33,10 +32,11 @@ import pt.inesctec.adcauthmiddleware.utils.Delayer;
  */
 @RestController
 public class AdcPublicController extends AdcController {
+    private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcPublicController.class);
+
     @Autowired
     protected AppConfig appConfig;
 
-    private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcPublicController.class);
     @Autowired
     private CsvConfig csvConfig;
 
@@ -129,22 +129,23 @@ public class AdcPublicController extends AdcController {
         method = RequestMethod.POST,
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<StreamingResponseBody> publicRepertoireSearch(
+    public ResponseEntity<StreamingResponseBody> publicRepertoireList(
         HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
 
         this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
 
-        Set<String> umaScopes = this.getAdcRequestUmaScopes(adcSearch, FieldClass.REPERTOIRE);
-        var umaResources =
-            this.adcQueryUmaFlow(
-                request, adcSearch, this::getRepertoireStudyIds, repertoiresDelayer, umaScopes);
+        Set<String> umaScopes = Set.of();
+
+        var umaResources= umaFlow.adcQuery(
+            request, adcSearch, this::getRepertoireStudyIds, repertoiresDelayer, umaScopes
+        );
 
         if (adcSearch.isFacetsSearch()) {
-            final List<String> resourceIds =
-                calcValidFacetsResources(
-                    umaResources,
-                    umaScopes,
-                    (umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId)));
+            final List<String> resourceIds = calcValidFacetsResources(
+                umaResources,
+                umaScopes,
+                (umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId))
+            );
 
             return facetsRequest(
                 adcSearch,
@@ -154,9 +155,10 @@ public class AdcPublicController extends AdcController {
                 !umaScopes.isEmpty());
         }
 
-        var fieldMapper =
-            this.adcRegularSearchSetup(
-                adcSearch, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, FieldClass.REPERTOIRE, umaResources);
+        var fieldMapper = adcSearch.searchSetup(
+            FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, umaResources, csvConfig
+        );
+
         return buildFilteredJsonResponse(
             AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
             AdcConstants.REPERTOIRE_RESPONSE_FILTER_FIELD,

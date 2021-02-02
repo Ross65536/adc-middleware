@@ -1,21 +1,29 @@
 package pt.inesctec.adcauthmiddleware.adc.models;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.AdcFilter;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.LogicalFilter;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.PrimitiveListContent;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.PrimitiveListContentFilter;
+import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
+import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.config.csv.IncludeField;
+import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
+import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
 /**
  * Models a user's ADC search request body.
@@ -33,6 +41,8 @@ public class AdcSearchRequest {
     private IncludeField includeFields;
 
     /**
+     * TODO: Possibly delete this function and remove everywhere where its called. It serves no purpose as validation should be done on the Repository's side
+     *
      * Validates that the user request is semantically correct.
      *
      * @param adcSearch          the user's request
@@ -83,6 +93,82 @@ public class AdcSearchRequest {
                 }
             }
         }
+    }
+
+    /**
+     * Setup the ADC request and build the mapper for a regular listing.
+     *
+     * @param resourceId   the resource's ID field.
+     * @param fieldClass   the resource type.
+     * @param umaResources the UMA resources and scopes.
+     * @return the UMA ID to permitted fields mapper
+     */
+    //adcRegularSearchSetup
+    public Function<String, Set<String>> searchSetup(
+        FieldClass fieldClass,
+        String resourceId,
+        Collection<UmaResource> umaResources,
+        CsvConfig csvConfig) {
+        final Set<String> allRequestedFields = this.getRequestedFields(fieldClass, csvConfig);
+        final Set<String> filtersFields = this.getFiltersFields();
+
+        if (!allRequestedFields.contains(resourceId)) {
+            this.addField(resourceId);
+        }
+
+        return UmaUtils.buildFieldMapper(umaResources, fieldClass, csvConfig).andThen(
+            fields -> {
+                // don't return resources where the access level does not match the one in the
+                // filters, in order to avoid information leaks
+                if (Sets.difference(filtersFields, fields).isEmpty()) {
+                    return fields;
+                }
+
+                // Return an Empty Set
+                Set<String> EmptySet = ImmutableSet.of();
+                return EmptySet;
+            }).andThen(set -> Sets.intersection(set, allRequestedFields));
+    }
+
+    @JsonIgnore
+    /**
+     * Returns the UMA scopes for the fields in this Request.
+     * The considered parameters are: "facets", "fields", "include_fields", and "filters".
+     * Filters operators can reference a field for the search and these are the fields considered.
+     *
+     * @param adcSearch  the ADC query
+     * @param fieldClass the resource type
+     * @return the UMA scopes.
+     */
+    public Set<String> getUmaScopes(FieldClass fieldClass, CsvConfig csvConfig) {
+        final Set<String> requestedFields =
+            this.isFacetsSearch() ?
+                Set.of(this.getFacets()) : this.getRequestedFields(fieldClass, csvConfig);
+        final Set<String> filtersFields = this.getFiltersFields();
+        final Set<String> allConsideredFields = Sets.union(requestedFields, filtersFields);
+
+        // empty set returned means only public fields requested
+        return csvConfig.getUmaScopes(fieldClass, allConsideredFields);
+    }
+
+    /**
+     * Get the fields that correspond to this Request, non-facets. Facets presence should be checked previously.
+     * Only the "fields" and "include_fields" parameters are considered. If both empty all of the resource's fields are returned.
+     *
+     * @param fieldClass the resource type
+     * @return the set of fields that were requested.
+     */
+    public Set<String> getRequestedFields(FieldClass fieldClass, CsvConfig csvConfig) {
+        final Set<String> fields = this.isFieldsEmpty() ? Set.of() : this.getFields();
+        final Set<String> includeFields = this.isIncludeFieldsEmpty() ?
+            Set.of() : csvConfig.getFields(fieldClass, this.getIncludeFields());
+
+        final Set<String> requestedFields = Sets.union(fields, includeFields);
+
+        return new HashSet<>(
+            requestedFields.isEmpty()
+                ? csvConfig.getFieldsTypes(fieldClass).keySet()
+                : requestedFields);
     }
 
     public Set<String> getFields() {

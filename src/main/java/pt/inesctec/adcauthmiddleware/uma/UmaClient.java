@@ -93,7 +93,6 @@ public class UmaClient {
                         .expectJson()
                         // TODO update to bearer once keycloak follows spec
                         // Keycloak doesn't follow UMA spec in allowing UMA access tokens to be used here
-                        // (Bearer).
                         .withBasicAuth(this.umaConfig.getClientId(), this.umaConfig.getClientSecret())
                         .build();
 

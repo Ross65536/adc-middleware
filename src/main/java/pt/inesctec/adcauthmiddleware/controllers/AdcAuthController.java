@@ -3,12 +3,8 @@ package pt.inesctec.adcauthmiddleware.controllers;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -16,8 +12,6 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -25,8 +19,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,26 +27,19 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.HttpException;
-import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.AdcJsonDocumentParser;
 import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.FieldsFilter;
-import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.IFieldsFilter;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
-import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
-import pt.inesctec.adcauthmiddleware.db.DbRepository;
-import pt.inesctec.adcauthmiddleware.uma.UmaClient;
-import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
+import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
-import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
 
 /**
@@ -176,7 +161,7 @@ public class AdcAuthController extends AdcController {
      * @throws Exception if user does not have permissions or some other error occurs
      */
     @RequestMapping(
-        value = "/repertoire/{repertoireId}",
+        value = "/repertoire/{repertoireId}/protected",
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> repertoire(
@@ -196,8 +181,9 @@ public class AdcAuthController extends AdcController {
         }
 
         var tokenResources = this.umaClient.introspectToken(bearer, true);
-        var fieldMapper = this.buildUmaFieldMapper(
-            tokenResources.getPermissions(), FieldClass.REPERTOIRE
+
+        var fieldMapper = UmaUtils.buildFieldMapper(
+            tokenResources.getPermissions(), FieldClass.REPERTOIRE, csvConfig
         ).compose(this.dbRepository::getStudyUmaId);
 
         return buildFilteredJsonResponse(
@@ -216,7 +202,7 @@ public class AdcAuthController extends AdcController {
      * @throws Exception if user does not have permissions or some other error occurs
      */
     @RequestMapping(
-        value = "/rearrangement/{rearrangementId}",
+        value = "/rearrangement/{rearrangementId}/protected",
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> rearrangement(
@@ -236,7 +222,7 @@ public class AdcAuthController extends AdcController {
 
         var tokenResources = this.umaClient.introspectToken(bearer, true);
         var fieldMapper =
-            this.buildUmaFieldMapper(tokenResources.getPermissions(), FieldClass.REARRANGEMENT)
+            UmaUtils.buildFieldMapper(tokenResources.getPermissions(), FieldClass.REARRANGEMENT, csvConfig)
                 .compose(this.dbRepository::getRepertoireUmaId);
 
         return buildFilteredJsonResponse(
@@ -259,15 +245,16 @@ public class AdcAuthController extends AdcController {
         method = RequestMethod.POST,
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<StreamingResponseBody> repertoireSearch(
+    public ResponseEntity<StreamingResponseBody> repertoireList(
         HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
 
         this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
 
-        Set<String> umaScopes = this.getAdcRequestUmaScopes(adcSearch, FieldClass.REPERTOIRE);
-        var umaResources =
-            this.adcQueryUmaFlow(
-                request, adcSearch, this::getRepertoireStudyIds, repertoiresDelayer, umaScopes);
+        Set<String> umaScopes = adcSearch.getUmaScopes(FieldClass.REPERTOIRE, this.csvConfig);
+
+        var umaResources = this.umaFlow.adcQuery(
+            request, adcSearch, this::getRepertoireStudyIds, repertoiresDelayer, umaScopes
+        );
 
         if (adcSearch.isFacetsSearch()) {
             final List<String> resourceIds =
@@ -284,9 +271,10 @@ public class AdcAuthController extends AdcController {
                 !umaScopes.isEmpty());
         }
 
-        var fieldMapper =
-            this.adcRegularSearchSetup(
-                adcSearch, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, FieldClass.REPERTOIRE, umaResources);
+        var fieldMapper = adcSearch.searchSetup(
+            FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, umaResources, csvConfig
+        );
+
         return buildFilteredJsonResponse(
             AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
             AdcConstants.REPERTOIRE_RESPONSE_FILTER_FIELD,
@@ -303,19 +291,19 @@ public class AdcAuthController extends AdcController {
      * @throws Exception if some error occurs
      */
     @RequestMapping(
-        value = "/rearrangement",
+        value = "/rearrangement/protected",
         method = RequestMethod.POST,
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<StreamingResponseBody> rearrangementSearch(
+    public ResponseEntity<StreamingResponseBody> rearrangementList(
         HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
         validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT, true);
         final boolean isJsonFormat = adcSearch.isJsonFormat();
         adcSearch.unsetFormat();
 
-        Set<String> umaScopes = this.getAdcRequestUmaScopes(adcSearch, FieldClass.REARRANGEMENT);
+        Set<String> umaScopes = adcSearch.getUmaScopes(FieldClass.REARRANGEMENT, this.csvConfig);
         var umaResources =
-            this.adcQueryUmaFlow(
+            this.umaFlow.adcQuery(
                 request,
                 adcSearch,
                 this::getRearrangementsRepertoireModel,
@@ -334,12 +322,12 @@ public class AdcAuthController extends AdcController {
                 !umaScopes.isEmpty());
         }
 
-        var fieldMapper =
-            this.adcRegularSearchSetup(
-                adcSearch,
-                AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-                FieldClass.REARRANGEMENT,
-                umaResources);
+        var fieldMapper = adcSearch.searchSetup(
+            FieldClass.REARRANGEMENT,
+            AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+            umaResources,
+            csvConfig
+        );
 
         if (isJsonFormat) {
             return buildFilteredJsonResponse(
