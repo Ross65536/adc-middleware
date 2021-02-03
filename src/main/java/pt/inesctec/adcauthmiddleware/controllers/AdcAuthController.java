@@ -251,9 +251,10 @@ public class AdcAuthController extends AdcController {
         this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
 
         Set<String> umaScopes = adcSearch.getUmaScopes(FieldClass.REPERTOIRE, this.csvConfig);
+        Set<String> umaIds = getRepertoireStudyIds(adcSearch);
 
-        var umaResources = this.umaFlow.adcQuery(
-            request, adcSearch, this::getRepertoireStudyIds, repertoiresDelayer, umaScopes
+        var umaResources = this.umaFlow.adcSearch(
+            request, umaIds, repertoiresDelayer, umaScopes
         );
 
         if (adcSearch.isFacetsSearch()) {
@@ -302,13 +303,11 @@ public class AdcAuthController extends AdcController {
         adcSearch.unsetFormat();
 
         Set<String> umaScopes = adcSearch.getUmaScopes(FieldClass.REARRANGEMENT, this.csvConfig);
-        var umaResources =
-            this.umaFlow.adcQuery(
-                request,
-                adcSearch,
-                this::getRearrangementsRepertoireModel,
-                rearrangementsDelayer,
-                umaScopes);
+        Set<String> umaIds = this.getRearrangementsRepertoireIds(adcSearch);
+
+        var umaResources = this.umaFlow.adcSearch(
+            request, umaIds, rearrangementsDelayer, umaScopes
+        );
 
         if (adcSearch.isFacetsSearch()) {
             final List<String> resourceIds =
@@ -378,19 +377,6 @@ public class AdcAuthController extends AdcController {
         this.repertoiresDelayer.reset();
 
         return SpringUtils.buildStatusMessage(200, null);
-    }
-
-    /**
-     * Function to obtain the unique study UMA IDs that correspond to the user's repertoire ADC query search.
-     *
-     * @param idsQuery the ADC query
-     * @return the UMA IDs
-     * @throws Exception on error
-     */
-    private Set<String> getRearrangementsRepertoireModel(AdcSearchRequest idsQuery) throws Exception {
-        return this.adcClient.getRearrangementRepertoireModel(idsQuery).stream()
-            .map(id -> this.dbRepository.getRepertoireUmaId(id))
-            .collect(Collectors.toSet());
     }
 
     /**

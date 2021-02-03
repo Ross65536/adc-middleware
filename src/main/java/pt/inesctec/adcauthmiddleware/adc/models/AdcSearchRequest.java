@@ -107,13 +107,40 @@ public class AdcSearchRequest {
         final Set<String> requestedFields = this.isFacetsSearch()
             ? Set.of(this.getFacets())
             : this.getRequestedFields(fieldClass, csvConfig);
-        final Set<String> filtersFields = this.getFiltersFields();
+        final Set<String> filtersFields = this.getRequestedFilterFields();
         final Set<String> allConsideredFields = Sets.union(requestedFields, filtersFields);
 
         // empty set returned means only public fields requested
         return csvConfig.getUmaScopes(fieldClass, allConsideredFields);
     }
 
+    @JsonIgnore
+    public Function<String, Set<String>> setupPublicFieldMapper(
+        FieldClass fieldClass,
+        String resourceId,
+        Collection<UmaResource> umaResources,
+        CsvConfig csvConfig) {
+        final Set<String> allRequestedFields = this.getRequestedFields(fieldClass, csvConfig);
+        final Set<String> filtersFields      = this.getRequestedFilterFields();
+
+        if (!allRequestedFields.contains(resourceId)) {
+            this.addField(resourceId);
+        }
+
+        return umaId -> {
+            Set<String> publicFields = csvConfig.getPublicFields(fieldClass);
+
+            // Prevent indirect queries to inaccessible fields
+            // Don't return resources where the access level does not match the one in the
+            // filters, in order to avoid information leaks
+            if (Sets.difference(filtersFields, publicFields).isEmpty()) {
+                return Sets.intersection(publicFields, allRequestedFields);
+            }
+
+            Set<String> emptySet = ImmutableSet.of();
+            return emptySet;
+        };
+    }
 
     /**
      * Setup the ADC request and build the mapper for a regular listing.
@@ -131,7 +158,7 @@ public class AdcSearchRequest {
         Collection<UmaResource> umaResources,
         CsvConfig csvConfig) {
         final Set<String> allRequestedFields = this.getRequestedFields(fieldClass, csvConfig);
-        final Set<String> filtersFields = this.getFiltersFields();
+        final Set<String> filtersFields      = this.getRequestedFilterFields();
 
         if (!allRequestedFields.contains(resourceId)) {
             this.addField(resourceId);
@@ -139,7 +166,8 @@ public class AdcSearchRequest {
 
         return UmaUtils.buildFieldMapper(umaResources, fieldClass, csvConfig).andThen(
             fields -> {
-                // don't return resources where the access level does not match the one in the
+                // Prevent indirect queries to inaccessible fields
+                // Don't return resources where the access level does not match the one in the
                 // filters, in order to avoid information leaks
                 if (Sets.difference(filtersFields, fields).isEmpty()) {
                     return fields;
@@ -151,8 +179,9 @@ public class AdcSearchRequest {
     }
 
     /**
-     * Get the fields that correspond to this Request, non-facets. Facets presence should be checked previously.
-     * Only the "fields" and "include_fields" parameters are considered. If both empty all of the resource's fields are returned.
+     * Get the fields that correspond to this Request, non-facets.
+     * This includes the "fields" and "include_fields" parameters.
+     * If both empty all of the resource's fields are returned.
      *
      * @param fieldClass the resource type
      * @param csvConfig CsvConfig object
@@ -315,7 +344,7 @@ public class AdcSearchRequest {
     }
 
     @JsonIgnore
-    public Set<String> getFiltersFields() {
+    public Set<String> getRequestedFilterFields() {
         var fields = new HashSet<String>();
 
         if (filters != null) {
