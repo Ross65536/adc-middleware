@@ -27,14 +27,15 @@ public class UmaUtils {
      */
     public static Function<String, Set<String>> buildFieldMapper(
         Collection<UmaResource> resources, FieldClass fieldClass, CsvConfig csvConfig) {
-        var validUmaFields = resources.stream().collect(
+        // TODO: Check for fine-grained field accessibility could be added here
+        var validUmaFields= resources.stream().collect(
             Collectors.toMap(
                 UmaResource::getUmaResourceId,
                 uma -> csvConfig.getFields(fieldClass, uma.getScopes())
             )
         );
 
-        var publicFields = csvConfig.getPublicFields(fieldClass);
+        var publicFields= csvConfig.getPublicFields(fieldClass);
 
         return umaId -> {
             if (umaId == null) {
@@ -46,7 +47,7 @@ public class UmaUtils {
             // TODO: Check for public study could be placed here?
 
             // Default Empty Set
-            var fields = validUmaFields.getOrDefault(umaId, ImmutableSet.of());
+            var fields= validUmaFields.getOrDefault(umaId, ImmutableSet.of());
             return Sets.union(fields, publicFields);
         };
     }

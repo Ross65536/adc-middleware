@@ -183,15 +183,28 @@ public abstract class AdcController {
     }
 
     /**
-     * Function to obtain the unique study UMA IDs that correspond to the user's rearrangement ADC query search.
+     * Obtain study UMA IDs that correspond to the requested resource in the ADC listing query.
+     *
+     * @param adcRequest the ADC query
+     * @return the UMA IDs
+     * @throws Exception on error
+     */
+    protected Set<String> getRepertoireStudyIds(AdcSearchRequest adcRequest) throws Exception {
+        return this.adcClient.getRepertoireStudyIds(adcRequest).stream()
+            .map(id -> this.dbRepository.getStudyUmaId(id))
+            .collect(Collectors.toSet());
+    }
+
+    /**
+     * Function to obtain the unique study UMA IDs that correspond to the user's repertoire ADC query search.
      *
      * @param idsQuery the ADC query
      * @return the UMA IDs
      * @throws Exception on error
      */
-    protected Set<String> getRepertoireStudyIds(AdcSearchRequest idsQuery) throws Exception {
-        return this.adcClient.getRepertoireStudyIds(idsQuery).stream()
-            .map(id -> this.dbRepository.getStudyUmaId(id))
+    protected Set<String> getRearrangementsRepertoireIds(AdcSearchRequest idsQuery) throws Exception {
+        return this.adcClient.getRearrangementRepertoireModel(idsQuery).stream()
+            .map(id -> this.dbRepository.getRepertoireUmaId(id))
             .collect(Collectors.toSet());
     }
 

@@ -135,9 +135,10 @@ public class AdcPublicController extends AdcController {
         this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
 
         Set<String> umaScopes = Set.of();
+        Set<String> umaIds = getRepertoireStudyIds(adcSearch);
 
-        var umaResources = umaFlow.adcQuery(
-            request, adcSearch, this::getRepertoireStudyIds, repertoiresDelayer, umaScopes
+        var umaResources = umaFlow.adcSearch(
+            request, umaIds, repertoiresDelayer, umaScopes
         );
 
         if (adcSearch.isFacetsSearch()) {
@@ -155,7 +156,7 @@ public class AdcPublicController extends AdcController {
                 !umaScopes.isEmpty());
         }
 
-        var fieldMapper = adcSearch.setupFieldMapper(
+        var fieldMapper = adcSearch.setupPublicFieldMapper(
             FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, umaResources, csvConfig
         );
 

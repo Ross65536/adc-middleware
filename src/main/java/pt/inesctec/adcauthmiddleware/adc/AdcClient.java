@@ -184,7 +184,7 @@ public class AdcClient {
 
     /**
      * POST /v1/repertoire, but only the study IDs for the matching ADC query are returned.
-     * Facets are used because of the speedup the bring over the regular search.
+     * Facets are used because it's a faster lookup over a regular search.
      *
      * @param adcRequest the user's ADC query
      * @return the set of study IDs
@@ -195,8 +195,9 @@ public class AdcClient {
 
         var idsQuery = adcRequest.queryClone().withFacets(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
         var request = this.buildSearchRequest("repertoire", idsQuery);
-        var facets =
-                HttpFacade.makeExpectJsonRequest(request, AdcFacetsResponse.class).getFacets();
+        var facets = HttpFacade.makeExpectJsonRequest(
+            request, AdcFacetsResponse.class
+        ).getFacets();
 
         return processStringFacets(facets, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
     }
