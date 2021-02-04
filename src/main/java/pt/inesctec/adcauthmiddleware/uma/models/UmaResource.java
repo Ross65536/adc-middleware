@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class UmaResource {
 
     @JsonProperty("resource_id")
-    private String umaResourceId;
+    private String umaId;
 
     @JsonProperty("resource_scopes")
     private Set<String> scopes;
@@ -22,17 +22,17 @@ public class UmaResource {
     public UmaResource() {
     }
 
-    public UmaResource(String umaResourceId, String... scopes) {
-        this(umaResourceId, new HashSet<>(List.of(scopes)));
+    public UmaResource(String umaId, String... scopes) {
+        this(umaId, new HashSet<>(List.of(scopes)));
     }
 
     public UmaResource(String umaId, Set<String> umaScopes) {
-        this.umaResourceId = umaId;
+        this.umaId = umaId;
         this.scopes = umaScopes;
     }
 
-    public String getUmaResourceId() {
-        return umaResourceId;
+    public String getUmaId() {
+        return umaId;
     }
 
     public Set<String> getScopes() {

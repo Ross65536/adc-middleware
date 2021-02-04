@@ -1,10 +1,8 @@
 package pt.inesctec.adcauthmiddleware.controllers;
 
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -30,7 +28,6 @@ import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.db.DbRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
@@ -106,48 +103,26 @@ public abstract class AdcController {
     }
 
     /**
-     * From the UMA resource list and scopes obtain the list of resource IDs that can be safely processed for the resource type.
-     *
-     * @param umaResources the UMA resources and scopes.
-     * @param umaScopes    the UMA scopes that the user must have access to for the resource, otherwise the resource is not considered.
-     * @param umaIdGetter  function that returns the collection of resource IDs given the UMA ID.
-     * @return the filtered collection of resource IDs.
-     */
-    protected List<String> calcValidFacetsResources(
-        Collection<UmaResource> umaResources,
-        Set<String> umaScopes,
-        Function<String, Set<String>> umaIdGetter) {
-        return umaResources.stream()
-            .filter(resource -> !Sets.intersection(umaScopes, resource.getScopes()).isEmpty())
-            .map(resource -> umaIdGetter.apply(resource.getUmaResourceId()))
-            .filter(Objects::nonNull)
-            .flatMap(Collection::stream)
-            .filter(Objects::nonNull)
-            .distinct()
-            .collect(Collectors.toList());
-    }
-
-    /**
      * Core facets request.
      *
      * @param adcSearch        the user's ADC query.
      * @param resourceId       the resource's ID field
      * @param adcRequest       the request function
      * @param resourceIds      the permitted list of resource IDs for facets.
-     * @param restrictedAccess whether the request made is protected or public.
+     * @param isPublic whether the request made is protected or public.
      * @return the streamed facets.
      * @throws Exception on error.
      */
-    protected ResponseEntity<StreamingResponseBody> facetsRequest(
+    protected ResponseEntity<StreamingResponseBody> buildFilteredFacetsResponse(
         AdcSearchRequest adcSearch,
         String resourceId,
         ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest,
         List<String> resourceIds,
-        boolean restrictedAccess)
+        boolean isPublic)
         throws Exception {
-
         boolean filterResponse = false;
-        if (restrictedAccess) { // non public facets field
+
+        if (isPublic) { // non public facets field
             adcSearch.withFieldIn(resourceId, resourceIds);
             filterResponse = resourceIds.isEmpty();
         }

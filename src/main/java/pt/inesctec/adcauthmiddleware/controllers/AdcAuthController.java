@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -258,13 +257,13 @@ public class AdcAuthController extends AdcController {
         );
 
         if (adcSearch.isFacetsSearch()) {
-            final List<String> resourceIds =
-                calcValidFacetsResources(
-                    umaResources,
-                    umaScopes,
-                    (umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId)));
+            final List<String> resourceIds = UmaUtils.filterFacets(
+                umaResources,
+                umaScopes,
+                (umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId))
+            );
 
-            return facetsRequest(
+            return buildFilteredFacetsResponse(
                 adcSearch,
                 AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
                 this.adcClient::searchRepertoiresAsStream,
@@ -310,10 +309,11 @@ public class AdcAuthController extends AdcController {
         );
 
         if (adcSearch.isFacetsSearch()) {
-            final List<String> resourceIds =
-                calcValidFacetsResources(umaResources, umaScopes, this.dbRepository::getUmaRepertoireModel);
+            final List<String> resourceIds = UmaUtils.filterFacets(
+                umaResources, umaScopes, this.dbRepository::getUmaRepertoireModel
+            );
 
-            return facetsRequest(
+            return buildFilteredFacetsResponse(
                 adcSearch,
                 AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
                 this.adcClient::searchRearrangementsAsStream,
