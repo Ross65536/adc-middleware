@@ -118,7 +118,6 @@ public class AdcSearchRequest {
     public Function<String, Set<String>> setupPublicFieldMapper(
         FieldClass fieldClass,
         String resourceId,
-        Collection<UmaResource> umaResources,
         CsvConfig csvConfig) {
         final Set<String> allRequestedFields = this.getRequestedFields(fieldClass, csvConfig);
         final Set<String> filtersFields      = this.getRequestedFilterFields();

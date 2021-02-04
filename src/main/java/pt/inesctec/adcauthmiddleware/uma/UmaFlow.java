@@ -10,12 +10,10 @@ import java.util.Set;
 import com.google.common.collect.ImmutableList;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.controllers.SpringUtils;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
-import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
 
 /**
  * Responsible for the UMA flow.
@@ -98,5 +96,4 @@ public class UmaFlow {
 
         throw this.noRptToken(umaIds, umaScopes);
     }
-
 }

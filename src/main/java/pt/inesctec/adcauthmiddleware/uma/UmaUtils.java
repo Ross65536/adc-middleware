@@ -1,6 +1,8 @@
 package pt.inesctec.adcauthmiddleware.uma;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -28,14 +30,14 @@ public class UmaUtils {
     public static Function<String, Set<String>> buildFieldMapper(
         Collection<UmaResource> resources, FieldClass fieldClass, CsvConfig csvConfig) {
         // TODO: Check for fine-grained field accessibility could be added here
-        var validUmaFields= resources.stream().collect(
+        var validUmaFields = resources.stream().collect(
             Collectors.toMap(
-                UmaResource::getUmaResourceId,
+                UmaResource::getUmaId,
                 uma -> csvConfig.getFields(fieldClass, uma.getScopes())
             )
         );
 
-        var publicFields= csvConfig.getPublicFields(fieldClass);
+        var publicFields = csvConfig.getPublicFields(fieldClass);
 
         return umaId -> {
             if (umaId == null) {
@@ -47,8 +49,30 @@ public class UmaUtils {
             // TODO: Check for public study could be placed here?
 
             // Default Empty Set
-            var fields= validUmaFields.getOrDefault(umaId, ImmutableSet.of());
+            var fields = validUmaFields.getOrDefault(umaId, ImmutableSet.of());
             return Sets.union(fields, publicFields);
         };
+    }
+
+    /**
+     * From the UMA resource list and scopes obtain the list of resource IDs that can be safely processed for the resource type.
+     *
+     * @param umaResources the UMA resources and scopes.
+     * @param umaScopes    the UMA scopes that the user must have access to for the resource, otherwise the resource is not considered.
+     * @param umaIdGetter  function that returns the collection of resource IDs given the UMA ID.
+     * @return the filtered collection of resource IDs.
+     */
+    public static List<String> filterFacets(
+        Collection<UmaResource> umaResources,
+        Set<String> umaScopes,
+        Function<String, Set<String>> umaIdGetter) {
+        return umaResources.stream()
+            .filter(resource -> !Sets.intersection(umaScopes, resource.getScopes()).isEmpty())
+            .map(resource -> umaIdGetter.apply(resource.getUmaId()))
+            .filter(Objects::nonNull)
+            .flatMap(Collection::stream)
+            .filter(Objects::nonNull)
+            .distinct()
+            .collect(Collectors.toList());
     }
 }

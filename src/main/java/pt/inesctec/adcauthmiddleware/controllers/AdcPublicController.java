@@ -2,8 +2,8 @@ package pt.inesctec.adcauthmiddleware.controllers;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,7 +24,6 @@ import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
 
 /**
@@ -134,30 +133,16 @@ public class AdcPublicController extends AdcController {
 
         this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
 
-        Set<String> umaScopes = Set.of();
-        Set<String> umaIds = getRepertoireStudyIds(adcSearch);
-
-        var umaResources = umaFlow.adcSearch(
-            request, umaIds, repertoiresDelayer, umaScopes
-        );
-
         if (adcSearch.isFacetsSearch()) {
-            final List<String> resourceIds = calcValidFacetsResources(
-                umaResources,
-                umaScopes,
-                (umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId))
-            );
-
-            return facetsRequest(
-                adcSearch,
-                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+            return buildFilteredFacetsResponse(
+                adcSearch, AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
                 this.adcClient::searchRepertoiresAsStream,
-                resourceIds,
-                !umaScopes.isEmpty());
+                Collections.<String>emptyList(),
+                true);
         }
 
         var fieldMapper = adcSearch.setupPublicFieldMapper(
-            FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, umaResources, csvConfig
+            FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, csvConfig
         );
 
         return buildFilteredJsonResponse(
