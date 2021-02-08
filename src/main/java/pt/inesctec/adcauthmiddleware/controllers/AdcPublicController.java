@@ -4,6 +4,7 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,6 +25,7 @@ import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
+import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
 
 /**
@@ -116,8 +118,8 @@ public class AdcPublicController extends AdcController {
     }
 
     /**
-     * Protected by UMA. Repertoires search. Part of ADC v1.
-     * JSON processed in streaming mode. Can return resource public fields if not given access to a resource.
+     * Public Repertoires search. Part of ADC v1.
+     * JSON processed in streaming mode.
      *
      * @param request user request
      * @return the filtered repertoires stream
@@ -135,7 +137,8 @@ public class AdcPublicController extends AdcController {
 
         if (adcSearch.isFacetsSearch()) {
             return buildFilteredFacetsResponse(
-                adcSearch, AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+                adcSearch,
+                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
                 this.adcClient::searchRepertoiresAsStream,
                 Collections.<String>emptyList(),
                 true);
@@ -145,11 +148,64 @@ public class AdcPublicController extends AdcController {
             FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, csvConfig
         );
 
+
         return buildFilteredJsonResponse(
             AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
             AdcConstants.REPERTOIRE_RESPONSE_FILTER_FIELD,
             fieldMapper.compose(this.dbRepository::getStudyUmaId),
             () -> this.adcClient.searchRepertoiresAsStream(adcSearch));
+    }
+
+    /**
+     * Public Rearrangements search. Part of ADC v1.
+     * JSON processed in streaming mode.
+     *
+     * @param request user request
+     * @return the filtered rearrangements stream
+     * @throws Exception if some error occurs
+     */
+    @RequestMapping(
+        value = "/rearrangement",
+        method = RequestMethod.POST,
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<StreamingResponseBody> publicRearrangementList(
+        HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
+        validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT, true);
+
+        final boolean isJsonFormat = adcSearch.isJsonFormat();
+        adcSearch.unsetFormat();
+
+        if (adcSearch.isFacetsSearch()) {
+            return buildFilteredFacetsResponse(
+                adcSearch,
+                AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+                this.adcClient::searchRearrangementsAsStream,
+                Collections.<String>emptyList(),
+                true);
+        }
+
+        var fieldMapper = adcSearch.setupPublicFieldMapper(
+            FieldClass.REARRANGEMENT,
+            AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+            csvConfig
+        );
+
+        if (isJsonFormat) {
+            return buildFilteredJsonResponse(
+                AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+                AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
+                fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
+                () -> this.adcClient.searchRearrangementsAsStream(adcSearch));
+        }
+
+        var requestedFieldTypes = getRegularSearchRequestedFieldsAndTypes(adcSearch, FieldClass.REARRANGEMENT);
+        return buildFilteredTsvResponse(
+            AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+            AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
+            fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
+            () -> this.adcClient.searchRearrangementsAsStream(adcSearch),
+            requestedFieldTypes);
     }
 
     /**

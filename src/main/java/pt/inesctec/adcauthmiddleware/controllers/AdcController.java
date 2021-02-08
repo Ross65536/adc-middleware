@@ -158,6 +158,31 @@ public abstract class AdcController {
     }
 
     /**
+     * Build TSV streaming, filtered, response.
+     *
+     * @param resourceId          the resource's ID fields
+     * @param responseFilterField the response's field where the resources are set
+     * @param fieldMapper         the ID to granted fields mapper
+     * @param adcRequest          the ADC request producer.
+     * @param headerFields        the TSV header fields which will be the response's first line.
+     * @return streaming response
+     * @throws Exception on error
+     */
+    protected ResponseEntity<StreamingResponseBody> buildFilteredTsvResponse(
+        String resourceId,
+        String responseFilterField,
+        Function<String, Set<String>> fieldMapper,
+        ThrowingSupplier<InputStream, Exception> adcRequest,
+        Map<String, FieldType> headerFields)
+        throws Exception {
+        var response = SpringUtils.catchForwardingError(adcRequest);
+        var filter = new FieldsFilter(fieldMapper, resourceId);
+        var mapper =
+            AdcJsonDocumentParser.buildTsvMapper(response, responseFilterField, filter, headerFields);
+        return SpringUtils.buildTsvStream(mapper);
+    }
+
+    /**
      * Obtain study UMA IDs that correspond to the requested resource in the ADC listing query.
      *
      * @param adcRequest the ADC query

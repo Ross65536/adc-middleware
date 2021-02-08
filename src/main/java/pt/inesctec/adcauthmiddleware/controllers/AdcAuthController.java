@@ -2,11 +2,9 @@ package pt.inesctec.adcauthmiddleware.controllers;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
@@ -21,6 +19,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,17 +28,13 @@ import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
-import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.AdcJsonDocumentParser;
-import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.FieldsFilter;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
-import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
 
 /**
  * class responsible for the protected endpoints.
@@ -240,11 +235,12 @@ public class AdcAuthController extends AdcController {
      * @throws Exception if some error occurs
      */
     @RequestMapping(
-        value = "/repertoire/protected",
+        value = "/repertoire",
         method = RequestMethod.POST,
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> repertoireList(
+        @RequestHeader(value = "Content-Protected", defaultValue = "false") Boolean contentProtected,
         HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
 
         this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
@@ -298,6 +294,8 @@ public class AdcAuthController extends AdcController {
     public ResponseEntity<StreamingResponseBody> rearrangementList(
         HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
         validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT, true);
+
+        // TODO: Why??? Why have a Get and then an Unset?
         final boolean isJsonFormat = adcSearch.isJsonFormat();
         adcSearch.unsetFormat();
 
@@ -378,31 +376,4 @@ public class AdcAuthController extends AdcController {
 
         return SpringUtils.buildStatusMessage(200, null);
     }
-
-    /**
-     * Build TSV streaming, filtered, response.
-     *
-     * @param resourceId          the resource's ID fields
-     * @param responseFilterField the response's field where the resources are set
-     * @param fieldMapper         the ID to granted fields mapper
-     * @param adcRequest          the ADC request producer.
-     * @param headerFields        the TSV header fields which will be the response's first line.
-     * @return streaming response
-     * @throws Exception on error
-     */
-    private ResponseEntity<StreamingResponseBody> buildFilteredTsvResponse(
-        String resourceId,
-        String responseFilterField,
-        Function<String, Set<String>> fieldMapper,
-        ThrowingSupplier<InputStream, Exception> adcRequest,
-        Map<String, FieldType> headerFields)
-        throws Exception {
-        var response = SpringUtils.catchForwardingError(adcRequest);
-        var filter = new FieldsFilter(fieldMapper, resourceId);
-        var mapper =
-            AdcJsonDocumentParser.buildTsvMapper(response, responseFilterField, filter, headerFields);
-        return SpringUtils.buildTsvStream(mapper);
-    }
-
-
 }

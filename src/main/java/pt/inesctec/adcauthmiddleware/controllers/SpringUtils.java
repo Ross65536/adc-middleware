@@ -121,8 +121,7 @@ public final class SpringUtils {
      * @param streamer stream producer
      * @return stream response
      */
-    public static ResponseEntity<StreamingResponseBody> buildJsonStream(
-            StreamingResponseBody streamer) {
+    public static ResponseEntity<StreamingResponseBody> buildJsonStream(StreamingResponseBody streamer) {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(streamer);
     }
 

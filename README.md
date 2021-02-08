@@ -572,4 +572,4 @@ You can see [here](./PSEUDOCODE.md) a python-like pseudo-code which describes th
 
 ## Notes
 
-You can obtain the Postman folder that you can use to test the middleware solution's ADC features in more depth [here](https://github.com/Ross65536/adc-middleware/releases/download/docs/adc-middleware.postman_collection.json)
+You can obtain the Postman folder that you can use to test the middleware solution's ADC features in more depth [here](./example/adc-middleware.postman_collection.json)
