@@ -1,0 +1,1087 @@
+{
+	"info": {
+		"_postman_id": "4a590375-a508-4ddd-be83-0df0a00cd390",
+		"name": "adc-middleware",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Repository (Unprotected)",
+			"item": [
+				{
+					"name": "/info",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3fa0e00a-8f18-49dd-8616-d2e29e1edae5",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"fields\": [\"study_id\"],\n\t\"size\": 2,\n\t\"filters\":{\n        \"op\":\"or\",\n        \"content\": [\n            {\n                \"op\":\"=\",\n                \"content\": {\n                    \"field\":\"subject.organism.id\",\n                    \"value\":\"9606\"\n                }\n\t    },\n\t    {\n                \"op\":\"=\",\n                \"content\": {\n                    \"field\":\"sample.pcr_target.pcr_target_locus\",\n                    \"value\":\"TRB\"\n                }\n\t    }\n\t]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{repository}}/info",
+							"host": [
+								"{{repository}}"
+							],
+							"path": [
+								"info"
+							],
+							"query": [
+								{
+									"key": "XDEBUG_TRACE",
+									"value": "123",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/repertoire/:id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "cd18342b-42db-4525-a2b7-8d01d600bad8",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{repository}}/repertoire/154",
+							"host": [
+								"{{repository}}"
+							],
+							"path": [
+								"repertoire",
+								"154"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/repertoire",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "88fe35e6-700f-4b65-82f2-3df2870c7a53",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"facets\": \"study.study_id\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{repository}}/repertoire",
+							"host": [
+								"{{repository}}"
+							],
+							"path": [
+								"repertoire"
+							],
+							"query": [
+								{
+									"key": "XDEBUG_TRACE",
+									"value": "123",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/rearrangement/:id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f24a339c-a29a-4055-8285-fbd0c3df0734",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{repository}}/rearrangement/5ccb50307ea16f00062469b9",
+							"host": [
+								"{{repository}}"
+							],
+							"path": [
+								"rearrangement",
+								"5ccb50307ea16f00062469b9"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/rearrangement",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"size\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{repository}}/rearrangement",
+							"host": [
+								"{{repository}}"
+							],
+							"path": [
+								"rearrangement"
+							],
+							"query": [
+								{
+									"key": "XDEBUG_TRACE",
+									"value": "123",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Middleware (Protected Repository)",
+			"item": [
+				{
+					"name": "public endpoint",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "A",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{middleware}}/airr/v1/info",
+							"host": [
+								"{{middleware}}"
+							],
+							"path": [
+								"airr",
+								"v1",
+								"info"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/repertoire/:id (no RPT token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "04c25e3c-9570-4c12-b690-af6712ba714a",
+								"exec": [
+									"",
+									"header = pm.response.headers.get(\"WWW-Authenticate\");",
+									"ticket = /^.*ticket=\"(.*)\"$/.exec(header)[1];",
+									"pm.globals.set(\"ticket\", ticket);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{middleware}}/airr/v1/repertoire/5e53de7f9463684866be6092",
+							"host": [
+								"{{middleware}}"
+							],
+							"path": [
+								"airr",
+								"v1",
+								"repertoire",
+								"5e53de7f9463684866be6092"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/repertoire/:id (with RPT token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "04c25e3c-9570-4c12-b690-af6712ba714a",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{rpt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{middleware}}/airr/v1/repertoire/5e53de7f9463684866be6092",
+							"host": [
+								"{{middleware}}"
+							],
+							"path": [
+								"airr",
+								"v1",
+								"repertoire",
+								"5e53de7f9463684866be6092"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/repertoire (public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "768fcca9-349e-4238-bed5-816c5f52c754",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"filters\": {\n        \"op\": \"!=\",\n        \"content\": {\n            \"field\": \"study.study_title\",\n            \"value\": \"xyz\"\n        }\n    },\n    \"fields\": [\"repertoire_id\", \"study.study_id\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{middleware}}/airr/v1/repertoire/",
+							"host": [
+								"{{middleware}}"
+							],
+							"path": [
+								"airr",
+								"v1",
+								"repertoire",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/repertoire (no RPT token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "04c25e3c-9570-4c12-b690-af6712ba714a",
+								"exec": [
+									"",
+									"header = pm.response.headers.get(\"WWW-Authenticate\");",
+									"ticket = /^.*ticket=\"(.*)\"$/.exec(header)[1];",
+									"pm.globals.set(\"ticket\", ticket);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{middleware}}/airr/v1/repertoire/",
+							"host": [
+								"{{middleware}}"
+							],
+							"path": [
+								"airr",
+								"v1",
+								"repertoire",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/repertoire (with RPT token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "04c25e3c-9570-4c12-b690-af6712ba714a",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{rpt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"fields\": [\"study.study_id\", \"sample.cell_number\"]\n\t\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{middleware}}/airr/v1/repertoire/",
+							"host": [
+								"{{middleware}}"
+							],
+							"path": [
+								"airr",
+								"v1",
+								"repertoire",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/rearrangement/:id (no RPT token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "04c25e3c-9570-4c12-b690-af6712ba714a",
+								"exec": [
+									"",
+									"header = pm.response.headers.get(\"WWW-Authenticate\");",
+									"ticket = /^.*ticket=\"(.*)\"$/.exec(header)[1];",
+									"pm.globals.set(\"ticket\", ticket);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{middleware}}/airr/v1/rearrangement/5e53dead4d808a03178c7891",
+							"host": [
+								"{{middleware}}"
+							],
+							"path": [
+								"airr",
+								"v1",
+								"rearrangement",
+								"5e53dead4d808a03178c7891"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/rearrangement/:id (with RPT token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "04c25e3c-9570-4c12-b690-af6712ba714a",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{rpt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{middleware}}/airr/v1/rearrangement/5e53dead4d808a03178c7891",
+							"host": [
+								"{{middleware}}"
+							],
+							"path": [
+								"airr",
+								"v1",
+								"rearrangement",
+								"5e53dead4d808a03178c7891"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/rearrangement (no RPT token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d35d35e6-e40a-4215-8a28-02620826d75f",
+								"exec": [
+									"",
+									"header = pm.response.headers.get(\"WWW-Authenticate\");",
+									"ticket = /^.*ticket=\"(.*)\"$/.exec(header)[1];",
+									"pm.globals.set(\"ticket\", ticket);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"include_fields\": \"miairr\"\n\t\n\t\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{middleware}}/airr/v1/rearrangement",
+							"host": [
+								"{{middleware}}"
+							],
+							"path": [
+								"airr",
+								"v1",
+								"rearrangement"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/rearrangement (with RPT token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4f70e98c-b841-4b18-8470-4f57b614c135",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{rpt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"size\": 1000,\n\t\"include_fields\": \"miairr\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{middleware}}/airr/v1/rearrangement/",
+							"host": [
+								"{{middleware}}"
+							],
+							"path": [
+								"airr",
+								"v1",
+								"rearrangement",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Synchronize Endpoint (/synchronize)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{synchronize_password}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{middleware}}/airr/v1/synchronize",
+							"host": [
+								"{{middleware}}"
+							],
+							"path": [
+								"airr",
+								"v1",
+								"synchronize"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Public fields endpoint (/public_fields)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{middleware}}/airr/v1/public_fields",
+							"host": [
+								"{{middleware}}"
+							],
+							"path": [
+								"airr",
+								"v1",
+								"public_fields"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Keycloak",
+			"item": [
+				{
+					"name": "obtain RPT token (CLI, using keycloak extension)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f0fec0a1-cd05-47b6-9973-7c18bd4812d9",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "text"
+								},
+								{
+									"key": "ticket",
+									"value": "{{ticket}}",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "{{researcher_username}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{researcher_password}}",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "{{frontend_client_id}}",
+									"type": "text"
+								}
+							],
+							"options": {
+								"urlencoded": {}
+							}
+						},
+						"url": {
+							"raw": "{{keycloak}}/protocol/openid-connect/token",
+							"host": [
+								"{{keycloak}}"
+							],
+							"path": [
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "obtain RPT token (browser)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1cc79705-f23d-4cc0-bb06-46e31b7a8d1c",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.globals.set(\"rpt\", jsonData.access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJJcy1OTFRMbHo0WW9RVms1NjhHemNfWXVtaFFDNVphNVJkRGZSZnl6cjlJIn0.eyJqdGkiOiIxNGQ5NWQ2Zi03NDIwLTQ1OTItODQ3ZC00YmMxMTI5NWQ4NTciLCJleHAiOjE1OTU2NDUzNTMsIm5iZiI6MCwiaWF0IjoxNTk1NjA5MzUzLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODIvYXV0aC9yZWFsbXMvbWFzdGVyIiwiYXVkIjoiYWNjb3VudCIsInN1YiI6IjFhYmQ1ZWZhLTNiZGEtNGNiNy05ZjlhLTVjM2U4MmExNjcyMiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFkYy1taWRkbGV3YXJlIiwiYXV0aF90aW1lIjoxNTk1NjA5MzUzLCJzZXNzaW9uX3N0YXRlIjoiYWU1MDUzZmYtNmYxYy00ODkzLWJmOGYtNTFhNDE2NGZmMzhjIiwiYWNyIjoiMSIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJvZmZsaW5lX2FjY2VzcyIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwicHJlZmVycmVkX3VzZXJuYW1lIjoidXNlciJ9.VZB4h9SAgJvLbsgrfuv_qaQR_FS2MpOsqj7WU1kogajPjk72FANfJ5sfpiVjmTH466TkAnNZGxG3ImfJprhjYYCInyfGuywAX8DozE5E9qHCJm3EuouQ_C7EMskjjwPPQ6D6wB6i2rXUl5GiOl-iUMPOsQao4UBj8oEpdjc59BokgTXBC6pSFwWqxgL-Pucf2M7x_y5fcN-UnRPMQREK3bPtRjx37wKSy7kLVclfGGv354638Y5RAjiXeSKX7J-qfIk6_YNeFlDbx2H9plxWgmeGOQRU40p29D1p5w9e97Cfy6H9_L_PsVefbHN3MHXb7gGTkAQNMWfEkBp_P_qvrQ",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "bearer",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "urn:ietf:params:oauth:grant-type:uma-ticket",
+									"type": "text"
+								},
+								{
+									"key": "ticket",
+									"value": "{{ticket}}",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "user",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "password",
+									"value": "user",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "audience",
+									"value": "turnkey",
+									"type": "text",
+									"disabled": true
+								}
+							],
+							"options": {
+								"urlencoded": {}
+							}
+						},
+						"url": {
+							"raw": "{{keycloak}}/protocol/openid-connect/token",
+							"host": [
+								"{{keycloak}}"
+							],
+							"path": [
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "obtain RPT token (with permission to all resources set for the user)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1cc79705-f23d-4cc0-bb06-46e31b7a8d1c",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.globals.set(\"rpt\", jsonData.access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJJcy1OTFRMbHo0WW9RVms1NjhHemNfWXVtaFFDNVphNVJkRGZSZnl6cjlJIn0.eyJqdGkiOiI2NDhjNzU0OS04ZjIxLTRmOWMtOWZhYi0zMjUyM2E2NmFlMmEiLCJleHAiOjE1OTU2NDUyOTcsIm5iZiI6MCwiaWF0IjoxNTk1NjA5Mjk3LCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODIvYXV0aC9yZWFsbXMvbWFzdGVyIiwiYXVkIjoiYWNjb3VudCIsInN1YiI6IjFhYmQ1ZWZhLTNiZGEtNGNiNy05ZjlhLTVjM2U4MmExNjcyMiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFkYy1taWRkbGV3YXJlIiwiYXV0aF90aW1lIjowLCJzZXNzaW9uX3N0YXRlIjoiYTJlNjhmMTYtMzZkOC00MWM2LTk3ZTMtYmI0OGJkNTNiYmQ5IiwiYWNyIjoiMSIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJvZmZsaW5lX2FjY2VzcyIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwicHJlZmVycmVkX3VzZXJuYW1lIjoidXNlciJ9.ZoKv98Ll1ShJqRzboQpA1gh8NjtZcO0bMcvHBhATeOpvpwH77tvMfnQ9dsmCOFcc0F088OfBLzkhNmb_UXmM6H9EIhSR05zu1UOuCOEP14aGh1QmUCzW7LqzING8rQzaSa6B9Zsohybf8uDoNNG3vLKz9hpYL24B6Gf5zPemPF4kos4YYfYE4qd_wjhSVOWWshbo-KhpoCIL8CK4GsADYhxn52AHQucKzTbH729btBkpXGwxoxoCk9LFEPmmE2wXDJ-dX-tbDrmzcCZv4QTUgp-8SgLiOAXp_TeaaycS-txPWeETuzzWjXOm0JsPkgmDQqFxv8U5sgH04Jmbrq5QYA",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "bearer",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "urn:ietf:params:oauth:grant-type:uma-ticket",
+									"type": "text"
+								},
+								{
+									"key": "audience",
+									"value": "{{client_id}}",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "user",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "password",
+									"value": "user",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "audience",
+									"value": "turnkey",
+									"type": "text",
+									"disabled": true
+								}
+							],
+							"options": {
+								"urlencoded": {}
+							}
+						},
+						"url": {
+							"raw": "{{keycloak}}/protocol/openid-connect/token",
+							"host": [
+								"{{keycloak}}"
+							],
+							"path": [
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "README",
+			"request": {
+				"method": "VIEW",
+				"header": [],
+				"url": {
+					"raw": "expand description to see README",
+					"host": [
+						"expand description to see README"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
