@@ -126,7 +126,7 @@ public class AdcPublicController extends AdcController {
      * @throws Exception if some error occurs
      */
     @RequestMapping(
-        value = "/repertoire",
+        value = "/repertoire/public",
         method = RequestMethod.POST,
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
@@ -164,49 +164,14 @@ public class AdcPublicController extends AdcController {
      * @return the filtered rearrangements stream
      * @throws Exception if some error occurs
      */
-    @RequestMapping(
-        value = "/rearrangement",
-        method = RequestMethod.POST,
-        consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<StreamingResponseBody> publicRearrangementList(
-        HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
-        validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT, true);
-
-        final boolean isJsonFormat = adcSearch.isJsonFormat();
-        adcSearch.unsetFormat();
-
-        if (adcSearch.isFacetsSearch()) {
-            return buildFilteredFacetsResponse(
-                adcSearch,
-                AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-                this.adcClient::searchRearrangementsAsStream,
-                Collections.<String>emptyList(),
-                true);
-        }
-
-        var fieldMapper = adcSearch.setupPublicFieldMapper(
-            FieldClass.REARRANGEMENT,
-            AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-            csvConfig
-        );
-
-        if (isJsonFormat) {
-            return buildFilteredJsonResponse(
-                AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-                AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
-                fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
-                () -> this.adcClient.searchRearrangementsAsStream(adcSearch));
-        }
-
-        var requestedFieldTypes = getRegularSearchRequestedFieldsAndTypes(adcSearch, FieldClass.REARRANGEMENT);
-        return buildFilteredTsvResponse(
-            AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-            AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
-            fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
-            () -> this.adcClient.searchRearrangementsAsStream(adcSearch),
-            requestedFieldTypes);
-    }
+    //@RequestMapping(
+    //    value = "/rearrangement/public",
+    //    method = RequestMethod.POST,
+    //    consumes = MediaType.APPLICATION_JSON_VALUE,
+    //    produces = MediaType.APPLICATION_JSON_VALUE)
+    //public ResponseEntity<StreamingResponseBody> publicRearrangementList(
+    //
+    //}
 
     /**
      * The forwarding logic.

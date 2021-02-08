@@ -2,9 +2,11 @@ package pt.inesctec.adcauthmiddleware.controllers;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
@@ -33,6 +35,7 @@ import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
+import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
 
@@ -226,25 +229,31 @@ public class AdcAuthController extends AdcController {
             () -> this.adcClient.getRearrangementAsStream(rearrangementId));
     }
 
-    /**
-     * Protected by UMA. Repertoires search. Part of ADC v1.
-     * JSON processed in streaming mode. Can return resource public fields if not given access to a resource.
-     *
-     * @param request user request
-     * @return the filtered repertoires stream
-     * @throws Exception if some error occurs
-     */
-    @RequestMapping(
-        value = "/repertoire",
-        method = RequestMethod.POST,
-        consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<StreamingResponseBody> repertoireList(
-        @RequestHeader(value = "Content-Protected", defaultValue = "false") Boolean contentProtected,
-        HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
+    private ResponseEntity<StreamingResponseBody> repertoireListPublic(AdcSearchRequest adcSearch) throws Exception
+    {
+        if (adcSearch.isFacetsSearch()) {
+            return buildFilteredFacetsResponse(
+                adcSearch,
+                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+                this.adcClient::searchRepertoiresAsStream,
+                Collections.<String>emptyList(),
+                false);
+        }
 
-        this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
+        var fieldMapper = adcSearch.setupPublicFieldMapper(
+            FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, csvConfig
+        );
 
+        return buildFilteredJsonResponse(
+            AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
+            AdcConstants.REPERTOIRE_RESPONSE_FILTER_FIELD,
+            fieldMapper.compose(this.dbRepository::getStudyUmaId),
+            () -> this.adcClient.searchRepertoiresAsStream(adcSearch));
+    }
+
+    private ResponseEntity<StreamingResponseBody> repertoireListProtected(
+        HttpServletRequest request,
+        AdcSearchRequest adcSearch) throws Exception {
         Set<String> umaScopes = adcSearch.getUmaScopes(FieldClass.REPERTOIRE, this.csvConfig);
         Set<String> umaIds = getRepertoireStudyIds(adcSearch);
 
@@ -279,6 +288,28 @@ public class AdcAuthController extends AdcController {
     }
 
     /**
+     * Protected by UMA. Repertoires search. Part of ADC v1.
+     * JSON processed in streaming mode. Can return resource public fields if not given access to a resource.
+     *
+     * @param request user request
+     * @return the filtered repertoires stream
+     * @throws Exception if some error occurs
+     */
+    @RequestMapping(
+        value = "/repertoire",
+        method = RequestMethod.POST,
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<StreamingResponseBody> repertoireList(
+        @RequestHeader(value = "Content-Protected", defaultValue = "false") Boolean contentProtected,
+        HttpServletRequest request,
+        @RequestBody AdcSearchRequest adcSearch) throws Exception {
+        this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
+
+        return true ? repertoireListProtected(request, adcSearch) : repertoireListPublic(adcSearch);
+    }
+
+    /**
      * Protected by UMA. Rearrangements search. Part of ADC v1.
      * JSON processed in streaming mode. Can return resource public fields if not given access to a resource.
      *
@@ -287,7 +318,7 @@ public class AdcAuthController extends AdcController {
      * @throws Exception if some error occurs
      */
     @RequestMapping(
-        value = "/rearrangement/protected",
+        value = "/rearrangement",
         method = RequestMethod.POST,
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
