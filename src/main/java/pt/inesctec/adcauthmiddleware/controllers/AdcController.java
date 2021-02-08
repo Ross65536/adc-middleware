@@ -109,7 +109,7 @@ public abstract class AdcController {
      * @param resourceId       the resource's ID field
      * @param adcRequest       the request function
      * @param resourceIds      the permitted list of resource IDs for facets.
-     * @param isPublic whether the request made is protected or public.
+     * @param isProtected         whether the request made is protected or public.
      * @return the streamed facets.
      * @throws Exception on error.
      */
@@ -118,11 +118,11 @@ public abstract class AdcController {
         String resourceId,
         ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest,
         List<String> resourceIds,
-        boolean isPublic)
+        boolean isProtected)
         throws Exception {
         boolean filterResponse = false;
 
-        if (isPublic) { // non public facets field
+        if (isProtected) { // non public facets field
             adcSearch.withFieldIn(resourceId, resourceIds);
             filterResponse = resourceIds.isEmpty();
         }
