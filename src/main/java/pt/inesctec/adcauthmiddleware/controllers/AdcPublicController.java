@@ -118,62 +118,6 @@ public class AdcPublicController extends AdcController {
     }
 
     /**
-     * Public Repertoires search. Part of ADC v1.
-     * JSON processed in streaming mode.
-     *
-     * @param request user request
-     * @return the filtered repertoires stream
-     * @throws Exception if some error occurs
-     */
-    @RequestMapping(
-        value = "/repertoire/public",
-        method = RequestMethod.POST,
-        consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<StreamingResponseBody> publicRepertoireList(
-        HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
-
-        this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
-
-        if (adcSearch.isFacetsSearch()) {
-            return buildFilteredFacetsResponse(
-                adcSearch,
-                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-                this.adcClient::searchRepertoiresAsStream,
-                Collections.<String>emptyList(),
-                true);
-        }
-
-        var fieldMapper = adcSearch.setupPublicFieldMapper(
-            FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, csvConfig
-        );
-
-
-        return buildFilteredJsonResponse(
-            AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-            AdcConstants.REPERTOIRE_RESPONSE_FILTER_FIELD,
-            fieldMapper.compose(this.dbRepository::getStudyUmaId),
-            () -> this.adcClient.searchRepertoiresAsStream(adcSearch));
-    }
-
-    /**
-     * Public Rearrangements search. Part of ADC v1.
-     * JSON processed in streaming mode.
-     *
-     * @param request user request
-     * @return the filtered rearrangements stream
-     * @throws Exception if some error occurs
-     */
-    //@RequestMapping(
-    //    value = "/rearrangement/public",
-    //    method = RequestMethod.POST,
-    //    consumes = MediaType.APPLICATION_JSON_VALUE,
-    //    produces = MediaType.APPLICATION_JSON_VALUE)
-    //public ResponseEntity<StreamingResponseBody> publicRearrangementList(
-    //
-    //}
-
-    /**
      * The forwarding logic.
      *
      * @param path the API subpath fragment.

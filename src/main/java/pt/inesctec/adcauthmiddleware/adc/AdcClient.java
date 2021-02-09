@@ -215,8 +215,7 @@ public class AdcClient {
 
         var idsQuery = adcRequest.queryClone().withFacets(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
         var request = this.buildSearchRequest("rearrangement", idsQuery);
-        var facets =
-                HttpFacade.makeExpectJsonRequest(request, AdcFacetsResponse.class).getFacets();
+        var facets = HttpFacade.makeExpectJsonRequest(request, AdcFacetsResponse.class).getFacets();
 
         return processStringFacets(facets, AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
     }

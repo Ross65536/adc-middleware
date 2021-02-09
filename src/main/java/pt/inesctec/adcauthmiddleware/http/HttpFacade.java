@@ -62,7 +62,8 @@ public class HttpFacade {
         var response = HttpFacade.Client.send(request, HttpResponse.BodyHandlers.ofInputStream());
 
         HttpFacade.validateOkResponse(response);
-        HttpFacade.validateJsonResponseHeader(response);
+        // TODO: Turnkey doesn't seem to return a valid Content-Type for rearrangements. This is a bug on their side. Disabling this check temporarily
+        //HttpFacade.validateJsonResponseHeader(response);
 
         return response.body();
     }
@@ -114,7 +115,7 @@ public class HttpFacade {
         var anyJson = values.stream().anyMatch(val -> val.contains(MediaType.APPLICATION_JSON_VALUE));
 
         if (!anyJson) {
-            throw new IOException("Response isn't JSON");
+            throw new IOException("Response doesn't contain a valid \"application/json\" Content-Type");
         }
     }
 }
