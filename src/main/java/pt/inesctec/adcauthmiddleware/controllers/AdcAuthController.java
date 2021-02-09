@@ -306,29 +306,47 @@ public class AdcAuthController extends AdcController {
         @RequestBody AdcSearchRequest adcSearch) throws Exception {
         this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
 
-        return true ? repertoireListProtected(request, adcSearch) : repertoireListPublic(adcSearch);
+        return contentProtected ? repertoireListProtected(request, adcSearch) : repertoireListPublic(adcSearch);
     }
 
-    /**
-     * Protected by UMA. Rearrangements search. Part of ADC v1.
-     * JSON processed in streaming mode. Can return resource public fields if not given access to a resource.
-     *
-     * @param request user request
-     * @return the filtered rearrangements stream
-     * @throws Exception if some error occurs
-     */
-    @RequestMapping(
-        value = "/rearrangement",
-        method = RequestMethod.POST,
-        consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<StreamingResponseBody> rearrangementList(
-        HttpServletRequest request, @RequestBody AdcSearchRequest adcSearch) throws Exception {
-        validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT, true);
+    private ResponseEntity<StreamingResponseBody> rearrangementListPublic(
+        HttpServletRequest request,
+        AdcSearchRequest adcSearch) throws Exception {
 
-        // TODO: Why??? Why have a Get and then an Unset?
-        final boolean isJsonFormat = adcSearch.isJsonFormat();
-        adcSearch.unsetFormat();
+        if (adcSearch.isFacetsSearch()) {
+            return buildFilteredFacetsResponse(
+                adcSearch,
+                AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+                this.adcClient::searchRearrangementsAsStream,
+                Collections.<String>emptyList(),
+                false);
+        }
+
+        var fieldMapper = adcSearch.setupPublicFieldMapper(
+            FieldClass.REARRANGEMENT, AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, csvConfig
+        );
+
+        if (adcSearch.isJsonFormat()) {
+            return buildFilteredJsonResponse(
+                AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+                AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
+                fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
+                () -> this.adcClient.searchRearrangementsAsStream(adcSearch));
+        }
+
+        var requestedFieldTypes = getRegularSearchRequestedFieldsAndTypes(adcSearch, FieldClass.REARRANGEMENT);
+
+        return buildFilteredTsvResponse(
+            AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+            AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
+            fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
+            () -> this.adcClient.searchRearrangementsAsStream(adcSearch),
+            requestedFieldTypes);
+    }
+
+    private ResponseEntity<StreamingResponseBody> rearrangementListProtected(
+        HttpServletRequest request,
+        AdcSearchRequest adcSearch) throws Exception {
 
         Set<String> umaScopes = adcSearch.getUmaScopes(FieldClass.REARRANGEMENT, this.csvConfig);
         Set<String> umaIds = this.getRearrangementsRepertoireIds(adcSearch);
@@ -350,6 +368,7 @@ public class AdcAuthController extends AdcController {
                 !umaScopes.isEmpty());
         }
 
+
         var fieldMapper = adcSearch.setupFieldMapper(
             FieldClass.REARRANGEMENT,
             AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
@@ -357,7 +376,7 @@ public class AdcAuthController extends AdcController {
             csvConfig
         );
 
-        if (isJsonFormat) {
+        if (adcSearch.isJsonFormat()) {
             return buildFilteredJsonResponse(
                 AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
                 AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
@@ -366,12 +385,35 @@ public class AdcAuthController extends AdcController {
         }
 
         var requestedFieldTypes = getRegularSearchRequestedFieldsAndTypes(adcSearch, FieldClass.REARRANGEMENT);
+
         return buildFilteredTsvResponse(
             AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
             AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
             fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
             () -> this.adcClient.searchRearrangementsAsStream(adcSearch),
             requestedFieldTypes);
+    }
+
+    /**
+     * Protected by UMA. Rearrangements search. Part of ADC v1.
+     * JSON processed in streaming mode. Can return resource public fields if not given access to a resource.
+     *
+     * @param request user request
+     * @return the filtered rearrangements stream
+     * @throws Exception if some error occurs
+     */
+    @RequestMapping(
+        value = "/rearrangement",
+        method = RequestMethod.POST,
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<StreamingResponseBody> rearrangementList(
+        @RequestHeader(value = "Content-Protected", defaultValue = "false") Boolean contentProtected,
+        HttpServletRequest request,
+        @RequestBody AdcSearchRequest adcSearch) throws Exception {
+        validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT, true);
+
+        return contentProtected ? rearrangementListProtected(request, adcSearch) : rearrangementListPublic(request, adcSearch);
     }
 
     /**
