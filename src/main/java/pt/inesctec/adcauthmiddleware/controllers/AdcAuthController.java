@@ -218,9 +218,9 @@ public class AdcAuthController extends AdcController {
         }
 
         var tokenResources = this.umaClient.introspectToken(bearer, true);
-        var fieldMapper =
-            UmaUtils.buildFieldMapper(tokenResources.getPermissions(), FieldClass.REARRANGEMENT, csvConfig)
-                .compose(this.dbRepository::getRepertoireUmaId);
+        var fieldMapper = UmaUtils.buildFieldMapper(
+            tokenResources.getPermissions(), FieldClass.REARRANGEMENT, csvConfig
+        ).compose(this.dbRepository::getRepertoireUmaId);
 
         return buildFilteredJsonResponse(
             AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,

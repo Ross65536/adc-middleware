@@ -81,6 +81,8 @@ public class UmaClient {
     }
 
     public TokenIntrospection introspectToken(String token, Boolean isRpt) throws Exception {
+        Logger.debug("Requesting token introspection. isRpt: {}", isRpt);
+
         this.updateAccessToken();
         var uri = Utils.buildUrl(this.getWellKnownInstance().getIntrospectionEndpoint());
         var form = ImmutableMap.of(

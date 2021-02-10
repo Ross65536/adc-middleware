@@ -153,15 +153,18 @@ public class AdcAuthSynchronizationTests extends TestBase {
   }
 
   private void synchronize() {
+    String accessToken = umaInit();
     this.requests.postEmpty(
         this.buildMiddlewareUrl(TestConstants.SYNCHRONIZE_PATH_FRAGMENT),
-        TestConstants.SYNC_PASSWORD,
+        accessToken,
         200);
   }
 
   private String umaInit() {
     UmaWireMocker.wireUmaWellKnown(umaMock);
-    return UmaWireMocker.wireTokenEndpoint(umaMock);
+    String token = UmaWireMocker.wireTokenEndpoint(umaMock);
+    UmaWireMocker.wireSyncIntrospection(umaMock, token);
+    return token;
   }
 
 
