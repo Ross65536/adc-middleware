@@ -113,7 +113,7 @@ public abstract class AdcController {
      * @return the streamed facets.
      * @throws Exception on error.
      */
-    protected ResponseEntity<StreamingResponseBody> buildFilteredFacetsResponse(
+    protected ResponseEntity<StreamingResponseBody> responseFilteredFacets(
         AdcSearchRequest adcSearch,
         String resourceId,
         ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest,
@@ -145,7 +145,7 @@ public abstract class AdcController {
      * @return streaming response
      * @throws Exception on error
      */
-    protected static ResponseEntity<StreamingResponseBody> buildFilteredJsonResponse(
+    protected static ResponseEntity<StreamingResponseBody> responseFilteredJson(
         String resourceId,
         String responseFilterField,
         Function<String, Set<String>> fieldMapper,
@@ -168,7 +168,7 @@ public abstract class AdcController {
      * @return streaming response
      * @throws Exception on error
      */
-    protected ResponseEntity<StreamingResponseBody> buildFilteredTsvResponse(
+    protected ResponseEntity<StreamingResponseBody> responseFilteredTsv(
         String resourceId,
         String responseFilterField,
         Function<String, Set<String>> fieldMapper,
