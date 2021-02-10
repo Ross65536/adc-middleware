@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
@@ -35,7 +34,6 @@ import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
 
@@ -183,7 +181,7 @@ public class AdcAuthController extends AdcController {
             tokenResources.getPermissions(), FieldClass.REPERTOIRE, csvConfig
         ).compose(this.dbRepository::getStudyUmaId);
 
-        return buildFilteredJsonResponse(
+        return responseFilteredJson(
             AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
             AdcConstants.REPERTOIRE_RESPONSE_FILTER_FIELD,
             fieldMapper,
@@ -222,7 +220,7 @@ public class AdcAuthController extends AdcController {
             tokenResources.getPermissions(), FieldClass.REARRANGEMENT, csvConfig
         ).compose(this.dbRepository::getRepertoireUmaId);
 
-        return buildFilteredJsonResponse(
+        return responseFilteredJson(
             AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
             AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
             fieldMapper,
@@ -232,7 +230,7 @@ public class AdcAuthController extends AdcController {
     private ResponseEntity<StreamingResponseBody> repertoireListPublic(AdcSearchRequest adcSearch) throws Exception
     {
         if (adcSearch.isFacetsSearch()) {
-            return buildFilteredFacetsResponse(
+            return responseFilteredFacets(
                 adcSearch,
                 AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
                 this.adcClient::searchRepertoiresAsStream,
@@ -244,7 +242,7 @@ public class AdcAuthController extends AdcController {
             FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, csvConfig
         );
 
-        return buildFilteredJsonResponse(
+        return responseFilteredJson(
             AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
             AdcConstants.REPERTOIRE_RESPONSE_FILTER_FIELD,
             fieldMapper.compose(this.dbRepository::getStudyUmaId),
@@ -268,7 +266,7 @@ public class AdcAuthController extends AdcController {
                 (umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId))
             );
 
-            return buildFilteredFacetsResponse(
+            return responseFilteredFacets(
                 adcSearch,
                 AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
                 this.adcClient::searchRepertoiresAsStream,
@@ -280,7 +278,7 @@ public class AdcAuthController extends AdcController {
             FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, umaResources, csvConfig
         );
 
-        return buildFilteredJsonResponse(
+        return responseFilteredJson(
             AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
             AdcConstants.REPERTOIRE_RESPONSE_FILTER_FIELD,
             fieldMapper.compose(this.dbRepository::getStudyUmaId),
@@ -314,7 +312,7 @@ public class AdcAuthController extends AdcController {
         AdcSearchRequest adcSearch) throws Exception {
 
         if (adcSearch.isFacetsSearch()) {
-            return buildFilteredFacetsResponse(
+            return responseFilteredFacets(
                 adcSearch,
                 AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
                 this.adcClient::searchRearrangementsAsStream,
@@ -327,7 +325,7 @@ public class AdcAuthController extends AdcController {
         );
 
         if (adcSearch.isJsonFormat()) {
-            return buildFilteredJsonResponse(
+            return responseFilteredJson(
                 AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
                 AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
                 fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
@@ -336,7 +334,7 @@ public class AdcAuthController extends AdcController {
 
         var requestedFieldTypes = getRegularSearchRequestedFieldsAndTypes(adcSearch, FieldClass.REARRANGEMENT);
 
-        return buildFilteredTsvResponse(
+        return responseFilteredTsv(
             AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
             AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
             fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
@@ -360,7 +358,7 @@ public class AdcAuthController extends AdcController {
                 umaResources, umaScopes, this.dbRepository::getUmaRepertoireModel
             );
 
-            return buildFilteredFacetsResponse(
+            return responseFilteredFacets(
                 adcSearch,
                 AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
                 this.adcClient::searchRearrangementsAsStream,
@@ -377,7 +375,7 @@ public class AdcAuthController extends AdcController {
         );
 
         if (adcSearch.isJsonFormat()) {
-            return buildFilteredJsonResponse(
+            return responseFilteredJson(
                 AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
                 AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
                 fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
@@ -386,7 +384,7 @@ public class AdcAuthController extends AdcController {
 
         var requestedFieldTypes = getRegularSearchRequestedFieldsAndTypes(adcSearch, FieldClass.REARRANGEMENT);
 
-        return buildFilteredTsvResponse(
+        return responseFilteredTsv(
             AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
             AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
             fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
