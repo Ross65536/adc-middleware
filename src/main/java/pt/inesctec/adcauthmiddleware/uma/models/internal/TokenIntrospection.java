@@ -1,5 +1,7 @@
 package pt.inesctec.adcauthmiddleware.uma.models.internal;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +22,12 @@ public class TokenIntrospection {
     @JsonProperty("realm_access")
     //@SuppressWarnings("unchecked")
     private void rolesDeserializer(Map<String, Set<String>> realmAccess) {
-        this.roles = realmAccess.get("roles");
+        if (realmAccess.containsKey("roles")) {
+            this.roles = realmAccess.get("roles");
+        }
+        else {
+            this.roles = Collections.<String>emptySet();
+        }
     }
 
     public boolean isActive() {

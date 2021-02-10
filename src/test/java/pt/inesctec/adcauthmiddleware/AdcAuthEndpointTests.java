@@ -77,6 +77,7 @@ public class AdcAuthEndpointTests extends TestBase {
 
     UmaWireMocker.wireUmaWellKnown(umaMock);
     this.accessToken = UmaWireMocker.wireTokenEndpoint(umaMock);
+
     UmaWireMocker.wireListResources(umaMock, accessToken);
     this.firstRepertoireUmaId =
         UmaWireMocker.wireCreateResource(umaMock, firstRepertoire, accessToken);
@@ -84,9 +85,11 @@ public class AdcAuthEndpointTests extends TestBase {
         UmaWireMocker.wireCreateResource(umaMock, secondRepertoire, accessToken);
     umaMock.start();
 
+    UmaWireMocker.wireSyncIntrospection(umaMock, this.accessToken);
+
     this.requests.postEmpty(
         this.buildMiddlewareUrl(TestConstants.SYNCHRONIZE_PATH_FRAGMENT),
-        TestConstants.SYNC_PASSWORD,
+        this.accessToken,
         200);
   }
 

@@ -17,11 +17,13 @@ public final class TestConstants {
   public static final int BACKEND_PORT = 8883;
   public static final int UMA_PORT = 8882;
   public static final String BASE_MIDDLEWARE_PATH = "/airr/v1";
-  public static final String SYNC_PASSWORD = "master";
+  //public static final String SYNC_PASSWORD = "master";
+  // Should match the role configured in the Middleware
+  public static final String SYNC_ROLE = "admin";
 
   public static final String UMA_WELL_KNOWN_PATH = "/.well-known/uma2-configuration";
   public static final String UMA_CLIENT_ID = "adc-middleware";
-  public static final String UMA_CLIENT_SECRET = "d2f67b7d-3d87-43ac-a9e1-f9dc462c0c0f";
+  public static final String UMA_CLIENT_SECRET = "7e0df221-0070-4c28-8d60-9c243e1c7ca3";
   public static final String UMA_RESOURCE_OWNER = "owner";
 
   public static final String UMA_STATISTICS_SCOPE = "statistics";
