@@ -10,8 +10,10 @@ import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.apache.catalina.core.ApplicationContext;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,15 +28,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.HttpException;
-import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+import pt.inesctec.adcauthmiddleware.adc.resources.AdcResource;
+import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementResource;
+import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
+import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
-import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
 
 /**
@@ -156,7 +160,7 @@ public class AdcAuthController extends AdcController {
      * @throws Exception if user does not have permissions or some other error occurs
      */
     @RequestMapping(
-        value = "/repertoire/{repertoireId}/protected",
+        value = "/repertoire/{repertoireId}",
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> repertoire(
@@ -181,9 +185,9 @@ public class AdcAuthController extends AdcController {
             tokenResources.getPermissions(), FieldClass.REPERTOIRE, csvConfig
         ).compose(this.dbRepository::getStudyUmaId);
 
-        return responseFilteredJson(
-            AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-            AdcConstants.REPERTOIRE_RESPONSE_FILTER_FIELD,
+        return AdcResource.responseFilteredJson(
+            RepertoireResource.UMA_ID_FIELD,
+            RepertoireResource.RESPONSE_FILTER_FIELD,
             fieldMapper,
             () -> this.adcClient.getRepertoireAsStream(repertoireId));
     }
@@ -197,11 +201,13 @@ public class AdcAuthController extends AdcController {
      * @throws Exception if user does not have permissions or some other error occurs
      */
     @RequestMapping(
-        value = "/rearrangement/{rearrangementId}/protected",
+        value = "/rearrangement/{rearrangementId}",
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> rearrangement(
-        HttpServletRequest request, @PathVariable String rearrangementId) throws Exception {
+        HttpServletRequest request,
+        @PathVariable String rearrangementId
+    ) throws Exception {
 
         var bearer = SpringUtils.getBearer(request);
         if (bearer == null) {
@@ -220,69 +226,11 @@ public class AdcAuthController extends AdcController {
             tokenResources.getPermissions(), FieldClass.REARRANGEMENT, csvConfig
         ).compose(this.dbRepository::getRepertoireUmaId);
 
-        return responseFilteredJson(
-            AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-            AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
+        return AdcResource.responseFilteredJson(
+            RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+            RearrangementResource.RESPONSE_FILTER_FIELD,
             fieldMapper,
             () -> this.adcClient.getRearrangementAsStream(rearrangementId));
-    }
-
-    private ResponseEntity<StreamingResponseBody> repertoireListPublic(AdcSearchRequest adcSearch) throws Exception
-    {
-        if (adcSearch.isFacetsSearch()) {
-            return responseFilteredFacets(
-                adcSearch,
-                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-                this.adcClient::searchRepertoiresAsStream,
-                Collections.<String>emptyList(),
-                false);
-        }
-
-        var fieldMapper = adcSearch.setupPublicFieldMapper(
-            FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, csvConfig
-        );
-
-        return responseFilteredJson(
-            AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-            AdcConstants.REPERTOIRE_RESPONSE_FILTER_FIELD,
-            fieldMapper.compose(this.dbRepository::getStudyUmaId),
-            () -> this.adcClient.searchRepertoiresAsStream(adcSearch));
-    }
-
-    private ResponseEntity<StreamingResponseBody> repertoireListProtected(
-        HttpServletRequest request,
-        AdcSearchRequest adcSearch) throws Exception {
-        Set<String> umaScopes = adcSearch.getUmaScopes(FieldClass.REPERTOIRE, this.csvConfig);
-        Set<String> umaIds = getRepertoireStudyIds(adcSearch);
-
-        var umaResources = this.umaFlow.adcSearch(
-            request, umaIds, repertoiresDelayer, umaScopes
-        );
-
-        if (adcSearch.isFacetsSearch()) {
-            final List<String> resourceIds = UmaUtils.filterFacets(
-                umaResources,
-                umaScopes,
-                (umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId))
-            );
-
-            return responseFilteredFacets(
-                adcSearch,
-                AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-                this.adcClient::searchRepertoiresAsStream,
-                resourceIds,
-                !umaScopes.isEmpty());
-        }
-
-        var fieldMapper = adcSearch.setupFieldMapper(
-            FieldClass.REPERTOIRE, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, umaResources, csvConfig
-        );
-
-        return responseFilteredJson(
-            AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-            AdcConstants.REPERTOIRE_RESPONSE_FILTER_FIELD,
-            fieldMapper.compose(this.dbRepository::getStudyUmaId),
-            () -> this.adcClient.searchRepertoiresAsStream(adcSearch));
     }
 
     /**
@@ -301,95 +249,17 @@ public class AdcAuthController extends AdcController {
     public ResponseEntity<StreamingResponseBody> repertoireList(
         @RequestHeader(value = "Content-Protected", defaultValue = "false") Boolean contentProtected,
         HttpServletRequest request,
-        @RequestBody AdcSearchRequest adcSearch) throws Exception {
+        @RequestBody AdcSearchRequest adcSearch
+    ) throws Exception {
         this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
+        RepertoireResource repertoireResource = new RepertoireResource(adcSearch);
 
-        return contentProtected ? repertoireListProtected(request, adcSearch) : repertoireListPublic(adcSearch);
-    }
-
-    private ResponseEntity<StreamingResponseBody> rearrangementListPublic(
-        HttpServletRequest request,
-        AdcSearchRequest adcSearch) throws Exception {
-
-        if (adcSearch.isFacetsSearch()) {
-            return responseFilteredFacets(
-                adcSearch,
-                AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-                this.adcClient::searchRearrangementsAsStream,
-                Collections.<String>emptyList(),
-                false);
+        if (contentProtected) {
+            var bearer = SpringUtils.getBearer(request);
+            repertoireResource.enableUma(bearer);
         }
 
-        var fieldMapper = adcSearch.setupPublicFieldMapper(
-            FieldClass.REARRANGEMENT, AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, csvConfig
-        );
-
-        if (adcSearch.isJsonFormat()) {
-            return responseFilteredJson(
-                AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-                AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
-                fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
-                () -> this.adcClient.searchRearrangementsAsStream(adcSearch));
-        }
-
-        var requestedFieldTypes = getRegularSearchRequestedFieldsAndTypes(adcSearch, FieldClass.REARRANGEMENT);
-
-        return responseFilteredTsv(
-            AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-            AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
-            fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
-            () -> this.adcClient.searchRearrangementsAsStream(adcSearch),
-            requestedFieldTypes);
-    }
-
-    private ResponseEntity<StreamingResponseBody> rearrangementListProtected(
-        HttpServletRequest request,
-        AdcSearchRequest adcSearch) throws Exception {
-
-        Set<String> umaScopes = adcSearch.getUmaScopes(FieldClass.REARRANGEMENT, this.csvConfig);
-        Set<String> umaIds = this.getRearrangementsRepertoireIds(adcSearch);
-
-        var umaResources = this.umaFlow.adcSearch(
-            request, umaIds, rearrangementsDelayer, umaScopes
-        );
-
-        if (adcSearch.isFacetsSearch()) {
-            final List<String> resourceIds = UmaUtils.filterFacets(
-                umaResources, umaScopes, this.dbRepository::getUmaRepertoireModel
-            );
-
-            return responseFilteredFacets(
-                adcSearch,
-                AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-                this.adcClient::searchRearrangementsAsStream,
-                resourceIds,
-                !umaScopes.isEmpty());
-        }
-
-
-        var fieldMapper = adcSearch.setupFieldMapper(
-            FieldClass.REARRANGEMENT,
-            AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-            umaResources,
-            csvConfig
-        );
-
-        if (adcSearch.isJsonFormat()) {
-            return responseFilteredJson(
-                AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-                AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
-                fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
-                () -> this.adcClient.searchRearrangementsAsStream(adcSearch));
-        }
-
-        var requestedFieldTypes = getRegularSearchRequestedFieldsAndTypes(adcSearch, FieldClass.REARRANGEMENT);
-
-        return responseFilteredTsv(
-            AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD,
-            AdcConstants.REARRANGEMENT_RESPONSE_FILTER_FIELD,
-            fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
-            () -> this.adcClient.searchRearrangementsAsStream(adcSearch),
-            requestedFieldTypes);
+        return repertoireResource.response();
     }
 
     /**
@@ -408,10 +278,17 @@ public class AdcAuthController extends AdcController {
     public ResponseEntity<StreamingResponseBody> rearrangementList(
         @RequestHeader(value = "Content-Protected", defaultValue = "false") Boolean contentProtected,
         HttpServletRequest request,
-        @RequestBody AdcSearchRequest adcSearch) throws Exception {
+        @RequestBody AdcSearchRequest adcSearch
+    ) throws Exception {
         validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT, true);
+        RearrangementResource rearrangementResource = new RearrangementResource(adcSearch);
 
-        return contentProtected ? rearrangementListProtected(request, adcSearch) : rearrangementListPublic(request, adcSearch);
+        if (contentProtected) {
+            var bearer = SpringUtils.getBearer(request);
+            rearrangementResource.enableUma(bearer);
+        }
+
+        return rearrangementResource.response();
     }
 
     /**

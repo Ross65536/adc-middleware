@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.common.base.Charsets;
 import org.springframework.http.HttpHeaders;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
 
 import java.util.HashMap;
 import java.util.List;
@@ -55,8 +56,8 @@ public class UmaWireMocker {
   }
 
   public static String wireCreateResource(WireMockServer umaMock, Map<String, Object> repertoire, String expectedBearer) {
-    var studyId = TestCollections.getString(repertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
-    var studyTitle = TestCollections.getString(repertoire, AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD);
+    var studyId = TestCollections.getString(repertoire, RepertoireResource.UMA_ID_FIELD);
+    var studyTitle = TestCollections.getString(repertoire, RepertoireResource.STUDY_TITLE_FIELD);
     var name = String.format("study ID: %s; title: %s", studyId, studyTitle);
     var createdId = studyId + "-" + TestConstants.Random.nextInt(100);
 

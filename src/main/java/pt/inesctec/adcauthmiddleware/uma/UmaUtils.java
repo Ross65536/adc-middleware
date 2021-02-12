@@ -62,10 +62,8 @@ public class UmaUtils {
      * @param umaIdGetter  function that returns the collection of resource IDs given the UMA ID.
      * @return the filtered collection of resource IDs.
      */
-    public static List<String> filterFacets(
-        Collection<UmaResource> umaResources,
-        Set<String> umaScopes,
-        Function<String, Set<String>> umaIdGetter) {
+    public static List<String> filterFacets(Collection<UmaResource> umaResources, Set<String> umaScopes,
+                                            Function<String, Set<String>> umaIdGetter) {
         return umaResources.stream()
             .filter(resource -> !Sets.intersection(umaScopes, resource.getScopes()).isEmpty())
             .map(resource -> umaIdGetter.apply(resource.getUmaId()))
