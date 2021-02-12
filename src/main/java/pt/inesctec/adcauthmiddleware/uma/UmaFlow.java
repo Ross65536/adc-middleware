@@ -60,34 +60,24 @@ public class UmaFlow {
     /**
      * The common UMA flow for POST endpoints. Emits a permissions ticket or returns the introspected RPT token resources.
      *
-     * @param request        the user request
+     * @param bearerToken    OIDC/UMA 2.0 Bearer Token (RPT)
      * @param umaIds         set of UMA ids for the requested resources
-     * @param delayer        the delayer to make all requests take the same time.
      * @param umaScopes      the scopes set for the request (for emitting permissions ticket).
      * @return the introspected RPT resources.
      * @throws Exception when emitting a permission ticket or an internal error occurs.
      */
     public List<UmaResource> adcSearch(
-        HttpServletRequest request,
+        String bearerToken,
         Set<String> umaIds,
-        Delayer delayer,
-        Set<String> umaScopes)
-        throws Exception {
-        var startTime = LocalDateTime.now();
-
+        Set<String> umaScopes) throws Exception {
         // empty scopes means public access, no UMA flow followed
         if (umaScopes.isEmpty()) {
             return ImmutableList.of();
         }
 
-        var bearer = SpringUtils.getBearer(request);
-
-        if (bearer != null) {
-            return this.umaClient.introspectToken(bearer, true).getPermissions();
+        if (bearerToken != null) {
+            return this.umaClient.introspectToken(bearerToken, true).getPermissions();
         }
-
-        // TODO: Why the delay...?
-        //delayer.delay(startTime);
 
         if (umaIds.isEmpty()) {
             // when no resources return, just err

@@ -5,7 +5,8 @@ import static pt.inesctec.adcauthmiddleware.utils.WireMocker.wireGetJson;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementResource;
+import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
 import pt.inesctec.adcauthmiddleware.utils.Pair;
 import pt.inesctec.adcauthmiddleware.utils.TestCollections;
 import pt.inesctec.adcauthmiddleware.utils.TestConstants;
@@ -57,7 +58,7 @@ class AdcPublicEndpointTests extends TestBase {
   @Test
   void publicFields() {
     // based on file src/test/resources/field-mapping.csv
-    String[] expectedFields = new String[]{AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_ID_FIELD, AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD};
+    String[] expectedFields = new String[]{RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD, RepertoireResource.UMA_ID_FIELD, RepertoireResource.STUDY_TITLE_FIELD};
 
     var actualFields = requests.getJsonMap(buildMiddlewareUrl("public_fields"), 200);
     assertThat(actualFields).containsOnlyKeys("Repertoire", "Rearrangement");

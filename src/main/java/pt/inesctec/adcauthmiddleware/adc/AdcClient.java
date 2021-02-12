@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
 import org.springframework.stereotype.Component;
+import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementResource;
+import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RearrangementModel;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
@@ -193,13 +195,13 @@ public class AdcClient {
     public Set<String> getRepertoireStudyIds(AdcSearchRequest adcRequest) throws Exception {
         Preconditions.checkArgument(adcRequest.isJsonFormat());
 
-        var idsQuery = adcRequest.queryClone().withFacets(AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+        var idsQuery = adcRequest.queryClone().withFacets(RepertoireResource.UMA_ID_FIELD);
         var request = this.buildSearchRequest("repertoire", idsQuery);
         var facets = HttpFacade.makeExpectJsonRequest(
             request, AdcFacetsResponse.class
         ).getFacets();
 
-        return processStringFacets(facets, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
+        return processStringFacets(facets, RepertoireResource.UMA_ID_FIELD);
     }
 
     /**
@@ -213,11 +215,11 @@ public class AdcClient {
     public Set<String> getRearrangementRepertoireModel(AdcSearchRequest adcRequest) throws Exception {
         Preconditions.checkArgument(adcRequest.isJsonFormat());
 
-        var idsQuery = adcRequest.queryClone().withFacets(AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
+        var idsQuery = adcRequest.queryClone().withFacets(RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD);
         var request = this.buildSearchRequest("rearrangement", idsQuery);
         var facets = HttpFacade.makeExpectJsonRequest(request, AdcFacetsResponse.class).getFacets();
 
-        return processStringFacets(facets, AdcConstants.REARRANGEMENT_REPERTOIRE_ID_FIELD);
+        return processStringFacets(facets, RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD);
     }
 
     /**
