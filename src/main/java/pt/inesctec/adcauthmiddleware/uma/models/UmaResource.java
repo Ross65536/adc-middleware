@@ -12,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UmaResource {
-
     @JsonProperty("resource_id")
     private String umaId;
 

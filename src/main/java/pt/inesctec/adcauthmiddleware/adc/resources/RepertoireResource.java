@@ -94,8 +94,7 @@ public final class RepertoireResource extends AdcResource {
 
         if (umaEnabled) {
             fieldMapper = this.setupFieldMapper(fieldClass, RepertoireResource.UMA_ID_FIELD);
-        } else
-        {
+        } else {
             fieldMapper = this.setupPublicFieldMapper(fieldClass, RepertoireResource.UMA_ID_FIELD);
         }
 

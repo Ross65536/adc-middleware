@@ -22,12 +22,7 @@ public class TokenIntrospection {
     @JsonProperty("realm_access")
     //@SuppressWarnings("unchecked")
     private void rolesDeserializer(Map<String, Set<String>> realmAccess) {
-        if (realmAccess.containsKey("roles")) {
-            this.roles = realmAccess.get("roles");
-        }
-        else {
-            this.roles = Collections.<String>emptySet();
-        }
+        this.roles = realmAccess.getOrDefault("roles", Collections.<String>emptySet());
     }
 
     public boolean isActive() {
