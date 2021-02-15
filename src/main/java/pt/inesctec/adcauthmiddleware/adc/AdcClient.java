@@ -26,7 +26,6 @@ import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Utils;
 
 /**
- import java.util.stream.Collectors;
  * Client for makings requests to an ADC compliant repository.
  */
 @Component
@@ -223,7 +222,7 @@ public class AdcClient {
     }
 
     /**
-     * Build the java 11 HTTP request for the search.
+     * Build HTTP request for an AdcSearchRequest.
      *
      * @param path             the subpath fragment
      * @param adcSearchRequest the user's ADC request

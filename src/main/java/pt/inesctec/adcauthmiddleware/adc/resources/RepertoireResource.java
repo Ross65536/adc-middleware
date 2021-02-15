@@ -7,14 +7,15 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
+import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
+import pt.inesctec.adcauthmiddleware.db.DbRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
-@Component
 public final class RepertoireResource extends AdcResource {
     /**
      * The repertoire's ID field name.
@@ -51,8 +52,8 @@ public final class RepertoireResource extends AdcResource {
      */
     public static final String STUDY_TITLE_BASE = "study_title";
 
-    public RepertoireResource(AdcSearchRequest adcSearch) {
-        super(FieldClass.REPERTOIRE, adcSearch);
+    public RepertoireResource(AdcSearchRequest adcSearch, AdcClient adcClient, DbRepository dbRepository, CsvConfig csvConfig) {
+        super(FieldClass.REPERTOIRE, adcSearch, adcClient, dbRepository, csvConfig);
     }
 
     /**
