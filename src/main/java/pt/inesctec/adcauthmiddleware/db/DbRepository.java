@@ -221,7 +221,7 @@ public class DbRepository {
 
         CollectionsUtils.assertList(
             repertoires, e -> e.getRepertoireId() != null,
-            "Repertoires response must have a " + RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD
+            "Repertoires response must have a " + RearrangementResource.REPERTOIRE_ID_FIELD
         );
 
         boolean ok = true;

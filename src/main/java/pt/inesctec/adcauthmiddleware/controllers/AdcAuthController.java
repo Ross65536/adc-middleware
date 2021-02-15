@@ -2,10 +2,11 @@ package pt.inesctec.adcauthmiddleware.controllers;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
+import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
 
 /**
@@ -158,25 +160,22 @@ public class AdcAuthController extends AdcController {
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> repertoire(
-        HttpServletRequest request, @PathVariable String repertoireId) throws Exception {
-        var bearer = SpringUtils.getBearer(request);
+        @RequestHeader(value = "Content-Protected", defaultValue = "false") Boolean contentProtected,
+        HttpServletRequest request,
+        @PathVariable String repertoireId
+    ) throws Exception {
+        String bearer = SpringUtils.getBearer(request);
+        String umaId = this.dbRepository.getRepertoireUmaId(repertoireId);
+        Set<String> umaScopes = this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE);
 
-        if (bearer == null) {
-            var umaId = this.dbRepository.getRepertoireUmaId(repertoireId);
-
-            if (umaId == null) {
-                Logger.info("User tried accessing non-existing repertoire with ID {}", repertoireId);
-                throw SpringUtils.buildHttpException(HttpStatus.NOT_FOUND, "Not found");
-            }
-
-            var umaScopes = this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE);
-            throw this.umaFlow.noRptToken(ImmutableList.of(umaId), umaScopes);
+        if (umaId == null) {
+            Logger.info("User tried accessing non-existing repertoire with ID {}", repertoireId);
         }
 
-        var tokenResources = this.umaClient.introspectToken(bearer, true);
+        List<UmaResource> umaResources = this.umaFlow.execute(bearer, umaId, umaScopes);
 
         var fieldMapper = UmaUtils.buildFieldMapper(
-            tokenResources.getPermissions(), FieldClass.REPERTOIRE, csvConfig
+            umaResources, FieldClass.REPERTOIRE, csvConfig
         ).compose(this.dbRepository::getStudyUmaId);
 
         return AdcResource.responseFilteredJson(
@@ -199,29 +198,26 @@ public class AdcAuthController extends AdcController {
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> rearrangement(
+        @RequestHeader(value = "Content-Protected", defaultValue = "false") Boolean contentProtected,
         HttpServletRequest request,
         @PathVariable String rearrangementId
     ) throws Exception {
+        String bearer = SpringUtils.getBearer(request);
+        String umaId = this.dbRepository.getRearrangementUmaId(rearrangementId);
+        Set<String> umaScopes = this.csvConfig.getUmaScopes(FieldClass.REARRANGEMENT);
 
-        var bearer = SpringUtils.getBearer(request);
-        if (bearer == null) {
-            String umaId = this.dbRepository.getRearrangementUmaId(rearrangementId);
-            if (umaId == null) {
-                Logger.info("User tried accessing non-existing rearrangement with ID {}", rearrangementId);
-                throw SpringUtils.buildHttpException(HttpStatus.NOT_FOUND, "Not found");
-            }
-
-            var umaScopes = this.csvConfig.getUmaScopes(FieldClass.REARRANGEMENT);
-            throw this.umaFlow.noRptToken(ImmutableList.of(umaId), umaScopes);
+        if (umaId == null) {
+            Logger.info("User tried accessing non-existing rearrangement with ID {}", rearrangementId);
         }
 
-        var tokenResources = this.umaClient.introspectToken(bearer, true);
+        List<UmaResource> umaResources = this.umaFlow.execute(bearer, umaId, umaScopes);
+
         var fieldMapper = UmaUtils.buildFieldMapper(
-            tokenResources.getPermissions(), FieldClass.REARRANGEMENT, csvConfig
+            umaResources, FieldClass.REARRANGEMENT, this.csvConfig
         ).compose(this.dbRepository::getRepertoireUmaId);
 
         return AdcResource.responseFilteredJson(
-            RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+            RearrangementResource.REPERTOIRE_ID_FIELD,
             RearrangementResource.RESPONSE_FILTER_FIELD,
             fieldMapper,
             () -> this.adcClient.getRearrangementAsStream(rearrangementId));

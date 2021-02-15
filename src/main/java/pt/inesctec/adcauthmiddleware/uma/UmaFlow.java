@@ -3,13 +3,16 @@ package pt.inesctec.adcauthmiddleware.uma;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import pt.inesctec.adcauthmiddleware.controllers.AdcAuthController;
 import pt.inesctec.adcauthmiddleware.controllers.SpringUtils;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
@@ -58,7 +61,8 @@ public class UmaFlow {
     }
 
     /**
-     * The common UMA flow for POST endpoints. Emits a permissions ticket or returns the introspected RPT token resources.
+     * Execute UMA workflow for multiple resources.
+     * Emits a permissions ticket or returns the introspected RPT token resources.
      *
      * @param bearerToken    OIDC/UMA 2.0 Bearer Token (RPT)
      * @param umaIds         set of UMA ids for the requested resources
@@ -66,10 +70,7 @@ public class UmaFlow {
      * @return the introspected RPT resources.
      * @throws Exception when emitting a permission ticket or an internal error occurs.
      */
-    public List<UmaResource> adcSearch(
-        String bearerToken,
-        Set<String> umaIds,
-        Set<String> umaScopes) throws Exception {
+    public List<UmaResource> execute(String bearerToken, Set<String> umaIds, Set<String> umaScopes) throws Exception {
         // empty scopes means public access, no UMA flow followed
         if (umaScopes.isEmpty()) {
             return ImmutableList.of();
@@ -86,4 +87,31 @@ public class UmaFlow {
 
         throw this.noRptToken(umaIds, umaScopes);
     }
+
+    /**
+     * Execute UMA workflow for a single resource ID.
+     * Emits a permissions ticket or returns the introspected RPT token resources.
+     *
+     * @param bearerToken    OIDC/UMA 2.0 Bearer Token (RPT)
+     * @param umaId          UMA id for the requested resource
+     * @param umaScopes      the scopes set for the request (for emitting permissions ticket).
+     * @return the introspected RPT resources.
+     * @throws Exception when emitting a permission ticket or an internal error occurs.
+     */
+    public List<UmaResource> execute(String bearerToken, String umaId, Set<String> umaScopes) throws Exception {
+        Set<String> umaIds = umaId != null ? Set.of(umaId) : Collections.<String>emptySet();
+        return this.execute(bearerToken, umaIds, umaScopes);
+    }
+
+    /*public List<UmaResource> adcSingle(String bearerToken, String umaId, Set<String> umaScopes) throws Exception {
+        if (umaId == null) {
+            throw SpringUtils.buildHttpException(HttpStatus.NOT_FOUND, "Not found");
+        }
+
+        if (bearerToken != null) {
+            return this.umaClient.introspectToken(bearerToken, true).getPermissions();
+        }
+
+        throw this.noRptToken(ImmutableList.of(umaId), umaScopes);
+    }*/
 }

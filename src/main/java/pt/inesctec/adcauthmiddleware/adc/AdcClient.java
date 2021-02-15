@@ -214,11 +214,11 @@ public class AdcClient {
     public Set<String> getRearrangementRepertoireModel(AdcSearchRequest adcRequest) throws Exception {
         Preconditions.checkArgument(adcRequest.isJsonFormat());
 
-        var idsQuery = adcRequest.queryClone().withFacets(RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD);
+        var idsQuery = adcRequest.queryClone().withFacets(RearrangementResource.REPERTOIRE_ID_FIELD);
         var request = this.buildSearchRequest("rearrangement", idsQuery);
         var facets = HttpFacade.makeExpectJsonRequest(request, AdcFacetsResponse.class).getFacets();
 
-        return processStringFacets(facets, RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD);
+        return processStringFacets(facets, RearrangementResource.REPERTOIRE_ID_FIELD);
     }
 
     /**

@@ -49,7 +49,7 @@ public abstract class AdcResource {
      * Must be implemented to return a Set of UMA ids that relate the AdcResource with their UMA ID in the Authorization
      * infrastructure.
      *
-     * @return Set<String>
+     * @return Set
      */
     public abstract Set<String> getUmaIds() throws Exception;
 
@@ -58,7 +58,7 @@ public abstract class AdcResource {
      * Should be the final step in a controller and returns the ADC compliant response for the current entity,
      * filtered according to the User's permissions.
      *
-     * @return ResponseEntity<StreamingResponseBody>
+     * @return ResponseEntity
      */
     public abstract ResponseEntity<StreamingResponseBody> response() throws Exception;
 
@@ -74,14 +74,14 @@ public abstract class AdcResource {
      * Sets the current AdcResource as being protected by UMA.
      * Any output by the response() method will be controlled by the User's permissions
      *
-     * @param bearerToken
-     * @param umaFlow
-     * @throws Exception
+     * @param bearerToken OIDC/UMA 2.0 Bearer Token (RPT)
+     * @param umaFlow UmaFlow object
+     * @throws Exception according to the UMA workflow
      */
     public void enableUma(String bearerToken, UmaFlow umaFlow) throws Exception {
         this.umaIds       = this.getUmaIds();
         this.umaScopes    = this.getUmaScopes(this.fieldClass);
-        this.umaResources = umaFlow.adcSearch(bearerToken, umaIds, umaScopes);
+        this.umaResources = umaFlow.execute(bearerToken, umaIds, umaScopes);
         this.umaEnabled   = true;
     }
 

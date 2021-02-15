@@ -11,7 +11,7 @@ import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementResource;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RearrangementModel {
-    @JsonProperty(RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD)
+    @JsonProperty(RearrangementResource.REPERTOIRE_ID_FIELD)
     @NotNull
     private String repertoireId;
 

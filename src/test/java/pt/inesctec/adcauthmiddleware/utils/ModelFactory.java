@@ -88,7 +88,7 @@ public class ModelFactory {
       String repertoireId, String rearrangementId) {
     var stringPrefix = rearrangementId + "-";
     return TestCollections.mapOf(
-        Pair.of(RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD, repertoireId),
+        Pair.of(RearrangementResource.REPERTOIRE_ID_FIELD, repertoireId),
         Pair.of(RearrangementResource.ID_FIELD, "r" + rearrangementId),
         Pair.of("sequence", stringPrefix + TestConstants.generateHexString(10)),
         Pair.of("rearrangement_id", stringPrefix + TestConstants.generateHexString(10)),

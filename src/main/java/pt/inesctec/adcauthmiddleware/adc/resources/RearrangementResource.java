@@ -27,7 +27,7 @@ public final class RearrangementResource extends AdcResource {
     /**
      * The rearrangement's repertoire ID field name (the parent resource's ID).
      */
-    public static final String REARRANGEMENT_REPERTOIRE_ID_FIELD = "repertoire_id";
+    public static final String REPERTOIRE_ID_FIELD = "repertoire_id";
 
     /**
      * The ADC document (JSON object) response's field name for the rearrangement list.
@@ -64,7 +64,7 @@ public final class RearrangementResource extends AdcResource {
 
             return responseFilteredFacets(
                 adcSearch,
-                RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+                RearrangementResource.REPERTOIRE_ID_FIELD,
                 this.adcClient::searchRearrangementsAsStream,
                 resourceIds,
                 !umaScopes.isEmpty());
@@ -74,15 +74,14 @@ public final class RearrangementResource extends AdcResource {
         Function<String, Set<String>> fieldMapper;
 
         if (umaEnabled) {
-            fieldMapper = setupFieldMapper(fieldClass, RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD);
-        }
-        else {
-            fieldMapper = setupPublicFieldMapper(fieldClass, RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD);
+            fieldMapper = setupFieldMapper(fieldClass, RearrangementResource.REPERTOIRE_ID_FIELD);
+        } else {
+            fieldMapper = setupPublicFieldMapper(fieldClass, RearrangementResource.REPERTOIRE_ID_FIELD);
         }
 
         if (adcSearch.isJsonFormat()) {
             return responseFilteredJson(
-                RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+                RearrangementResource.REPERTOIRE_ID_FIELD,
                 RearrangementResource.RESPONSE_FILTER_FIELD,
                 fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
                 () -> this.adcClient.searchRearrangementsAsStream(adcSearch));
@@ -93,7 +92,7 @@ public final class RearrangementResource extends AdcResource {
         );
 
         return responseFilteredTsv(
-            RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD,
+            RearrangementResource.REPERTOIRE_ID_FIELD,
             RearrangementResource.RESPONSE_FILTER_FIELD,
             fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
             () -> this.adcClient.searchRearrangementsAsStream(adcSearch),

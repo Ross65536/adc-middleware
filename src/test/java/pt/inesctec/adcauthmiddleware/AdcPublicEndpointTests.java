@@ -58,7 +58,7 @@ class AdcPublicEndpointTests extends TestBase {
   @Test
   void publicFields() {
     // based on file src/test/resources/field-mapping.csv
-    String[] expectedFields = new String[]{RearrangementResource.REARRANGEMENT_REPERTOIRE_ID_FIELD, RepertoireResource.UMA_ID_FIELD, RepertoireResource.STUDY_TITLE_FIELD};
+    String[] expectedFields = new String[]{RearrangementResource.REPERTOIRE_ID_FIELD, RepertoireResource.UMA_ID_FIELD, RepertoireResource.STUDY_TITLE_FIELD};
 
     var actualFields = requests.getJsonMap(buildMiddlewareUrl("public_fields"), 200);
     assertThat(actualFields).containsOnlyKeys("Repertoire", "Rearrangement");
