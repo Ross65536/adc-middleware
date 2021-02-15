@@ -8,16 +8,16 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
+import pt.inesctec.adcauthmiddleware.db.DbRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
-@Component
 public final class RearrangementResource extends AdcResource {
     /**
      * The rearrangement's ID field name.
@@ -34,8 +34,8 @@ public final class RearrangementResource extends AdcResource {
      */
     public static final String RESPONSE_FILTER_FIELD = "Rearrangement";
 
-    public RearrangementResource(AdcSearchRequest adcSearch) {
-        super(FieldClass.REARRANGEMENT, adcSearch);
+    public RearrangementResource(AdcSearchRequest adcSearch, AdcClient adcClient, DbRepository dbRepository, CsvConfig csvConfig) {
+        super(FieldClass.REARRANGEMENT, adcSearch, adcClient, dbRepository, csvConfig);
     }
 
     /**

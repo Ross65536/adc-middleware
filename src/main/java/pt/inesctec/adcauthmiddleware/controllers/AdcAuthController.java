@@ -2,18 +2,13 @@ package pt.inesctec.adcauthmiddleware.controllers;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.apache.catalina.core.ApplicationContext;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,13 +23,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.HttpException;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.resources.AdcResource;
 import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementResource;
 import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
-import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
-import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
-import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
@@ -252,11 +246,13 @@ public class AdcAuthController extends AdcController {
         @RequestBody AdcSearchRequest adcSearch
     ) throws Exception {
         this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
-        RepertoireResource repertoireResource = new RepertoireResource(adcSearch);
+        RepertoireResource repertoireResource = new RepertoireResource(
+            adcSearch, adcClient, dbRepository, csvConfig
+        );
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
-            repertoireResource.enableUma(bearer);
+            repertoireResource.enableUma(bearer, this.umaFlow);
         }
 
         return repertoireResource.response();
@@ -281,11 +277,13 @@ public class AdcAuthController extends AdcController {
         @RequestBody AdcSearchRequest adcSearch
     ) throws Exception {
         validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT, true);
-        RearrangementResource rearrangementResource = new RearrangementResource(adcSearch);
+        RearrangementResource rearrangementResource = new RearrangementResource(
+            adcSearch, adcClient, dbRepository, csvConfig
+        );
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
-            rearrangementResource.enableUma(bearer);
+            rearrangementResource.enableUma(bearer, this.umaFlow);
         }
 
         return rearrangementResource.response();

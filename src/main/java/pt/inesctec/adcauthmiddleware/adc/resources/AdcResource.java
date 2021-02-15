@@ -8,9 +8,7 @@ import java.util.function.Function;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
@@ -33,17 +31,12 @@ import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
  * Base class for processing the output of ADC Resources (Repertoires, Rearrangements...)
  */
 public abstract class AdcResource {
-    @Autowired
-    protected AdcClient adcClient;
-    @Autowired
-    protected UmaFlow umaFlow;
-    @Autowired
-    protected DbRepository dbRepository;
-    @Autowired
-    protected CsvConfig csvConfig;
-
     protected FieldClass fieldClass;
     protected AdcSearchRequest adcSearch;
+
+    protected AdcClient adcClient;
+    protected DbRepository dbRepository;
+    protected CsvConfig csvConfig;
 
     // UMA Status variables. Relevant for UMA related requests
     protected boolean umaEnabled = false;
@@ -69,28 +62,27 @@ public abstract class AdcResource {
      */
     public abstract ResponseEntity<StreamingResponseBody> response() throws Exception;
 
-    public AdcResource(FieldClass fieldClass, AdcSearchRequest adcSearch) {
+    public AdcResource(FieldClass fieldClass, AdcSearchRequest adcSearch, AdcClient adcClient, DbRepository dbRepository, CsvConfig csvConfig) {
         this.fieldClass = fieldClass;
         this.adcSearch = adcSearch;
+        this.adcClient = adcClient;
+        this.dbRepository = dbRepository;
+        this.csvConfig = csvConfig;
     }
 
     /**
      * Sets the current AdcResource as being protected by UMA.
      * Any output by the response() method will be controlled by the User's permissions
-     * If
      *
      * @param bearerToken
+     * @param umaFlow
      * @throws Exception
      */
-    public void enableUma(String bearerToken) throws Exception {
-        this.umaScopes = this.getUmaScopes(this.fieldClass);
-        this.umaIds = this.getUmaIds();
-
-        this.umaResources = this.umaFlow.adcSearch(
-            bearerToken, umaIds, umaScopes
-        );
-
-        this.umaEnabled = true;
+    public void enableUma(String bearerToken, UmaFlow umaFlow) throws Exception {
+        this.umaIds       = this.getUmaIds();
+        this.umaScopes    = this.getUmaScopes(this.fieldClass);
+        this.umaResources = umaFlow.adcSearch(bearerToken, umaIds, umaScopes);
+        this.umaEnabled   = true;
     }
 
     /**
@@ -231,7 +223,7 @@ public abstract class AdcResource {
      * @return streaming response
      * @throws Exception on error
      */
-    protected ResponseEntity<StreamingResponseBody> responseFilteredTsv(
+    public static ResponseEntity<StreamingResponseBody> responseFilteredTsv(
         String resourceId,
         String responseFilterField,
         Function<String, Set<String>> fieldMapper,
