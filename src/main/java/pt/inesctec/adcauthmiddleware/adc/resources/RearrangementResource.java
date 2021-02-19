@@ -1,118 +1,60 @@
 package pt.inesctec.adcauthmiddleware.adc.resources;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
-import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.db.DbRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
-import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
 public final class RearrangementResource extends AdcResource {
-    /**
-     * The rearrangement's ID field name.
-     */
-    public static final String ID_FIELD = "sequence_id";
+    private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(RearrangementResource.class);
+    private String rearrangementId;
 
-    /**
-     * The rearrangement's repertoire ID field name (the parent resource's ID).
-     */
-    public static final String REPERTOIRE_ID_FIELD = "repertoire_id";
-
-    /**
-     * The ADC document (JSON object) response's field name for the rearrangement list.
-     */
-    public static final String RESPONSE_FILTER_FIELD = "Rearrangement";
-
-    public RearrangementResource(AdcSearchRequest adcSearch, AdcClient adcClient, DbRepository dbRepository, CsvConfig csvConfig) {
-        super(FieldClass.REARRANGEMENT, adcSearch, adcClient, dbRepository, csvConfig);
+    public RearrangementResource(String rearrangementId, AdcClient adcClient, DbRepository dbRepository, CsvConfig csvConfig) {
+        super(FieldClass.REARRANGEMENT, adcClient, dbRepository, csvConfig);
+        this.rearrangementId = rearrangementId;
     }
 
-    /**
-     * Function to obtain the unique study UMA IDs that correspond to the user's repertoire ADC query search.
-     *
-     * @return the UMA IDs
-     * @throws Exception on error
-     */
     @Override
-    public Set<String> getUmaIds() throws Exception  {
-        return this.adcClient.getRearrangementRepertoireModel(this.adcSearch).stream()
-            .map(id -> this.dbRepository.getRepertoireUmaId(id))
-            .collect(Collectors.toSet());
+    protected Set<String> getUmaIds() throws Exception {
+        var umaId = this.dbRepository.getRearrangementUmaId(rearrangementId);
+
+        if (umaId == null) {
+            Logger.info("Non-existing repertoire with ID {}. Is database /synchronized?", rearrangementId);
+        }
+
+        return Set.of(umaId);
+    }
+
+    @Override
+    protected Set<String> getUmaScopes() {
+        return this.csvConfig.getUmaScopes(FieldClass.REARRANGEMENT);
     }
 
     @Override
     public ResponseEntity<StreamingResponseBody> response() throws Exception {
-        if (adcSearch.isFacetsSearch()) {
-            List<String> resourceIds = Collections.<String>emptyList();
-
-            if (umaEnabled) {
-                resourceIds = UmaUtils.filterFacets(
-                    umaResources, umaScopes, this.dbRepository::getUmaRepertoireModel
-                );
-            }
-
-            return responseFilteredFacets(
-                adcSearch,
-                RearrangementResource.REPERTOIRE_ID_FIELD,
-                this.adcClient::searchRearrangementsAsStream,
-                resourceIds,
-                !umaScopes.isEmpty());
-        }
-
-        // TODO: Could this be a class parameter? Maybe move it to enableUma? Too specific?
         Function<String, Set<String>> fieldMapper;
 
-        if (umaEnabled) {
-            fieldMapper = setupFieldMapper(fieldClass, RearrangementResource.REPERTOIRE_ID_FIELD);
-        } else {
-            fieldMapper = setupPublicFieldMapper(fieldClass, RearrangementResource.REPERTOIRE_ID_FIELD);
+        if (this.umaState.isEnabled()) {
+            fieldMapper = UmaUtils.buildFieldMapper(
+                this.umaState.getResources(), this.fieldClass, csvConfig
+            ).compose(this.dbRepository::getStudyUmaId);
+        }  else {
+            fieldMapper = (s) -> {
+                return csvConfig.getPublicFields(this.fieldClass);
+            };
         }
 
-        if (adcSearch.isJsonFormat()) {
-            return responseFilteredJson(
-                RearrangementResource.REPERTOIRE_ID_FIELD,
-                RearrangementResource.RESPONSE_FILTER_FIELD,
-                fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
-                () -> this.adcClient.searchRearrangementsAsStream(adcSearch));
-        }
-
-        var requestedFieldTypes = RearrangementResource.getRegularSearchRequestedFieldsAndTypes(
-            adcSearch, FieldClass.REARRANGEMENT, this.csvConfig
-        );
-
-        return responseFilteredTsv(
-            RearrangementResource.REPERTOIRE_ID_FIELD,
-            RearrangementResource.RESPONSE_FILTER_FIELD,
-            fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
-            () -> this.adcClient.searchRearrangementsAsStream(adcSearch),
-            requestedFieldTypes);
-    }
-
-    /**
-     * Obtain the fields and their types from the user's regular ADC request. Should check previously that the request is not facets.
-     *
-     * @param request    The user's ADC query
-     * @param fieldClass the resource type
-     * @return the fields and types
-     */
-    // TODO: Change this to non-static, remove AdcSearchRequest as a parameter.
-    // TODO: Horrible function name. Review.
-    public static Map<String, FieldType> getRegularSearchRequestedFieldsAndTypes(
-        AdcSearchRequest request, FieldClass fieldClass, CsvConfig csvConfig
-    ) {
-        var requestedFields = request.getRequestedFields(fieldClass, csvConfig);
-        Map<String, FieldType> allFields = csvConfig.getFieldsTypes(fieldClass);
-        return CollectionsUtils.intersectMapWithSet(allFields, requestedFields);
+        return AdcResource.responseFilteredJson(
+            RearrangementSet.REPERTOIRE_ID_FIELD,
+            RearrangementSet.RESPONSE_FILTER_FIELD,
+            fieldMapper,
+            () -> this.adcClient.getRepertoireAsStream(this.rearrangementId));
     }
 }

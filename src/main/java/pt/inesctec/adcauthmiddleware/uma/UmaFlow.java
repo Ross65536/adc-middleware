@@ -102,16 +102,4 @@ public class UmaFlow {
         Set<String> umaIds = umaId != null ? Set.of(umaId) : Collections.<String>emptySet();
         return this.execute(bearerToken, umaIds, umaScopes);
     }
-
-    /*public List<UmaResource> adcSingle(String bearerToken, String umaId, Set<String> umaScopes) throws Exception {
-        if (umaId == null) {
-            throw SpringUtils.buildHttpException(HttpStatus.NOT_FOUND, "Not found");
-        }
-
-        if (bearerToken != null) {
-            return this.umaClient.introspectToken(bearerToken, true).getPermissions();
-        }
-
-        throw this.noRptToken(ImmutableList.of(umaId), umaScopes);
-    }*/
 }

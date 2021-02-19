@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
+import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
 import pt.inesctec.adcauthmiddleware.utils.*;
 
 import java.util.List;
@@ -114,7 +114,7 @@ public class AdcAuthSynchronizationTests extends TestBase {
     UmaWireMocker.wirePutResource(umaMock, umaId1, name, null, accessToken, AdcConstants.UMA_DELETED_STUDY_TYPE);
     synchronize();
     assertRepertoireTicketRequest(repertoire2, accessToken, umaId2);
-    assertRepertoireNotFound(TestCollections.getString(repertoire1, RepertoireResource.ID_FIELD));
+    assertRepertoireNotFound(TestCollections.getString(repertoire1, RepertoireSet.ID_FIELD));
     umaMock.verify(1, WireMock.putRequestedFor(WireMock.urlEqualTo(UmaWireMocker.UMA_RESOURCE_REGISTRATION_PATH + "/" + umaId1)));
   }
 
@@ -140,7 +140,7 @@ public class AdcAuthSynchronizationTests extends TestBase {
 
   private void assertRepertoireTicketRequest(Map<String, Object> repertoire, String accessToken, String umaId) {
     var repertoireId =
-        TestCollections.getString(repertoire, RepertoireResource.ID_FIELD);
+        TestCollections.getString(repertoire, RepertoireSet.ID_FIELD);
     var ticket =
         UmaWireMocker.wireGetTicket(
             umaMock,
@@ -172,9 +172,9 @@ public class AdcAuthSynchronizationTests extends TestBase {
   private void wireSyncRepertoires(Object ... repertoires) {
     var searchRequest =
         ModelFactory.buildAdcFields(
-            RepertoireResource.ID_FIELD,
-            RepertoireResource.UMA_ID_FIELD,
-            RepertoireResource.STUDY_TITLE_FIELD);
+            RepertoireSet.ID_FIELD,
+            RepertoireSet.UMA_ID_FIELD,
+            RepertoireSet.STUDY_TITLE_FIELD);
     var repertoiresResponse = ModelFactory.buildRepertoiresDocumentWithInfo(repertoires);
     WireMocker.wirePostJson(
         backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, searchRequest);

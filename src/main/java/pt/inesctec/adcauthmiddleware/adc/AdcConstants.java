@@ -2,8 +2,8 @@ package pt.inesctec.adcauthmiddleware.adc;
 
 import java.util.Set;
 
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementResource;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
+import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
+import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
 
 public final class AdcConstants {
     /**
@@ -19,10 +19,10 @@ public final class AdcConstants {
      * The set of all used and mandatory repertoire and rearrangement fields. Used for the CSV configuration file validation.
      */
     public static final Set<String> AllUsedFields = Set.of(
-        RepertoireResource.UMA_ID_FIELD,
-        RepertoireResource.STUDY_TITLE_FIELD,
-        RepertoireResource.ID_FIELD,
-        RearrangementResource.ID_FIELD
+        RepertoireSet.UMA_ID_FIELD,
+        RepertoireSet.STUDY_TITLE_FIELD,
+        RepertoireSet.ID_FIELD,
+        RearrangementSet.ID_FIELD
     );
 
     /**
@@ -30,11 +30,11 @@ public final class AdcConstants {
      */
     public static final String ADC_INFO = "Info";
     /**
-     * The ADC document (JSON object) response's field name for a facets search's list of countings.
+     * The ADC document (JSON object) response's field name for a facets search's list of counts.
      */
     public static final String ADC_FACETS = "Facet";
     /**
      * The ADC field separator.
      */
-    public static final String ADC_FIELD_SEPERATOR = ".";
+    public static final String ADC_FIELD_SEPARATOR = ".";
 }

@@ -2,9 +2,7 @@ package pt.inesctec.adcauthmiddleware.controllers;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableMap;
@@ -26,15 +24,14 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
-import pt.inesctec.adcauthmiddleware.adc.resources.AdcResource;
 import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementResource;
+import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
 import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
+import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
 
 /**
@@ -164,25 +161,14 @@ public class AdcAuthController extends AdcController {
         HttpServletRequest request,
         @PathVariable String repertoireId
     ) throws Exception {
-        String bearer = SpringUtils.getBearer(request);
-        String umaId = this.dbRepository.getRepertoireUmaId(repertoireId);
-        Set<String> umaScopes = this.csvConfig.getUmaScopes(FieldClass.REPERTOIRE);
+        RepertoireResource resource = new RepertoireResource(repertoireId, adcClient, dbRepository, csvConfig);
 
-        if (umaId == null) {
-            Logger.info("User tried accessing non-existing repertoire with ID {}", repertoireId);
+        if (contentProtected) {
+            var bearer = SpringUtils.getBearer(request);
+            resource.enableUma(bearer, umaFlow);
         }
 
-        List<UmaResource> umaResources = this.umaFlow.execute(bearer, umaId, umaScopes);
-
-        var fieldMapper = UmaUtils.buildFieldMapper(
-            umaResources, FieldClass.REPERTOIRE, csvConfig
-        ).compose(this.dbRepository::getStudyUmaId);
-
-        return AdcResource.responseFilteredJson(
-            RepertoireResource.UMA_ID_FIELD,
-            RepertoireResource.RESPONSE_FILTER_FIELD,
-            fieldMapper,
-            () -> this.adcClient.getRepertoireAsStream(repertoireId));
+        return resource.response();
     }
 
     /**
@@ -202,25 +188,14 @@ public class AdcAuthController extends AdcController {
         HttpServletRequest request,
         @PathVariable String rearrangementId
     ) throws Exception {
-        String bearer = SpringUtils.getBearer(request);
-        String umaId = this.dbRepository.getRearrangementUmaId(rearrangementId);
-        Set<String> umaScopes = this.csvConfig.getUmaScopes(FieldClass.REARRANGEMENT);
+        RearrangementResource resource = new RearrangementResource(rearrangementId, adcClient, dbRepository, csvConfig);
 
-        if (umaId == null) {
-            Logger.info("User tried accessing non-existing rearrangement with ID {}", rearrangementId);
+        if (contentProtected) {
+            var bearer = SpringUtils.getBearer(request);
+            resource.enableUma(bearer, umaFlow);
         }
 
-        List<UmaResource> umaResources = this.umaFlow.execute(bearer, umaId, umaScopes);
-
-        var fieldMapper = UmaUtils.buildFieldMapper(
-            umaResources, FieldClass.REARRANGEMENT, this.csvConfig
-        ).compose(this.dbRepository::getRepertoireUmaId);
-
-        return AdcResource.responseFilteredJson(
-            RearrangementResource.REPERTOIRE_ID_FIELD,
-            RearrangementResource.RESPONSE_FILTER_FIELD,
-            fieldMapper,
-            () -> this.adcClient.getRearrangementAsStream(rearrangementId));
+        return resource.response();
     }
 
     /**
@@ -242,9 +217,7 @@ public class AdcAuthController extends AdcController {
         @RequestBody AdcSearchRequest adcSearch
     ) throws Exception {
         this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
-        RepertoireResource repertoireResource = new RepertoireResource(
-            adcSearch, adcClient, dbRepository, csvConfig
-        );
+        RepertoireSet repertoireResource = new RepertoireSet(adcSearch, adcClient, dbRepository, csvConfig);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
@@ -273,9 +246,7 @@ public class AdcAuthController extends AdcController {
         @RequestBody AdcSearchRequest adcSearch
     ) throws Exception {
         validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT, true);
-        RearrangementResource rearrangementResource = new RearrangementResource(
-            adcSearch, adcClient, dbRepository, csvConfig
-        );
+        RearrangementSet rearrangementResource = new RearrangementSet(adcSearch, adcClient, dbRepository, csvConfig);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
