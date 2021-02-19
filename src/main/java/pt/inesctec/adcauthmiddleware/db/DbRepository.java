@@ -15,8 +15,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementResource;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
+import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
+import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RearrangementModel;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
@@ -159,7 +159,7 @@ public class DbRepository {
 
         var repertoireId = rearrangements.get(0).getRepertoireId();
         if (repertoireId == null) {
-            Logger.error("Response's rearrangement can't have a null " + RearrangementResource.ID_FIELD);
+            Logger.error("Response's rearrangement can't have a null " + RearrangementSet.ID_FIELD);
             return null;
         }
 
@@ -212,16 +212,16 @@ public class DbRepository {
         Logger.info("Synchronizing DB and cache");
 
         var repertoireSearch = new AdcSearchRequest().addFields(
-            RepertoireResource.ID_FIELD,
-            RepertoireResource.UMA_ID_FIELD,
-            RepertoireResource.STUDY_TITLE_FIELD
+            RepertoireSet.ID_FIELD,
+            RepertoireSet.UMA_ID_FIELD,
+            RepertoireSet.STUDY_TITLE_FIELD
         );
 
         var repertoires = this.adcClient.getRepertoireModel(repertoireSearch);
 
         CollectionsUtils.assertList(
             repertoires, e -> e.getRepertoireId() != null,
-            "Repertoires response must have a " + RearrangementResource.REPERTOIRE_ID_FIELD
+            "Repertoires response must have a " + RearrangementSet.REPERTOIRE_ID_FIELD
         );
 
         boolean ok = true;

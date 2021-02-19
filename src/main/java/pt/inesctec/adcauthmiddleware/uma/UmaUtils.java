@@ -28,12 +28,12 @@ public class UmaUtils {
      * @return the mapper function
      */
     public static Function<String, Set<String>> buildFieldMapper(
-        Collection<UmaResource> resources, FieldClass fieldClass, CsvConfig csvConfig) {
+        Collection<UmaResource> resources, FieldClass fieldClass, CsvConfig csvConfig
+    ) {
         // TODO: Check for fine-grained field accessibility could be added here
         var validUmaFields = resources.stream().collect(
             Collectors.toMap(
-                UmaResource::getUmaId,
-                uma -> csvConfig.getFields(fieldClass, uma.getScopes())
+                UmaResource::getUmaId, uma -> csvConfig.getFields(fieldClass, uma.getScopes())
             )
         );
 

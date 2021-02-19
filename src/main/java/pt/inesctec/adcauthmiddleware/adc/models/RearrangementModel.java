@@ -4,18 +4,18 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementResource;
+import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
 
 /**
  * Models a rearrangement response but only with the ID fields.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RearrangementModel {
-    @JsonProperty(RearrangementResource.REPERTOIRE_ID_FIELD)
+    @JsonProperty(RearrangementSet.REPERTOIRE_ID_FIELD)
     @NotNull
     private String repertoireId;
 
-    @JsonProperty(RearrangementResource.ID_FIELD)
+    @JsonProperty(RearrangementSet.ID_FIELD)
     private String rearrangementId;
 
     public String getRepertoireId() {

@@ -1,22 +1,16 @@
 package pt.inesctec.adcauthmiddleware.adc.models;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
-import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.AdcFilter;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.LogicalFilter;
@@ -26,9 +20,6 @@ import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.config.csv.IncludeField;
-import pt.inesctec.adcauthmiddleware.db.DbRepository;
-import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
 /**
  * Models a user's ADC search request body.
@@ -95,7 +86,7 @@ public class AdcSearchRequest {
             }
 
             for (var field : tsvRequestedFields) {
-                if (field.contains(AdcConstants.ADC_FIELD_SEPERATOR)) {
+                if (field.contains(AdcConstants.ADC_FIELD_SEPARATOR)) {
                     throw new AdcException(
                             String.format("TSV: The field %s requested cannot be a nested document", field));
                 }

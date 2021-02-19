@@ -5,14 +5,14 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
+import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
 
 /**
  * Models a repertoire response element, but with only the ID fields and the study title.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RepertoireModel {
-    @JsonProperty(RepertoireResource.ID_FIELD)
+    @JsonProperty(RepertoireSet.ID_FIELD)
     private String repertoireId;
 
     @NotNull
@@ -32,10 +32,10 @@ public class RepertoireModel {
         return studyId;
     }
 
-    @JsonProperty(RepertoireResource.STUDY_BASE)
+    @JsonProperty(RepertoireSet.STUDY_BASE)
     public void unpackStudyId(Map<String, Object> study) {
-        this.studyId = (String) study.get(RepertoireResource.STUDY_ID_BASE);
-        this.studyTitle = (String) study.get(RepertoireResource.STUDY_TITLE_BASE);
+        this.studyId = (String) study.get(RepertoireSet.STUDY_ID_BASE);
+        this.studyTitle = (String) study.get(RepertoireSet.STUDY_TITLE_BASE);
     }
 
     public String getStudyTitle() {
