@@ -26,13 +26,7 @@ public abstract class AdcController {
     @Autowired
     protected CsvConfig csvConfig;
     @Autowired
-    protected UmaFlow umaFlow;
-    @Autowired
-    protected UmaClient umaClient;
-    @Autowired
     protected AdcClient adcClient;
-    @Autowired
-    protected DbRepository dbRepository;
 
     protected static org.slf4j.Logger Logger;
     protected Delayer repertoiresDelayer;

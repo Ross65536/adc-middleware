@@ -1,10 +1,7 @@
 package pt.inesctec.adcauthmiddleware.controllers;
 
 import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,18 +11,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.HttpException;
-import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
-import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
-import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
 
 /**
@@ -34,12 +26,6 @@ import pt.inesctec.adcauthmiddleware.utils.Delayer;
 @RestController
 public class AdcPublicController extends AdcController {
     private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcPublicController.class);
-
-    @Autowired
-    protected AppConfig appConfig;
-
-    @Autowired
-    private CsvConfig csvConfig;
 
     @PostConstruct
     public void initialize() {

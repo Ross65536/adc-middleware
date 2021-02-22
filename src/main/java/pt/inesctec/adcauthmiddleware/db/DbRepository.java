@@ -52,7 +52,8 @@ public class DbRepository {
             UmaClient umaClient,
             StudyRepository studyRepository,
             RepertoireRepository repertoireRepository,
-            CsvConfig csvConfig) {
+            CsvConfig csvConfig
+    ) {
         this.adcClient = adcClient;
         this.umaClient = umaClient;
         this.studyRepository = studyRepository;
@@ -89,9 +90,7 @@ public class DbRepository {
      * @return true on 100% successful synchronization. On false synchronization may have failed for some resources.
      * @throws Exception on internal error.
      */
-    @CacheEvict(
-            cacheNames = {STUDIES_CACHE_NAME, REPERTOIRES_CACHE_NAME, REARRANGEMENTS_CACHE_NAME},
-            allEntries = true)
+    @CacheEvict(cacheNames = {STUDIES_CACHE_NAME, REPERTOIRES_CACHE_NAME, REARRANGEMENTS_CACHE_NAME}, allEntries = true)
     public boolean synchronize() throws Exception {
         synchronized (DbRepository.SyncMonitor) {
             return synchronizeGuts();
