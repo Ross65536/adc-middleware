@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
 import pt.inesctec.adcauthmiddleware.utils.*;
 
 import java.util.List;
@@ -113,7 +114,7 @@ public class AdcAuthSynchronizationTests extends TestBase {
     UmaWireMocker.wirePutResource(umaMock, umaId1, name, null, accessToken, AdcConstants.UMA_DELETED_STUDY_TYPE);
     synchronize();
     assertRepertoireTicketRequest(repertoire2, accessToken, umaId2);
-    assertRepertoireNotFound(TestCollections.getString(repertoire1, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD));
+    assertRepertoireNotFound(TestCollections.getString(repertoire1, RepertoireSet.ID_FIELD));
     umaMock.verify(1, WireMock.putRequestedFor(WireMock.urlEqualTo(UmaWireMocker.UMA_RESOURCE_REGISTRATION_PATH + "/" + umaId1)));
   }
 
@@ -139,7 +140,7 @@ public class AdcAuthSynchronizationTests extends TestBase {
 
   private void assertRepertoireTicketRequest(Map<String, Object> repertoire, String accessToken, String umaId) {
     var repertoireId =
-        TestCollections.getString(repertoire, AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD);
+        TestCollections.getString(repertoire, RepertoireSet.ID_FIELD);
     var ticket =
         UmaWireMocker.wireGetTicket(
             umaMock,
@@ -153,24 +154,27 @@ public class AdcAuthSynchronizationTests extends TestBase {
   }
 
   private void synchronize() {
+    String accessToken = umaInit();
     this.requests.postEmpty(
         this.buildMiddlewareUrl(TestConstants.SYNCHRONIZE_PATH_FRAGMENT),
-        TestConstants.SYNC_PASSWORD,
+        accessToken,
         200);
   }
 
   private String umaInit() {
     UmaWireMocker.wireUmaWellKnown(umaMock);
-    return UmaWireMocker.wireTokenEndpoint(umaMock);
+    String token = UmaWireMocker.wireTokenEndpoint(umaMock);
+    UmaWireMocker.wireSyncIntrospection(umaMock, token);
+    return token;
   }
 
 
   private void wireSyncRepertoires(Object ... repertoires) {
     var searchRequest =
         ModelFactory.buildAdcFields(
-            AdcConstants.REPERTOIRE_REPERTOIRE_ID_FIELD,
-            AdcConstants.REPERTOIRE_STUDY_ID_FIELD,
-            AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD);
+            RepertoireSet.ID_FIELD,
+            RepertoireSet.UMA_ID_FIELD,
+            RepertoireSet.STUDY_TITLE_FIELD);
     var repertoiresResponse = ModelFactory.buildRepertoiresDocumentWithInfo(repertoires);
     WireMocker.wirePostJson(
         backendMock, TestConstants.REPERTOIRE_PATH, 200, repertoiresResponse, searchRequest);

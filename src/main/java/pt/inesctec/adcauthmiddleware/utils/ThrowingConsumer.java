@@ -7,5 +7,5 @@ package pt.inesctec.adcauthmiddleware.utils;
  * @param <E> exception type
  */
 public interface ThrowingConsumer<T, E extends Throwable> {
-  void accept(T t) throws E;
+    void accept(T t) throws E;
 }

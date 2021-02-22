@@ -24,7 +24,7 @@ Example deployment for testing in localhost.
 0. Clone the repository:
 
   ```shell script
-  git clone https://github.com/Ross65536/adc-middleware
+  git clone https://github.com/ireceptorplus-inesctec/adc-middleware
   ```
 
 1. Load repository test data:
@@ -43,7 +43,7 @@ Example deployment for testing in localhost.
 
   (Optional) build middleware docker image locally:
   ```shell script
-  docker build -t ros65536/adc-middleware .
+  docker build -t ireceptorplus-inesctec/adc-middleware .
   ```
 
   Load components
@@ -52,7 +52,7 @@ Example deployment for testing in localhost.
 
   # load all components
   MIDDLEWARE_UMA_CLIENT_SECRET=12 docker-compose up # MIDDLEWARE_UMA_CLIENT_SECRET is not important in this step but must be set
-  ````
+````
 
   You can now make requests to `http://localhost/airr/v1/`. Try with `http://localhost/airr/v1/info` to see if there is a connection to the backend. 
 
@@ -81,7 +81,7 @@ Example deployment for testing in localhost.
   # '12345abcd' is the password
   curl --location --request POST 'localhost/airr/v1/synchronize' --header 'Authorization: Bearer 12345abcd'
   ```
-  
+
   See below for a discussion on when to re-synchronize.
 
   You should now be able to access the frontend on `http://localhost`, login, and access resources.
@@ -90,7 +90,7 @@ Example deployment for testing in localhost.
 
 > **Important**: When deploying it's very important to make the backend's API unavailable to the public
 
-> **Important**: You must generate a new password and hash for the `app.synchronizePasswordHash` property variable, see below how. 
+> **Important**: If you want different user role to be able to call the /synchronize endpoint, make sure to define it in `app.synchronizeRole`. 
 
 > **Important**: The middleware APIs should be under a SSL connection in order not to leak user credentials or the synchronization password. If it is not under SSL you need to disable SSL connections Keycloak (see below).
 
@@ -176,8 +176,7 @@ file `dev.properties` (You need to update `uma.clientSecret`):
 adc.resourceServerUrl=http://localhost:80/airr/v1
 server.port=8080
 
-# password 'master'
-app.synchronizePasswordHash=$2a$10$qr81MrxWblqZlMAt5kf/9.xdBPubtDMuoV3DRKgTk2bu.SPazsaTm
+app.synchronizeRole=admin
 
 # UMA
 uma.wellKnownUrl=http://localhost:8082/auth/realms/master/.well-known/uma2-configuration
@@ -191,12 +190,32 @@ spring.datasource.username=postgres
 spring.datasource.password=password
 spring.datasource.platform=postgres
 
-#redis
+# Flyway
+flyway.url=jdbc:postgresql://localhost:5432/middleware_db
+flyway.user=postgres
+flyway.password=password
+flyway.schemas=public
+flyway.locations=classpath:/db/postgresql
+
+# Redis
 spring.cache.type=redis
 spring.redis.host=localhost
 spring.redis.port=6379
 ```
 
+#### Creating and Migrating the Database
+Database creation and migration is managed by [Flyway](https://flywaydb.org/). Migration scripts are located in `src/main/resources/db`. To run these migrations run the following command:
+
+```shell
+./gradlew clean build flywayMigrate -Dflyway.configFiles=dev.properties
+```
+
+If using IntelliJ IDEA, make sure to provide `-Dflyway.configFiles=dev.properties` as `VM options`.
+
+Developer's note: **Avoid changing older/previous scripts at all costs**. Flyway is a revision-based system and bases its migration workflow by following all migration scripts sequentially. If an older existing migration script is changed, **it will cause a checksum error with any existing database** you try to migrate. If the existing data model required changes, please create a new script. More details can be found on:
+
+- [Flyway's Official Documentation](https://flywaydb.org/documentation/)
+- [Best Practices for Flyway and Hibernate with Spring Boot](https://rieckpil.de/howto-best-practices-for-flyway-and-hibernate-with-spring-boot/)
 
 #### Dev run example
 
@@ -229,6 +248,8 @@ To run style checker run:
 ./gradlew test
 ```
 
+Tests may be skipped by providing the argument `-x test` in any pipeline of commands.
+
 #### Pushing docker image
 
 Dockerhub has setup a hook to automatically pull and build images from repository commits that are tagged like `v1.0.1` using semantic versioning.
@@ -254,7 +275,7 @@ Required:
 - `spring.datasource.username`: DB username
 - `spring.datasource.password`: DB password
 - `spring.datasource.platform`: The platform. Omit for H2 DB, set to `postgres` for PostgreSQL DB.
-- `app.synchronizePasswordHash`: The sha256 hash of the password protecting the synchronization endpoint. See below how to generate.
+- `app.synchronizeRole`: String that defines the role of the user that's able to call the /synchronize endpoint.
 
 Optional:
 - `server.servlet.context-path`: The base path of the middleware API. Defaults to: `/airr/v1`
@@ -529,14 +550,14 @@ TSV format is supported for the `POST /v1/rearrangement` endpoint.
 The user's requested fields cannot be nested documents/objects (in the default CSV configuration no rearrangement fields are nested objects). 
 
 TSV support is implemented in the middleware itself by translating JSON to TSV.
- 
+
 
 ### Adding OpenID Connect third-party Identity Providers
 
 1. Login to keycloak's admin panel.
 2. Go to `Identity Providers` in the side bar and add a OpenID Connect provider, set the `alias` which will be the display name (for example to `orcid`) and make note of the generated `Redirect URI`.
 3. Add keycloak to third party OIDC IdP. 
-  
+
   For ORCDID login as an account, go to developer tools, and add keycloak: set the `Your website URL` to keycloak's host (example `http://localhost:8082`) and put in `Redirect URIs` the url generated in keycloak from the previous step (example `http://localhost:8082/auth/realms/master/broker/orcid/endpoint`). Make note of the `Client ID` and `Client Secret`. Save.
 
   For EGI Checkin: In the dashboard from step 2, add generated info from previous step. 
@@ -551,4 +572,4 @@ You can see [here](./PSEUDOCODE.md) a python-like pseudo-code which describes th
 
 ## Notes
 
-You can obtain the Postman folder that you can use to test the middleware solution's ADC features in more depth [here](https://github.com/Ross65536/adc-middleware/releases/download/docs/adc-middleware.postman_collection.json)
+You can obtain the Postman folder that you can use to test the middleware solution's ADC features in more depth [here](./example/adc-middleware.postman_collection.json)
