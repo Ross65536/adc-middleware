@@ -182,7 +182,7 @@ uma.clientId=adc-middleware
 uma.clientSecret=<the generated client secret from keycloak>
 uma.resourceOwner=owner
 
-# Role of the User that's able to call /synchronize
+# Role of the user that's able to call /synchronize
 app.synchronizeRole=admin
 
 # Postgres
