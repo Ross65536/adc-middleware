@@ -176,13 +176,14 @@ file `dev.properties` (You need to update `uma.clientSecret`):
 adc.resourceServerUrl=http://localhost:80/airr/v1
 server.port=8080
 
-app.synchronizeRole=admin
-
 # UMA
 uma.wellKnownUrl=http://localhost:8082/auth/realms/master/.well-known/uma2-configuration
 uma.clientId=adc-middleware
 uma.clientSecret=<the generated client secret from keycloak>
 uma.resourceOwner=owner
+
+# Role of the User that's able to call /synchronize
+app.synchronizeRole=admin
 
 # Postgres
 spring.datasource.url=jdbc:postgresql://localhost:5432/middleware_db
@@ -190,12 +191,12 @@ spring.datasource.username=postgres
 spring.datasource.password=password
 spring.datasource.platform=postgres
 
-# Flyway
-flyway.url=jdbc:postgresql://localhost:5432/middleware_db
-flyway.user=postgres
-flyway.password=password
-flyway.schemas=public
-flyway.locations=classpath:/db/postgresql
+spring.flyway.url=jdbc:postgresql://localhost:5432/middleware_db
+spring.flyway.user=postgres
+spring.flyway.password=password
+spring.flyway.schemas=public
+spring.flyway.locations=classpath:/db/postgresql
+spring.flyway.enabled=true
 
 # Redis
 spring.cache.type=redis
@@ -204,7 +205,11 @@ spring.redis.port=6379
 ```
 
 #### Creating and Migrating the Database
-Database creation and migration is managed by [Flyway](https://flywaydb.org/). Migration scripts are located in `src/main/resources/db`. To run these migrations run the following command:
+Database creation and migration is managed by [Flyway](https://flywaydb.org/) and is normally called automatically on the application's execution and you are not required to migrate and seed manually, provided that you configured your `.properties` file with similar Flyway settings as shown above. 
+
+Migration scripts are located in `src/main/resources/db`. 
+
+If you wish to trigger migrations manually without running the application, run the following command:
 
 ```shell
 ./gradlew clean build flywayMigrate -Dflyway.configFiles=dev.properties
@@ -212,7 +217,9 @@ Database creation and migration is managed by [Flyway](https://flywaydb.org/). M
 
 If using IntelliJ IDEA, make sure to provide `-Dflyway.configFiles=dev.properties` as `VM options`.
 
-Developer's note: **Avoid changing older/previous scripts at all costs**. Flyway is a revision-based system and bases its migration workflow by following all migration scripts sequentially. If an older existing migration script is changed, **it will cause a checksum error with any existing database** you try to migrate. If the existing data model required changes, please create a new script. More details can be found on:
+Developer's note: **Avoid changing older/previous migration scripts at all costs**. Flyway is a revision-based system and the migration workflow follows all migration scripts sequentially. If an older existing migration script is changed, **it will cause a checksum error with any existing database** you try to migrate. If the existing data model required changes, please create a new script. 
+
+More details about Flyway can be found on:
 
 - [Flyway's Official Documentation](https://flywaydb.org/documentation/)
 - [Best Practices for Flyway and Hibernate with Spring Boot](https://rieckpil.de/howto-best-practices-for-flyway-and-hibernate-with-spring-boot/)

@@ -24,7 +24,7 @@ services:
     restart: on-failure
 
   middleware:
-    image: ros65536/adc-middleware
+    image: docker-registry.inesctec.pt/ireceptorplus/adc-middleware/server:1.1.1
     volumes:
       - ./config/middleware:/middleware/config
     environment:
@@ -63,7 +63,7 @@ services:
   keycloak_db:
     image: postgres:12
     volumes:
-      - ./data/db_keycloak:/var/lib/postgresql/data
+      - keycloak:/var/lib/postgresql/data
     environment:
       # default user is 'postgres'
       POSTGRES_DB: keycloak_db
@@ -95,7 +95,7 @@ services:
       - middleware-frontend
     restart: on-failure
 
-  # up this container and then run 
+  # up this container and then run
   # $ docker-compose exec http-logger /bin/sh
   # $ mitmproxy --mode reverse:http://keycloak:8080 -p 8081 --setheaders :~q:Host:http-logger:8081
   # http-logger:
