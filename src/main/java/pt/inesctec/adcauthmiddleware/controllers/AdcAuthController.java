@@ -30,6 +30,9 @@ import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
 import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
+import pt.inesctec.adcauthmiddleware.db.DbRepository;
+import pt.inesctec.adcauthmiddleware.uma.UmaClient;
+import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
@@ -39,11 +42,15 @@ import pt.inesctec.adcauthmiddleware.utils.Delayer;
  */
 @RestController
 public class AdcAuthController extends AdcController {
-    @Autowired
-    protected AppConfig appConfig;
-
     private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcAuthController.class);
     private static final Pattern JsonErrorPattern = Pattern.compile(".*line: (\\d+), column: (\\d+).*");
+
+    @Autowired
+    protected DbRepository dbRepository;
+    @Autowired
+    protected UmaFlow umaFlow;
+    @Autowired
+    protected UmaClient umaClient;
 
     @PostConstruct
     public void initialize() {
@@ -283,9 +290,6 @@ public class AdcAuthController extends AdcController {
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "One or more DB or UMA resources failed to synchronize, check logs");
         }
-
-        this.rearrangementsDelayer.reset();
-        this.repertoiresDelayer.reset();
 
         return SpringUtils.buildStatusMessage(200, null);
     }
