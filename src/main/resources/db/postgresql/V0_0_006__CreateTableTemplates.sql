@@ -1,0 +1,4 @@
+CREATE TABLE templates (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR NOT NULL
+);

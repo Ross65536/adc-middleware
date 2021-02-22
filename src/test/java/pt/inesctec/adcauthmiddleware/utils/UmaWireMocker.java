@@ -4,10 +4,12 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.common.base.Charsets;
 import org.springframework.http.HttpHeaders;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class UmaWireMocker {
@@ -54,8 +56,8 @@ public class UmaWireMocker {
   }
 
   public static String wireCreateResource(WireMockServer umaMock, Map<String, Object> repertoire, String expectedBearer) {
-    var studyId = TestCollections.getString(repertoire, AdcConstants.REPERTOIRE_STUDY_ID_FIELD);
-    var studyTitle = TestCollections.getString(repertoire, AdcConstants.REPERTOIRE_STUDY_TITLE_FIELD);
+    var studyId = TestCollections.getString(repertoire, RepertoireSet.UMA_ID_FIELD);
+    var studyTitle = TestCollections.getString(repertoire, RepertoireSet.STUDY_TITLE_FIELD);
     var name = String.format("study ID: %s; title: %s", studyId, studyTitle);
     var createdId = studyId + "-" + TestConstants.Random.nextInt(100);
 
@@ -84,6 +86,26 @@ public class UmaWireMocker {
     WireMocker.wirePostJson(umaMock, UMA_PERMISSION_PATH, 200, response, List.of(resources), "Bearer " + expectedBearer);
 
     return ticket;
+  }
+
+  public static void wireSyncIntrospection(WireMockServer umaMock, String accessToken) {
+    var realm_access = Map.of(
+        "roles", Set.of(TestConstants.SYNC_ROLE)
+    );
+
+    var response = Map.of(
+        "active", true,
+        "realm_access", realm_access
+    );
+
+    var rptToken = TestConstants.generateHexString(30);
+    var expectedForm = Map.of(
+        "token", accessToken,
+        "token_type_hint", "access_token"
+    );
+
+    var basic = HttpHeaders.encodeBasicAuth(TestConstants.UMA_CLIENT_ID, TestConstants.UMA_CLIENT_SECRET, Charsets.UTF_8); // keycloak specific inadequacy
+    WireMocker.wireExpectFormReturnJson(umaMock, UMA_INTROSPECTION_PATH, 200, response, expectedForm, "Basic " + basic);
   }
 
   public static String wireTokenIntrospection(WireMockServer umaMock, Map<String, Object> ... resources) {

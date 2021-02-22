@@ -3,6 +3,7 @@ plugins {
 	id 'io.spring.dependency-management' version '1.0.9.RELEASE'
 	id 'java'
 	id 'checkstyle'
+	id "org.flywaydb.flyway" version "7.5.1"
 }
 
 group = 'pt.inesctec'
@@ -23,6 +24,7 @@ dependencies {
 	implementation 'org.postgresql:postgresql'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.security:spring-security-test'
+	runtime("org.flywaydb:flyway-core")
 	runtimeOnly 'com.h2database:h2:1.4.200'
 	testImplementation('com.github.tomakehurst:wiremock-jre8:2.26.3')
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
