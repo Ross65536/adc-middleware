@@ -11,7 +11,7 @@ import javax.persistence.ManyToOne;
 public class TemplateMappings {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private long id;
 
     @ManyToOne
     @JoinColumn(name = "id_template", nullable = false)

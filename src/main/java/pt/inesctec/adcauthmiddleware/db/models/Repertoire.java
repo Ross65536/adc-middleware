@@ -19,7 +19,7 @@ import org.hibernate.annotations.OnDeleteAction;
 public class Repertoire {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     @Column(unique = true, nullable = false)
     private String repertoireId;
