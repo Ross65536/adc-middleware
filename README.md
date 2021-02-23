@@ -4,7 +4,7 @@
 
 Middleware server for handling access control for [ADC v1 HTTP API](https://docs.airr-community.org/en/latest/api/adc_api.html) compliant repositories.
 
-Check out Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middleware)
+Check out Docker image [here](https://hub.docker.com/repository/docker/irpinesctec/adc-middleware)
 
 Project runs on java 11, with (modified) google java style guide.
 
