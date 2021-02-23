@@ -11,7 +11,7 @@ import javax.persistence.ManyToOne;
 public class StudyMappings {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_study", nullable = false)
