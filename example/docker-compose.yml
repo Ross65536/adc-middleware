@@ -24,7 +24,7 @@ services:
     restart: on-failure
 
   middleware:
-    image: docker-registry.inesctec.pt/ireceptorplus/adc-middleware/server:1.1.1
+    image: irpinesctec/adc-middleware
     volumes:
       - ./config/middleware:/middleware/config
     environment:
