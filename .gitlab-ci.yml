@@ -6,14 +6,20 @@ services:
 before_script:
   - docker info
   - apk update && apk upgrade && apk add bash grep
-  - if [ -z $VERSION ]; then VERSION=$(cat ./version); fi
-  - echo $VERSION
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
 
 build-master:
   stage: build
   script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE:$VERSION .
-    - docker push $CI_REGISTRY_IMAGE:$VERSION
+    - docker build -t $CI_REGISTRY_IMAGE:latest .
+    - docker push $CI_REGISTRY_IMAGE:latest
   only:
     - master
+
+build-tag:
+  stage: build
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+  only:
+    - tags
