@@ -12,7 +12,7 @@ import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.FieldsFilter;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.controllers.SpringUtils;
-import pt.inesctec.adcauthmiddleware.db.DbRepository;
+import pt.inesctec.adcauthmiddleware.db.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.UmaState;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
@@ -25,15 +25,15 @@ public abstract class AdcResource {
     protected FieldClass fieldClass;
 
     protected AdcClient adcClient;
-    protected DbRepository dbRepository;
+    protected DbService dbService;
     protected CsvConfig csvConfig;
 
     protected UmaState umaState = new UmaState();
 
-    public AdcResource(FieldClass fieldClass, AdcClient adcClient, DbRepository dbRepository, CsvConfig csvConfig) {
+    public AdcResource(FieldClass fieldClass, AdcClient adcClient, DbService dbService, CsvConfig csvConfig) {
         this.fieldClass = fieldClass;
         this.adcClient = adcClient;
-        this.dbRepository = dbRepository;
+        this.dbService = dbService;
         this.csvConfig = csvConfig;
     }
 

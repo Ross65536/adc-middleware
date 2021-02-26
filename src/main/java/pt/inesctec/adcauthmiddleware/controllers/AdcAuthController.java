@@ -28,9 +28,8 @@ import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementResource;
 import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
 import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
 import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
-import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.db.DbRepository;
+import pt.inesctec.adcauthmiddleware.db.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
@@ -46,7 +45,7 @@ public class AdcAuthController extends AdcController {
     private static final Pattern JsonErrorPattern = Pattern.compile(".*line: (\\d+), column: (\\d+).*");
 
     @Autowired
-    protected DbRepository dbRepository;
+    protected DbService dbService;
     @Autowired
     protected UmaFlow umaFlow;
     @Autowired
@@ -168,7 +167,7 @@ public class AdcAuthController extends AdcController {
         HttpServletRequest request,
         @PathVariable String repertoireId
     ) throws Exception {
-        RepertoireResource resource = new RepertoireResource(repertoireId, adcClient, dbRepository, csvConfig);
+        RepertoireResource resource = new RepertoireResource(repertoireId, adcClient, dbService, csvConfig);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
@@ -195,7 +194,7 @@ public class AdcAuthController extends AdcController {
         HttpServletRequest request,
         @PathVariable String rearrangementId
     ) throws Exception {
-        RearrangementResource resource = new RearrangementResource(rearrangementId, adcClient, dbRepository, csvConfig);
+        RearrangementResource resource = new RearrangementResource(rearrangementId, adcClient, dbService, csvConfig);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
@@ -224,7 +223,7 @@ public class AdcAuthController extends AdcController {
         @RequestBody AdcSearchRequest adcSearch
     ) throws Exception {
         this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
-        RepertoireSet repertoireResource = new RepertoireSet(adcSearch, adcClient, dbRepository, csvConfig);
+        RepertoireSet repertoireResource = new RepertoireSet(adcSearch, adcClient, dbService, csvConfig);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
@@ -253,7 +252,7 @@ public class AdcAuthController extends AdcController {
         @RequestBody AdcSearchRequest adcSearch
     ) throws Exception {
         validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT, true);
-        RearrangementSet rearrangementResource = new RearrangementSet(adcSearch, adcClient, dbRepository, csvConfig);
+        RearrangementSet rearrangementResource = new RearrangementSet(adcSearch, adcClient, dbService, csvConfig);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
@@ -275,6 +274,7 @@ public class AdcAuthController extends AdcController {
     @RequestMapping(value = "/synchronize", method = RequestMethod.POST)
     public Map<String, Object> synchronize(HttpServletRequest request) throws Exception {
         String bearer = SpringUtils.getBearer(request);
+
         if (bearer == null) {
             throw new SyncException("Invalid user credential format");
         }
@@ -285,7 +285,7 @@ public class AdcAuthController extends AdcController {
             throw new SyncException("User not allowed to synchronize resources");
         }
 
-        if (!this.dbRepository.synchronize()) {
+        if (!this.dbService.synchronize()) {
             throw SpringUtils.buildHttpException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "One or more DB or UMA resources failed to synchronize, check logs");

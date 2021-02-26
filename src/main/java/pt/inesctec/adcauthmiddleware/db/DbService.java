@@ -34,8 +34,8 @@ import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
  * Responsible for managing, synchronizing the middleware's DB, cache and Keycloak's (or other authorization server) DB.
  */
 @Component
-public class DbRepository {
-    private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(DbRepository.class);
+public class DbService {
+    private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(DbService.class);
     private static final Object SyncMonitor = new Object();
     private static final String STUDIES_CACHE_NAME = "studies";
     private static final String REPERTOIRES_CACHE_NAME = "repertoires";
@@ -47,7 +47,7 @@ public class DbRepository {
     private final RepertoireRepository repertoireRepository;
     private final CsvConfig csvConfig;
 
-    public DbRepository(
+    public DbService(
             AdcClient adcClient,
             UmaClient umaClient,
             StudyRepository studyRepository,
@@ -92,7 +92,7 @@ public class DbRepository {
      */
     @CacheEvict(cacheNames = {STUDIES_CACHE_NAME, REPERTOIRES_CACHE_NAME, REARRANGEMENTS_CACHE_NAME}, allEntries = true)
     public boolean synchronize() throws Exception {
-        synchronized (DbRepository.SyncMonitor) {
+        synchronized (DbService.SyncMonitor) {
             return synchronizeGuts();
         }
     }
@@ -216,7 +216,7 @@ public class DbRepository {
             RepertoireSet.STUDY_TITLE_FIELD
         );
 
-        var repertoires = this.adcClient.getRepertoireModel(repertoireSearch);
+        var repertoires = this.adcClient.searchRepertoires(repertoireSearch);
 
         CollectionsUtils.assertList(
             repertoires, e -> e.getRepertoireId() != null,
@@ -263,7 +263,7 @@ public class DbRepository {
             }
 
             var repertoire = new Repertoire(repertoireIds.getRepertoireId(), study);
-            if (!DbRepository.saveResource(this.repertoireRepository, repertoire)) {
+            if (!DbService.saveResource(this.repertoireRepository, repertoire)) {
                 ok = false;
             }
         }
@@ -375,6 +375,7 @@ public class DbRepository {
                 continue;
             }
 
+            // Register Study in the Middleware's Database
             var study = new Study(newStudyId, createdUmaId);
             Logger.info("Creating DB study {}", study);
             try {

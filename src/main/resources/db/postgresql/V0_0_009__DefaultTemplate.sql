@@ -1,5 +1,5 @@
 CREATE TABLE template_default (
-    id BIGSERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     id_template BIGINT REFERENCES templates(id) NOT NULL
 );
 

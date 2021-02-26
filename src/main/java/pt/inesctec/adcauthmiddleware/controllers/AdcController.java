@@ -13,9 +13,6 @@ import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.db.DbRepository;
-import pt.inesctec.adcauthmiddleware.uma.UmaClient;
-import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
 

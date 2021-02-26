@@ -172,7 +172,7 @@ public class AdcClient {
      * @return the matching repertoire models.
      * @throws Exception on error
      */
-    public List<RepertoireModel> getRepertoireModel(AdcSearchRequest adcRequest) throws Exception {
+    public List<RepertoireModel> searchRepertoires(AdcSearchRequest adcRequest) throws Exception {
         Preconditions.checkArgument(adcRequest.getFacets() == null);
         Preconditions.checkArgument(adcRequest.isJsonFormat());
 
@@ -191,7 +191,7 @@ public class AdcClient {
      * @return the set of study IDs
      * @throws Exception on error
      */
-    public Set<String> getRepertoireStudyIds(AdcSearchRequest adcRequest) throws Exception {
+    public Set<String> searchRepertoireStudyIds(AdcSearchRequest adcRequest) throws Exception {
         Preconditions.checkArgument(adcRequest.isJsonFormat());
 
         var idsQuery = adcRequest.queryClone().withFacets(RepertoireSet.UMA_ID_FIELD);
@@ -211,7 +211,7 @@ public class AdcClient {
      * @return the set of repertoire IDs
      * @throws Exception on error
      */
-    public Set<String> getRearrangementRepertoireModel(AdcSearchRequest adcRequest) throws Exception {
+    public Set<String> searchRearrangementRepertoireIds(AdcSearchRequest adcRequest) throws Exception {
         Preconditions.checkArgument(adcRequest.isJsonFormat());
 
         var idsQuery = adcRequest.queryClone().withFacets(RearrangementSet.REPERTOIRE_ID_FIELD);

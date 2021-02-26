@@ -12,7 +12,7 @@ import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.db.DbRepository;
+import pt.inesctec.adcauthmiddleware.db.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
@@ -52,8 +52,8 @@ public final class RepertoireSet extends AdcResourceSet {
      */
     public static final String STUDY_TITLE_BASE = "study_title";
 
-    public RepertoireSet(AdcSearchRequest adcSearch, AdcClient adcClient, DbRepository dbRepository, CsvConfig csvConfig) {
-        super(FieldClass.REPERTOIRE, adcSearch, adcClient, dbRepository, csvConfig);
+    public RepertoireSet(AdcSearchRequest adcSearch, AdcClient adcClient, DbService dbService, CsvConfig csvConfig) {
+        super(FieldClass.REPERTOIRE, adcSearch, adcClient, dbService, csvConfig);
     }
 
     /**
@@ -64,8 +64,8 @@ public final class RepertoireSet extends AdcResourceSet {
      */
     @Override
     protected Set<String> getUmaIds() throws Exception  {
-        return this.adcClient.getRepertoireStudyIds(this.adcSearch).stream()
-            .map(id -> this.dbRepository.getStudyUmaId(id))
+        return this.adcClient.searchRepertoireStudyIds(this.adcSearch).stream()
+            .map(id -> this.dbService.getStudyUmaId(id))
             .collect(Collectors.toSet());
     }
 
@@ -78,7 +78,7 @@ public final class RepertoireSet extends AdcResourceSet {
                 resourceIds = UmaUtils.filterFacets(
                     umaState.getResources(),
                     umaState.getScopes(),
-                    (String umaId) -> CollectionsUtils.toSet(this.dbRepository.getUmaStudyId(umaId))
+                    (String umaId) -> CollectionsUtils.toSet(this.dbService.getUmaStudyId(umaId))
                 );
             }
 
@@ -101,7 +101,7 @@ public final class RepertoireSet extends AdcResourceSet {
         return responseFilteredJson(
             RepertoireSet.UMA_ID_FIELD,
             RepertoireSet.RESPONSE_FILTER_FIELD,
-            fieldMapper.compose(this.dbRepository::getStudyUmaId),
+            fieldMapper.compose(this.dbService::getStudyUmaId),
             () -> this.adcClient.searchRepertoiresAsStream(adcSearch));
     }
 }
