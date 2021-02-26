@@ -1,9 +1,7 @@
 package pt.inesctec.adcauthmiddleware.db.dto;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
 import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
