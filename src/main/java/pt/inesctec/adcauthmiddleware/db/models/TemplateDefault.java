@@ -10,7 +10,7 @@ import javax.persistence.Table;
 @Entity
 public class TemplateDefault {
     @Id
-    long id;
+    int id;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "id_template", nullable = false)

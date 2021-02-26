@@ -20,7 +20,7 @@ import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.controllers.SpringUtils;
-import pt.inesctec.adcauthmiddleware.db.DbRepository;
+import pt.inesctec.adcauthmiddleware.db.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
@@ -32,8 +32,8 @@ import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
 public abstract class AdcResourceSet extends AdcResource {
     protected AdcSearchRequest adcSearch;
 
-    public AdcResourceSet(FieldClass fieldClass, AdcSearchRequest adcSearch, AdcClient adcClient, DbRepository dbRepository, CsvConfig csvConfig) {
-        super(fieldClass, adcClient, dbRepository, csvConfig);
+    public AdcResourceSet(FieldClass fieldClass, AdcSearchRequest adcSearch, AdcClient adcClient, DbService dbService, CsvConfig csvConfig) {
+        super(fieldClass, adcClient, dbService, csvConfig);
         this.adcSearch = adcSearch;
     }
 

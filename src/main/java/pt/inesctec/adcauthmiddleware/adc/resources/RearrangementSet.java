@@ -14,7 +14,7 @@ import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
-import pt.inesctec.adcauthmiddleware.db.DbRepository;
+import pt.inesctec.adcauthmiddleware.db.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
@@ -37,10 +37,10 @@ public final class RearrangementSet extends AdcResourceSet {
     public RearrangementSet(
         AdcSearchRequest adcSearch,
         AdcClient adcClient,
-        DbRepository dbRepository,
+        DbService dbService,
         CsvConfig csvConfig
     ) {
-        super(FieldClass.REARRANGEMENT, adcSearch, adcClient, dbRepository, csvConfig);
+        super(FieldClass.REARRANGEMENT, adcSearch, adcClient, dbService, csvConfig);
     }
 
     /**
@@ -51,8 +51,8 @@ public final class RearrangementSet extends AdcResourceSet {
      */
     @Override
     public Set<String> getUmaIds() throws Exception  {
-        return this.adcClient.getRearrangementRepertoireModel(this.adcSearch).stream()
-            .map(id -> this.dbRepository.getRepertoireUmaId(id))
+        return this.adcClient.searchRearrangementRepertoireIds(this.adcSearch).stream()
+            .map(id -> this.dbService.getRepertoireUmaId(id))
             .collect(Collectors.toSet());
     }
 
@@ -63,7 +63,7 @@ public final class RearrangementSet extends AdcResourceSet {
 
             if (umaState.isEnabled()) {
                 resourceIds = UmaUtils.filterFacets(
-                    umaState.getResources(), umaState.getScopes(), this.dbRepository::getUmaRepertoireModel
+                    umaState.getResources(), umaState.getScopes(), this.dbService::getUmaRepertoireModel
                 );
             }
 
@@ -88,7 +88,7 @@ public final class RearrangementSet extends AdcResourceSet {
             return responseFilteredJson(
                 RearrangementSet.REPERTOIRE_ID_FIELD,
                 RearrangementSet.RESPONSE_FILTER_FIELD,
-                fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
+                fieldMapper.compose(this.dbService::getRepertoireUmaId),
                 () -> this.adcClient.searchRearrangementsAsStream(adcSearch));
         }
 
@@ -99,7 +99,7 @@ public final class RearrangementSet extends AdcResourceSet {
         return responseFilteredTsv(
             RearrangementSet.REPERTOIRE_ID_FIELD,
             RearrangementSet.RESPONSE_FILTER_FIELD,
-            fieldMapper.compose(this.dbRepository::getRepertoireUmaId),
+            fieldMapper.compose(this.dbService::getRepertoireUmaId),
             () -> this.adcClient.searchRearrangementsAsStream(adcSearch),
             requestedFieldTypes);
     }
