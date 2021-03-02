@@ -12,11 +12,9 @@ import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.models.RearrangementModel;
 import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
-import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
-import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 
 /**
  * Responsible for managing, synchronizing the middleware's DB, cache and the Authorization Service.
