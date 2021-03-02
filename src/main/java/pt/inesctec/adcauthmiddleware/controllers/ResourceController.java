@@ -9,11 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
+import pt.inesctec.adcauthmiddleware.config.FieldConfig;
 import pt.inesctec.adcauthmiddleware.db.dto.TemplateDTO;
 import pt.inesctec.adcauthmiddleware.db.dto.TemplatesListDTO;
 import pt.inesctec.adcauthmiddleware.db.models.Templates;
@@ -24,6 +26,9 @@ import pt.inesctec.adcauthmiddleware.db.repository.TemplatesRepository;
 public class ResourceController {
     @Autowired
     protected AppConfig appConfig;
+
+    @Autowired
+    FieldConfig fieldConfig;
 
     @Autowired
     protected TemplatesRepository templatesRepository;
@@ -67,5 +72,10 @@ public class ResourceController {
     ) throws Exception {
         TemplateDTO template = new TemplateDTO(templatesRepository.findById(templateId).get());
         return new ResponseEntity<>(template, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/test")
+    public void testRoute() {
+        fieldConfig.getUmaScopes("");
     }
 }

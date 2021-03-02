@@ -23,7 +23,8 @@ public final class CollectionsUtils {
      * @return the built modifiable map
      */
     public static <E, K, V> Map<K, V> toMapKeyByLatest(
-        Collection<E> stream, Function<E, K> keyBuilder, Function<E, V> valueBuilder) {
+        Collection<E> stream, Function<E, K> keyBuilder, Function<E, V> valueBuilder
+    ) {
         var map = new HashMap<K, V>();
 
         stream.forEach(e -> map.put(keyBuilder.apply(e), valueBuilder.apply(e)));

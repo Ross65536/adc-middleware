@@ -9,7 +9,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.db.DbService;
+import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 
 public final class RearrangementResource extends AdcResource {
@@ -26,7 +26,7 @@ public final class RearrangementResource extends AdcResource {
         var umaId = this.dbService.getRearrangementUmaId(rearrangementId);
 
         if (umaId == null) {
-            Logger.info("Non-existing repertoire with ID {}. Is database /synchronized?", rearrangementId);
+            Logger.info("Non-existing rearrangement with ID {}. Is database /synchronized?", rearrangementId);
         }
 
         return Set.of(umaId);

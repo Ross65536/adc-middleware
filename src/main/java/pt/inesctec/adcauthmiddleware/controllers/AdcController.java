@@ -55,6 +55,7 @@ public abstract class AdcController {
         var filtersBlacklist = this.appConfig.getFiltersOperatorsBlacklist();
         Set<String> actualFiltersOperators = adcSearch.getFiltersOperators();
         Sets.SetView<String> operatorDiff = Sets.intersection(filtersBlacklist, actualFiltersOperators);
+
         if (!operatorDiff.isEmpty()) {
             throw SpringUtils.buildHttpException(
                 HttpStatus.NOT_IMPLEMENTED,
