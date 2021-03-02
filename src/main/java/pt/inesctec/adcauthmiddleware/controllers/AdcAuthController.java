@@ -2,7 +2,6 @@ package pt.inesctec.adcauthmiddleware.controllers;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableMap;
@@ -30,8 +29,6 @@ import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
 import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
-import pt.inesctec.adcauthmiddleware.db.services.SynchronizeService;
-import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
@@ -48,11 +45,7 @@ public class AdcAuthController extends AdcController {
     @Autowired
     protected DbService dbService;
     @Autowired
-    protected SynchronizeService synchronizeService;
-    @Autowired
     protected UmaFlow umaFlow;
-    @Autowired
-    protected UmaClient umaClient;
 
     @PostConstruct
     public void initialize() {
@@ -125,18 +118,6 @@ public class AdcAuthController extends AdcController {
         Logger.info("Uma flow access error {}", e.getMessage());
         Logger.debug("Stacktrace: ", e);
 
-        return SpringUtils.buildJsonErrorResponse(HttpStatus.UNAUTHORIZED, null);
-    }
-
-    /**
-     * Logs synchronization endpoint user errors.
-     *
-     * @param e exception
-     * @return 401 status code
-     */
-    @ExceptionHandler(SyncException.class)
-    public ResponseEntity<String> synchronizeErrorHandler(SyncException e) {
-        Logger.info("Synchronize: {}", e.getMessage());
         return SpringUtils.buildJsonErrorResponse(HttpStatus.UNAUTHORIZED, null);
     }
 
@@ -263,37 +244,5 @@ public class AdcAuthController extends AdcController {
         }
 
         return rearrangementResource.response();
-    }
-
-    /**
-     * The synchronize endpoint. Not part of ADC v1. Protected by password set in the configuration file. Extension of the middleware.
-     * Performs state synchronization between the repository and the UMA authorization server and this middleware's DB.
-     * Resets the delays pool request times.
-     *
-     * @param request the user request
-     * @return OK on successful synchronization or an error code when a process in the synchronization fails.
-     * @throws Exception on user errors such as invalid password or some internal errors.
-     */
-    @RequestMapping(value = "/synchronize", method = RequestMethod.POST)
-    public Map<String, Object> synchronize(HttpServletRequest request) throws Exception {
-        String bearer = SpringUtils.getBearer(request);
-
-        if (bearer == null) {
-            throw new SyncException("Invalid user credential format");
-        }
-
-        var tokenResources = this.umaClient.introspectToken(bearer, false);
-
-        if (!tokenResources.getRoles().contains(this.appConfig.getSynchronizeRole())) {
-            throw new SyncException("User not allowed to synchronize resources");
-        }
-
-        if (!this.synchronizeService.synchronize()) {
-            throw SpringUtils.buildHttpException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "One or more DB or UMA resources failed to synchronize, check logs");
-        }
-
-        return SpringUtils.buildStatusMessage(200, null);
     }
 }

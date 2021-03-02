@@ -23,7 +23,7 @@ import pt.inesctec.adcauthmiddleware.utils.Delayer;
  */
 @RestController
 public class AdcPublicController extends AdcController {
-    private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcPublicController.class);
+    private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcPublicController.class);
 
     @PostConstruct
     public void initialize() {
@@ -35,7 +35,7 @@ public class AdcPublicController extends AdcController {
      * Returns forwarding error status and body when the repository returns a non-OK status code.
      *
      * @param e Exception
-     * @return status + body + contentType from the erroring repository response.
+     * @return status + body + contentType from the error repository response.
      */
     @ExceptionHandler(HttpException.class)
     public ResponseEntity<String> httpExceptionForward(HttpException e) {
