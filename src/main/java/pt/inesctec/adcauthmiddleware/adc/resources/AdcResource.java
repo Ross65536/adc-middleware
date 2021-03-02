@@ -12,7 +12,7 @@ import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.FieldsFilter;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.controllers.SpringUtils;
-import pt.inesctec.adcauthmiddleware.db.DbService;
+import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.UmaState;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
@@ -39,8 +39,9 @@ public abstract class AdcResource {
 
     /**
      * Abstract Function to be implemented by the ADC Resource.
-     * Must be implemented to return a Set of UMA ids that identify this AdcResource with their UMA ID in the
-     * Authorization service.
+     * Must be implemented to return the UMA IDs(*) that identify this AdcResource in the Authorization service.
+     *
+     * (*) Single value from a single Resource, multiple for ResourceSets
      *
      * @return Set
      */

@@ -29,7 +29,8 @@ import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
 import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
 import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.db.DbService;
+import pt.inesctec.adcauthmiddleware.db.services.DbService;
+import pt.inesctec.adcauthmiddleware.db.services.SynchronizeService;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
@@ -46,6 +47,8 @@ public class AdcAuthController extends AdcController {
 
     @Autowired
     protected DbService dbService;
+    @Autowired
+    protected SynchronizeService synchronizeService;
     @Autowired
     protected UmaFlow umaFlow;
     @Autowired
@@ -285,7 +288,7 @@ public class AdcAuthController extends AdcController {
             throw new SyncException("User not allowed to synchronize resources");
         }
 
-        if (!this.dbService.synchronize()) {
+        if (!this.synchronizeService.synchronize()) {
             throw SpringUtils.buildHttpException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "One or more DB or UMA resources failed to synchronize, check logs");

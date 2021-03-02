@@ -1,7 +1,5 @@
 package pt.inesctec.adcauthmiddleware.uma;
 
-import javax.servlet.http.HttpServletRequest;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -9,14 +7,11 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import pt.inesctec.adcauthmiddleware.controllers.AdcAuthController;
 import pt.inesctec.adcauthmiddleware.controllers.SpringUtils;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
-import pt.inesctec.adcauthmiddleware.utils.Delayer;
 
 /**
  * Responsible for the UMA flow.

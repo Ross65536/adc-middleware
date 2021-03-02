@@ -138,6 +138,12 @@ public class UmaClient {
         this.accessToken = accessToken;
     }
 
+    /**
+     * Requests the UMA Server for a list of available UMA resources and returns their IDs
+     *
+     * @return List of UMA IDs present in the UMA Server
+     * @throws Exception
+     */
     public String[] listUmaResources() throws Exception {
         this.updateAccessToken();
 
