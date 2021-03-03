@@ -47,9 +47,8 @@ public class ResourceController {
     public ResponseEntity<List<TemplatesListDto>> templateList() throws Exception {
         List<Templates> templates = templatesRepository.findAll();
         List<TemplatesListDto> templateList = templates.stream()
-            .map(template -> {
-                return new TemplatesListDto(template);
-            }).collect(Collectors.toList());
+            .map(TemplatesListDto::new)
+            .collect(Collectors.toList());
         return new ResponseEntity<>(templateList, HttpStatus.OK);
     }
 
