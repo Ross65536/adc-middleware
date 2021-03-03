@@ -9,7 +9,7 @@ import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
 
 public interface AccessScopeRepository extends JpaRepository<AccessScope, Long> {
     /**
-     * Retrieve all present AccessScopes names
+     * Retrieve all present AccessScopes names.
      *
      * @return String Set of ScopeAccess names present in the database
      */

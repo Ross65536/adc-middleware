@@ -6,7 +6,7 @@ import java.util.Set;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
 
 /**
- * Class for managing common UMA States across requests
+ * Class for managing common UMA States across requests.
  */
 public class UmaState {
     // UMA Status variables. Relevant for UMA related requests

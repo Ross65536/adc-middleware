@@ -10,6 +10,8 @@ import pt.inesctec.adcauthmiddleware.db.models.StudyMappings;
 import pt.inesctec.adcauthmiddleware.db.models.Templates;
 
 public interface StudyMappingsRepository extends JpaRepository<StudyMappings, Long> {
+
+
     @Query("SELECT sm FROM StudyMappings sm WHERE sm.study.umaId = :umaId")
     StudyMappings findByUmaId(@Param("umaId") String umaId);
 

@@ -40,10 +40,9 @@ public abstract class AdcResource {
     /**
      * Abstract Function to be implemented by the ADC Resource.
      * Must be implemented to return the UMA IDs(*) that identify this AdcResource in the Authorization service.
-     *
      * (*) Single value from a single Resource, multiple for ResourceSets
      *
-     * @return Set
+     * @return Set of UMA IDs
      */
     protected abstract Set<String> getUmaIds() throws Exception;
 

@@ -23,5 +23,15 @@ public class StudyMappings {
 
     @ManyToOne
     @JoinColumn(name = "id_adc_field", nullable = false)
-    private AdcFieldType field;
+    private AdcFields field;
+
+    /**
+     * Create a StudyMapping from a TemplateMapping.
+     *
+     * @param templateMapping Base mapping from a TemplateMapping
+     */
+    public StudyMappings(TemplateMappings templateMapping, Study study) {
+        this.scope = templateMapping.getScope();
+        this.field = templateMapping.getField();
+    }
 }

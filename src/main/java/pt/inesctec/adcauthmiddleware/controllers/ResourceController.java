@@ -1,6 +1,5 @@
 package pt.inesctec.adcauthmiddleware.controllers;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.FieldConfig;
-import pt.inesctec.adcauthmiddleware.db.dto.TemplateDTO;
-import pt.inesctec.adcauthmiddleware.db.dto.TemplatesListDTO;
+import pt.inesctec.adcauthmiddleware.db.dto.TemplateDto;
+import pt.inesctec.adcauthmiddleware.db.dto.TemplatesListDto;
 import pt.inesctec.adcauthmiddleware.db.models.Templates;
 import pt.inesctec.adcauthmiddleware.db.repository.TemplatesRepository;
 
@@ -36,41 +35,38 @@ public class ResourceController {
     private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcAuthController.class);
 
     /**
-     * Field Mappings for a Study
+     * Field Mappings for a Study.
      *
-     * @param request
-     * @return
-     * @throws Exception
+     * @return JSON list of Templates
+     * @throws Exception for connection failures, authentication failure
      */
     @RequestMapping(
         value = "/templates",
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<TemplatesListDTO>> templateList(HttpServletRequest request) throws Exception {
+    public ResponseEntity<List<TemplatesListDto>> templateList() throws Exception {
         List<Templates> templates = templatesRepository.findAll();
-        List<TemplatesListDTO> templateList = templates.stream()
+        List<TemplatesListDto> templateList = templates.stream()
             .map(template -> {
-                return new TemplatesListDTO(template);
+                return new TemplatesListDto(template);
             }).collect(Collectors.toList());
         return new ResponseEntity<>(templateList, HttpStatus.OK);
     }
 
     /**
-     * Field Mappings for a Study
+     * Field Mappings for a Study.
      *
-     * @param request
-     * @return
-     * @throws Exception
+     * @return JSON of Template along with Field Mappings
+     * @throws Exception for connection failures, authentication failure
      */
     @RequestMapping(
         value = "/templates/{templateId}",
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TemplateDTO> templateSingle(
-        HttpServletRequest request,
+    public ResponseEntity<TemplateDto> templateSingle(
         @PathVariable Long templateId
     ) throws Exception {
-        TemplateDTO template = new TemplateDTO(templatesRepository.findById(templateId).get());
+        TemplateDto template = new TemplateDto(templatesRepository.findById(templateId).get());
         return new ResponseEntity<>(template, HttpStatus.OK);
     }
 

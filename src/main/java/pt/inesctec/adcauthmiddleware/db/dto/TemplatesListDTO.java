@@ -2,11 +2,11 @@ package pt.inesctec.adcauthmiddleware.db.dto;
 
 import pt.inesctec.adcauthmiddleware.db.models.Templates;
 
-public class TemplatesListDTO {
+public class TemplatesListDto {
     Long id;
     String name;
 
-    public TemplatesListDTO(Templates template) {
+    public TemplatesListDto(Templates template) {
         this.id = template.getId();
         this.name = template.getName();
     }

@@ -35,9 +35,9 @@ public class UmaRegistrationResource {
     }
 
     public UmaRegistrationResource(String name, String type, Set<String> resourceScopes) {
-        this.name = name;
+        this.name = name; // mandatory by keycloak
         this.type = type;
-        this.resourceScopes = resourceScopes;
+        this.resourceScopes = resourceScopes; // keycloak will delete type if not present here
     }
 
     public UmaRegistrationResource(String name, String type, Set<String> resourceScopes, UmaResourceAttributes attributes) {

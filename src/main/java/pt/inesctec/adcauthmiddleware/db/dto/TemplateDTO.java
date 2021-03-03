@@ -7,24 +7,24 @@ import java.util.Map;
 
 import pt.inesctec.adcauthmiddleware.db.models.Templates;
 
-public class TemplateDTO {
+public class TemplateDto {
     Long id;
     String name;
-    List<TemplateMappingDTO> mappings;
+    List<TemplateMappingDto> mappings;
 
-    public TemplateDTO(Templates template) {
+    public TemplateDto(Templates template) {
         // Map field mapping by access scope to acquire something similar to:
         // The map will be keyed by access scope ID
         // "mappings": [{
-        //		"scope": <scope id>,
-        //		"fields": [<field id>, ...]
-        //	}]
-        Map<Long, TemplateMappingDTO> mapScopeFields = new HashMap<>();
+        //     "scope": <scope id>,
+        //     "fields": [<field id>, ...]
+        // }]
+        Map<Long, TemplateMappingDto> mapScopeFields = new HashMap<>();
 
         for (var mapping : template.getMappings()) {
             long scopeId = mapping.getScope().getId();
 
-            TemplateMappingDTO tmDto = mapScopeFields.getOrDefault(scopeId, new TemplateMappingDTO(mapping.getScope()));
+            TemplateMappingDto tmDto = mapScopeFields.getOrDefault(scopeId, new TemplateMappingDto(mapping.getScope()));
             tmDto.addField(mapping.getField().getId());
 
             mapScopeFields.put(scopeId, tmDto);
@@ -32,7 +32,7 @@ public class TemplateDTO {
 
         this.id = template.getId();
         this.name = template.getName();
-        this.mappings = new ArrayList<TemplateMappingDTO>(mapScopeFields.values());
+        this.mappings = new ArrayList<TemplateMappingDto>(mapScopeFields.values());
     }
 
     public Long getId() {
@@ -43,7 +43,7 @@ public class TemplateDTO {
         return name;
     }
 
-    public List<TemplateMappingDTO> getMappings() {
+    public List<TemplateMappingDto> getMappings() {
         return mappings;
     }
 }
