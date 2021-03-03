@@ -33,5 +33,6 @@ public class StudyMappings {
     public StudyMappings(TemplateMappings templateMapping, Study study) {
         this.scope = templateMapping.getScope();
         this.field = templateMapping.getField();
+        this.study = study;
     }
 }
