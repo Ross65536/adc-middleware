@@ -107,7 +107,7 @@ public class UmaClient {
         }
 
         if (!introspection.isActive()) {
-            throw new UmaFlowException("RPT token is invalid (not active)");
+            throw new UmaFlowException("Token is invalid (not active)");
         }
 
         return introspection;
@@ -139,10 +139,10 @@ public class UmaClient {
     }
 
     /**
-     * Requests the UMA Server for a list of available UMA resources and returns their IDs
+     * Requests the UMA Server for a list of available UMA resources and returns their IDs.
      *
      * @return List of UMA IDs present in the UMA Server
-     * @throws Exception
+     * @throws Exception for connection issues
      */
     public String[] listUmaResources() throws Exception {
         this.updateAccessToken();

@@ -27,9 +27,9 @@ public class FieldConfig {
     StudyRepository studyRepository;
 
     /**
-     * Get the complete set of scopes present in the database, independently of the resource
+     * Get the complete set of scopes present in the database, independently of the resource.
      *
-     * @return the scopes
+     * @return Set of scopes
      */
     public Set<String> getAllUmaScopes() {
         return accessScopeRepository.findAllNames();
@@ -39,7 +39,7 @@ public class FieldConfig {
      * Get the complete set of scopes that correspond to a specific resource.
      *
      * @param umaId the resource type
-     * @return the scopes.
+     * @return Set of scopes of resource with umaId
      */
     public Set<String> getUmaScopes(String umaId) {
         return Set.of("");

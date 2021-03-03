@@ -30,15 +30,12 @@ public class Study {
         mappedBy = "study",
         fetch = FetchType.LAZY,
         orphanRemoval = true,
-        cascade = CascadeType.REMOVE
+        cascade = CascadeType.ALL
     )
     private List<StudyMappings> mappings;
 
     //@OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.REMOVE)
     //private List<Repertoire> repertoires = new ArrayList<>();
-
-    protected Study() {
-    }
 
     public Study(String studyId, String umaId) {
         this.studyId = studyId;

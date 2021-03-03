@@ -15,8 +15,10 @@ import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.db.services.SynchronizeService;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
+import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 
-@RestController @RequestMapping("${app.airrBasepath}")
+@RestController
+@RequestMapping("${app.airrBasepath}")
 public class SynchronizeController {
     private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(SynchronizeController.class);
 
@@ -42,6 +44,20 @@ public class SynchronizeController {
     }
 
     /**
+     * Logs errors related to the Access Token and role.
+     *
+     * @param e Exception
+     * @return 401 status code
+     */
+    @ExceptionHandler(UmaFlowException.class)
+    public ResponseEntity<String> umaFlowHandler(Exception e) {
+        Logger.info("Uma flow access error {}", e.getMessage());
+        Logger.debug("Stacktrace: ", e);
+
+        return SpringUtils.buildJsonErrorResponse(HttpStatus.UNAUTHORIZED, null);
+    }
+
+    /**
      * The synchronize endpoint. Not part of ADC v1. Protected by password set in the configuration file. Extension of the middleware.
      * Performs state synchronization between the repository and the UMA authorization server and this middleware's DB.
      * Resets the delays pool request times.
@@ -61,7 +77,7 @@ public class SynchronizeController {
         var tokenResources = this.umaClient.introspectToken(bearer, false);
 
         if (!tokenResources.getRoles().contains(this.appConfig.getSynchronizeRole())) {
-            throw new SyncException("User not allowed to synchronize resources");
+            throw new SyncException("User doesn't have the required role to synchronize resources");
         }
 
         if (!this.synchronizeService.synchronize()) {

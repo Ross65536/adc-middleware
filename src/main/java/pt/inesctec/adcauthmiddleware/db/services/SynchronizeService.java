@@ -1,6 +1,8 @@
 package pt.inesctec.adcauthmiddleware.db.services;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -17,11 +19,16 @@ import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
 import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
 import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
-import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
+import pt.inesctec.adcauthmiddleware.config.FieldConfig;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
+import pt.inesctec.adcauthmiddleware.db.models.StudyMappings;
+import pt.inesctec.adcauthmiddleware.db.models.TemplateMappings;
+import pt.inesctec.adcauthmiddleware.db.models.Templates;
 import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
+import pt.inesctec.adcauthmiddleware.db.repository.StudyMappingsRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
+import pt.inesctec.adcauthmiddleware.db.repository.TemplatesRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
 import pt.inesctec.adcauthmiddleware.uma.models.UmaResourceAttributes;
@@ -29,7 +36,7 @@ import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
 /**
  * Service responsible for synchronizing dataset status of an ADC Service, the UMA/Authorization Service and this
- * Middleware's database
+ * Middleware's database.
  */
 @Component
 public class SynchronizeService {
@@ -41,13 +48,18 @@ public class SynchronizeService {
     @Autowired
     DbService dbService;
     @Autowired
-    CsvConfig csvConfig;
-    @Autowired
     UmaClient umaClient;
     @Autowired
     RepertoireRepository repertoireRepository;
     @Autowired
     StudyRepository studyRepository;
+    @Autowired
+    TemplatesRepository templateRepository;
+    @Autowired
+    StudyMappingsRepository studyMappingsRepository;
+
+    @Autowired
+    FieldConfig fieldConfig;
 
     /**
      * Synchronize endpoint entrypoint.
@@ -74,7 +86,7 @@ public class SynchronizeService {
      * @throws Exception on internal error.
      */
     @Transactional
-    protected boolean synchronizeGuts() throws Exception {
+    private boolean synchronizeGuts() throws Exception {
         Logger.info("Synchronizing DB and cache");
 
         // Start by querying the ADC service to determine available Repertoires
@@ -116,45 +128,19 @@ public class SynchronizeService {
     }
 
     /**
-     * Synchronize repertoire to study DB associations.
-     * Some associations might fail, which will be skipped.
-     *
-     * @param backendRepertoires list of repertoire resources.
-     * @return true on 100% successful synchronization.
-     */
-    protected boolean synchronizeRepertoires(List<RepertoireModel> backendRepertoires) {
-        boolean syncSuccessful = true;
-
-        for (RepertoireModel repertoireIds : backendRepertoires) {
-            var studyId = repertoireIds.getStudyId();
-            var study = this.studyRepository.findByStudyId(studyId);
-            if (study == null) {
-                Logger.error("Invalid DB state, missing study {}, skipping", studyId);
-                continue;
-            }
-
-            var repertoire = new Repertoire(repertoireIds.getRepertoireId(), study);
-            if (!DbService.saveResource(this.repertoireRepository, repertoire)) {
-                syncSuccessful = false;
-            }
-        }
-
-        return syncSuccessful;
-    }
-
-    /**
      * Synchronize the studies state between keycloak, middleware and repository.
      * Will create, update, delete(*) UMA resources as needed.
      * Will also create the UMA ID to study ID DB associations as needed.
      * Some steps such as deletion or updating might fail, which will be skipped and false returned.
      *
-     * (*)UMA resources are not deleted, instead the resource type is set from "study" to "deleted".
+     * <small>(*)UMA resources are not deleted, instead the resource type is set from "study" to "deleted".</small>
      *
-     * @param repositoryStudyMap map with the study IDs coming from the ADC repository and their titles.
+     * @param repositoryStudyMap Map[Study ID] -> Study Title: map with the study IDs coming from the
+     *                           ADC repository and their titles.
      * @return true on 100% successful synchronization.
      * @throws Exception on internal error.
      */
-    protected boolean synchronizeStudies(Map<String, String> repositoryStudyMap) throws Exception {
+    private boolean synchronizeStudies(Map<String, String> repositoryStudyMap) throws Exception {
         boolean syncSuccessful = true;
 
         // Get UMA IDs present in the AuthZ server
@@ -224,8 +210,9 @@ public class SynchronizeService {
             }
         }
 
-        // add new resources
-        var allUmaScopes = this.csvConfig.getAllUmaScopes();
+        // Add new resources
+        var allUmaScopes = this.fieldConfig.getAllUmaScopes();
+
         dbStudyIds = new HashSet<>(studyRepository.findAllMapByUmaId().values());
 
         for (String newStudyId : Sets.difference(adcStudyIds, dbStudyIds)) {
@@ -250,6 +237,7 @@ public class SynchronizeService {
 
             // Register Study in the Middleware's Database
             var study = new Study(newStudyId, createdUmaId);
+
             Logger.info("Creating DB study {}", study);
             try {
                 this.studyRepository.saveAndFlush(study);
@@ -258,6 +246,21 @@ public class SynchronizeService {
                 Logger.error("Failed to create DB study {} because: {}", study, e.getMessage());
                 Logger.debug("Stacktrace: ", e);
             }
+
+            // Register study with the default template mappings
+            Templates defaultTemplate = templateRepository.findDefault();
+
+            Logger.info("Registering newly found Studies with default template: {}, id: {}",
+                defaultTemplate.getName(), defaultTemplate.getId()
+            );
+
+            List<StudyMappings> studyMappings = new ArrayList<>();
+
+            for (var mapping : defaultTemplate.getMappings()) {
+                studyMappings.add(new StudyMappings(mapping, study));
+            }
+
+            studyMappingsRepository.saveAll(studyMappings);
         }
 
         // validate common resources
@@ -265,16 +268,18 @@ public class SynchronizeService {
             try {
                 var resource = this.umaClient.getResource(umaId);
                 Set<String> actualResources = resource.getResourceScopes();
+
                 if (actualResources.containsAll(allUmaScopes)) {
                     continue;
                 }
 
                 // update resource if scopes are not matching
                 var updateResources = Sets.union(actualResources, allUmaScopes);
-                var updateResource = new UmaRegistrationResource();
-                updateResource.setName(resource.getName()); // mandatory by keycloak
-                updateResource.setResourceScopes(updateResources);
-                updateResource.setType(AdcConstants.UMA_STUDY_TYPE); // keycloak will delete type if not present here
+                var updateResource = new UmaRegistrationResource(
+                    resource.getName(),
+                    AdcConstants.UMA_STUDY_TYPE,
+                    updateResources
+                );
 
                 Logger.info("Updating resource {}:{} with {}", umaId, resource, updateResource);
 
@@ -283,6 +288,33 @@ public class SynchronizeService {
                 syncSuccessful = false;
                 Logger.error("Failed to check UMA resource {}, because: {}", umaId, e.getMessage());
                 Logger.debug("Stacktrace: ", e);
+            }
+        }
+
+        return syncSuccessful;
+    }
+
+    /**
+     * Synchronize repertoire to study DB associations.
+     * Some associations might fail, which will be skipped.
+     *
+     * @param backendRepertoires list of repertoire resources.
+     * @return true on 100% successful synchronization.
+     */
+    private boolean synchronizeRepertoires(List<RepertoireModel> backendRepertoires) {
+        boolean syncSuccessful = true;
+
+        for (RepertoireModel repertoireIds : backendRepertoires) {
+            var studyId = repertoireIds.getStudyId();
+            var study = this.studyRepository.findByStudyId(studyId);
+            if (study == null) {
+                Logger.error("Invalid DB state, missing study {}, skipping", studyId);
+                continue;
+            }
+
+            var repertoire = new Repertoire(repertoireIds.getRepertoireId(), study);
+            if (!DbService.saveResource(this.repertoireRepository, repertoire)) {
+                syncSuccessful = false;
             }
         }
 
