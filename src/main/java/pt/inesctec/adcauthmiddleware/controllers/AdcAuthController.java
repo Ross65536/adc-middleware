@@ -198,7 +198,7 @@ public class AdcAuthController extends AdcController {
      */
     @RequestMapping(
         value = "/repertoire",
-        method = RequestMethod.POST,
+        method = { RequestMethod.GET, RequestMethod.POST },
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> repertoireList(
@@ -227,7 +227,7 @@ public class AdcAuthController extends AdcController {
      */
     @RequestMapping(
         value = "/rearrangement",
-        method = RequestMethod.POST,
+        method = { RequestMethod.GET, RequestMethod.POST },
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> rearrangementList(
