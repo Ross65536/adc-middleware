@@ -61,6 +61,7 @@ public class DbService {
     @Cacheable(value = CacheConstants.STUDIES_CACHE_NAME, unless = "#result==null")
     public String getStudyUmaId(String studyId) {
         var study = this.studyRepository.findByStudyId(studyId);
+
         if (study == null) {
             return null;
         }

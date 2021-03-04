@@ -89,10 +89,6 @@ services:
       - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - 80:80
-    depends_on:
-      - middleware
-      - repository
-      - middleware-frontend
     restart: on-failure
 
   # up this container and then run
