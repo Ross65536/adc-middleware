@@ -33,4 +33,6 @@ public class AccessScope {
     public void setName(String name) {
         this.name = name;
     }
+
+    protected AccessScope() {};
 }

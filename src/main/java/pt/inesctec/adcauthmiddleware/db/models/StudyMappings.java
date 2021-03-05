@@ -25,6 +25,8 @@ public class StudyMappings {
     @JoinColumn(name = "id_adc_field", nullable = false)
     private AdcFields field;
 
+    protected StudyMappings() {}
+
     /**
      * Create a StudyMapping from a TemplateMapping.
      *
