@@ -30,4 +30,6 @@ public class AdcFieldType {
     public void setName(String name) {
         this.name = name;
     }
+
+    protected AdcFieldType() {}
 }

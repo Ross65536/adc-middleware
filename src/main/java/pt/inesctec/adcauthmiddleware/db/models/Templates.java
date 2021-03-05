@@ -30,6 +30,8 @@ public class Templates {
     )
     private List<TemplateMappings> mappings;
 
+    protected Templates() {}
+
     public long getId() {
         return id;
     }

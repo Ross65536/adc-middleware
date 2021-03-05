@@ -35,7 +35,7 @@ import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
 
 /**
- * class responsible for the protected endpoints.
+ * REST Controller to managing protected endpoints.
  */
 @RestController
 public class AdcAuthController extends AdcController {

@@ -28,8 +28,7 @@ public class Repertoire {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Study study;
 
-    public Repertoire() {
-    }
+    protected Repertoire() {}
 
     public Repertoire(String repertoireId, Study study) {
         this.repertoireId = repertoireId;

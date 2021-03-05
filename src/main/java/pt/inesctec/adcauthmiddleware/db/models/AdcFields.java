@@ -44,4 +44,6 @@ public class AdcFields {
     public void setType(AdcFieldType type) {
         this.type = type;
     }
+
+    protected AdcFields() {};
 }

@@ -27,6 +27,8 @@ public class TemplateMappings {
     @JoinColumn(name = "id_adc_field", nullable = false)
     private AdcFields field;
 
+    protected TemplateMappings() {}
+
     public long getId() {
         return id;
     }

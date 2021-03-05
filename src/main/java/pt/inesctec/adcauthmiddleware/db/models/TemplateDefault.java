@@ -14,4 +14,6 @@ public class TemplateDefault {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "id_template", nullable = false)
     private Templates template;
+
+    protected TemplateDefault() {}
 }

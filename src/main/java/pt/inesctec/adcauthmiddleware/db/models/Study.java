@@ -36,6 +36,8 @@ public class Study {
     //@OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.REMOVE)
     //private List<Repertoire> repertoires = new ArrayList<>();
 
+    protected Study() {}
+
     public Study(String studyId, String umaId) {
         this.studyId = studyId;
         this.umaId = umaId;

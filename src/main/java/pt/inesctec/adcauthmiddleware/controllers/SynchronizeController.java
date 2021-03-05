@@ -17,6 +17,9 @@ import pt.inesctec.adcauthmiddleware.db.services.SynchronizeService;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 
+/**
+ * REST Controller for managing dataset synchronization requests.
+ */
 @RestController
 @RequestMapping("${app.airrBasepath}")
 public class SynchronizeController {
