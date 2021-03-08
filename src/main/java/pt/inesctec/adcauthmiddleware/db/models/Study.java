@@ -19,12 +19,21 @@ public class Study {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    /**
+     * String of the Study ID provided by the ADC Service
+     */
     @Column(unique = true, nullable = false)
     private String studyId;
 
+    /**
+     * String of the UMA ID provided by the UMA Authorization Service
+     */
     @Column(unique = true, nullable = false)
     private String umaId;
 
+    /**
+     * Field Accessibility mappings for this particular Study
+     */
     @OneToMany(
         mappedBy = "study",
         fetch = FetchType.LAZY,
@@ -55,9 +64,4 @@ public class Study {
     public String toString() {
         return String.format("{studyId: %s, umaId: %s}", studyId, umaId);
     }
-
-    //public List<Repertoire> getRepertoires() {
-    //    return repertoires;
-    //}
-
 }

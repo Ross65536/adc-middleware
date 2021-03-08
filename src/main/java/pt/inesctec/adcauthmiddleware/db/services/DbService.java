@@ -14,11 +14,9 @@ import pt.inesctec.adcauthmiddleware.adc.models.RearrangementModel;
 import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
+import pt.inesctec.adcauthmiddleware.db.repository.StudyMappingsRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
 
-/**
- * Responsible for managing, synchronizing the middleware's DB, cache and the Authorization Service.
- */
 @Component
 public class DbService {
     private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(DbService.class);
@@ -29,6 +27,8 @@ public class DbService {
     StudyRepository studyRepository;
     @Autowired
     RepertoireRepository repertoireRepository;
+    @Autowired
+    public StudyMappingsRepository studyMappingsRepository;
 
     /**
      * Save resource in the DB.
@@ -78,6 +78,7 @@ public class DbService {
     @Cacheable(value = CacheConstants.REPERTOIRES_CACHE_NAME, unless = "#result==null")
     public String getRepertoireUmaId(String repertoireId) {
         var repertoire = this.repertoireRepository.findByRepertoireId(repertoireId);
+
         if (repertoire == null) {
             return null;
         }
