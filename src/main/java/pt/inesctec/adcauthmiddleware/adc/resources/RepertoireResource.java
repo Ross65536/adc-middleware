@@ -4,17 +4,19 @@ import java.util.Set;
 import java.util.function.Function;
 
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
+import pt.inesctec.adcauthmiddleware.controllers.SpringUtils;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 
 public final class RepertoireResource extends AdcResource {
     private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(RepertoireResource.class);
-    private String repertoireId;
+    private final String repertoireId;
 
     public RepertoireResource(String repertoireId, AdcClient adcClient, DbService dbService, CsvConfig csvConfig) {
         super(FieldClass.REPERTOIRE, adcClient, dbService, csvConfig);
@@ -27,6 +29,7 @@ public final class RepertoireResource extends AdcResource {
 
         if (umaId == null) {
             Logger.info("Non-existing repertoire with ID {}. Is database /synchronized?", repertoireId);
+            throw SpringUtils.buildHttpException(HttpStatus.NOT_FOUND, "Not found");
         }
 
         return Set.of(umaId);

@@ -250,7 +250,7 @@ public class SynchronizeService {
             // Register study with the default template mappings
             Templates defaultTemplate = templateRepository.findDefault();
 
-            Logger.info("Registering newly found Studies with default template: {}, id: {}",
+            Logger.info("Registering newly found Study with default template: {}, id: {}",
                 defaultTemplate.getName(), defaultTemplate.getId()
             );
 

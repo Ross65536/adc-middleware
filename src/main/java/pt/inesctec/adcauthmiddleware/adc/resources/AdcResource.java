@@ -76,7 +76,6 @@ public abstract class AdcResource {
         umaState.setUmaIds(this.getUmaIds());
         umaState.setScopes(this.getUmaScopes());
         umaState.setResources(umaFlow.execute(bearerToken, umaState.getUmaIds(), umaState.getScopes()));
-        umaState.isEnabled();
     }
 
     /**
