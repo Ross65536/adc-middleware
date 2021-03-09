@@ -44,9 +44,9 @@ public final class CollectionsUtils {
             return "[]";
         }
 
-        return "["
-            + list.stream().map(e -> String.format("'%s'", e)).collect(Collectors.joining(", "))
-            + "]";
+        return "[" + list.stream().map(
+            e -> String.format("'%s'", e)
+        ).collect(Collectors.joining(", ")) + "]";
     }
 
     /**
@@ -74,7 +74,7 @@ public final class CollectionsUtils {
      * @param <T>      element type
      * @throws Exception when an element is not present
      */
-    public static <T> void assertListContains(Collection<T> list, T... elements) throws Exception {
+    public static <T> void assertListContains(Collection<T> list, Collection<T> elements) throws Exception {
         for (T e : elements) {
             if (!list.contains(e)) {
                 throw new Exception("list missing " + e);
@@ -91,7 +91,7 @@ public final class CollectionsUtils {
      * @param <V>    value type, unused
      * @throws Exception when a key is missing
      */
-    public static <T, V> void assertMapListContainsKeys(Collection<Map<T, V>> list, T... fields) throws Exception {
+    public static <T, V> void assertMapListContainsKeys(Collection<Map<T, V>> list, Collection<T> fields) throws Exception {
         for (var map : list) {
             for (T field : fields) {
                 if (!map.containsKey(field)) {

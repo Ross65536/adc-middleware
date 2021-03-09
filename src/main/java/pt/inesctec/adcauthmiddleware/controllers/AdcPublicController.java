@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 
 /**
  * class responsible for the unprotected endpoints. Performs forwarding for these endpoints to the repository.

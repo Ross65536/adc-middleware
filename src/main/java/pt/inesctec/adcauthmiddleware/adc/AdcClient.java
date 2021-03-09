@@ -62,7 +62,7 @@ public class AdcClient {
      */
     private static Set<String> processStringFacets(List<Map<String, Object>> facets, String facetsField) throws Exception {
         Utils.assertNotNull(facets);
-        CollectionsUtils.assertMapListContainsKeys(facets, facetsField);
+        CollectionsUtils.assertMapListContainsKeys(facets, Set.of(facetsField));
 
         return facets.stream().filter(facet -> {
             var count = (Integer) facet.get("count");

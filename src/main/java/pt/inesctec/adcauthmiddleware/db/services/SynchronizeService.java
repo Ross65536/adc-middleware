@@ -2,7 +2,6 @@ package pt.inesctec.adcauthmiddleware.db.services;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,15 +22,14 @@ import pt.inesctec.adcauthmiddleware.config.FieldConfig;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
 import pt.inesctec.adcauthmiddleware.db.models.StudyMappings;
-import pt.inesctec.adcauthmiddleware.db.models.TemplateMappings;
 import pt.inesctec.adcauthmiddleware.db.models.Templates;
 import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyMappingsRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.TemplatesRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaResourceAttributes;
+import pt.inesctec.adcauthmiddleware.uma.dto.UmaRegistrationResource;
+import pt.inesctec.adcauthmiddleware.uma.dto.UmaResourceAttributes;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
 /**

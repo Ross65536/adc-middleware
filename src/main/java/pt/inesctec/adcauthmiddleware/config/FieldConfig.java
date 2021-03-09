@@ -18,6 +18,7 @@ import pt.inesctec.adcauthmiddleware.config.csv.IncludeField;
 import pt.inesctec.adcauthmiddleware.db.repository.AccessScopeRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
 
+// TODO: Delete this
 @Component
 public class FieldConfig {
     @Autowired

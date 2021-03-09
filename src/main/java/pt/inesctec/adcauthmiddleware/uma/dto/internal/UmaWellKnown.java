@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware.uma.models.internal;
+package pt.inesctec.adcauthmiddleware.uma.dto.internal;
 
 import javax.validation.constraints.NotNull;
 

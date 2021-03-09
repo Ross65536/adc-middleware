@@ -11,7 +11,7 @@ import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.AdcJsonDocumentParse
 import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.FieldsFilter;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.controllers.SpringUtils;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.UmaState;
