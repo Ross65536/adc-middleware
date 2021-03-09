@@ -15,6 +15,7 @@ import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 
 @RequestMapping("${app.airrBasepath}")
 public abstract class AdcController {

@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware.uma.models;
+package pt.inesctec.adcauthmiddleware.uma.dto;
 
 import java.util.List;
 import java.util.Map;

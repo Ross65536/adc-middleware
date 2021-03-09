@@ -47,7 +47,7 @@ public class CsvConfig {
                         fieldMappings, CsvField::getFieldClass, CsvField::getAccessScope, CsvField::getField);
 
         CollectionsUtils.assertListContains(
-                this.fieldsMapping.keySet(), FieldClass.REPERTOIRE, FieldClass.REARRANGEMENT);
+                this.fieldsMapping.keySet(), Set.of(FieldClass.REPERTOIRE, FieldClass.REARRANGEMENT));
     }
 
     /**

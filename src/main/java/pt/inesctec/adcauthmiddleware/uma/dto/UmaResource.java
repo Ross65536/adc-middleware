@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware.uma.models;
+package pt.inesctec.adcauthmiddleware.uma.dto;
 
 import java.util.HashSet;
 import java.util.List;
@@ -6,9 +6,11 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
 
 /**
- * Models a UMA resource with ID and scope.
+ * DTO for UMA resources. Used to interact with the UMA service.
+ * Provides UMA ID and its scopes.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UmaResource {
@@ -18,8 +20,7 @@ public class UmaResource {
     @JsonProperty("resource_scopes")
     private Set<String> scopes;
 
-    public UmaResource() {
-    }
+    public UmaResource() {}
 
     public UmaResource(String umaId, String... scopes) {
         this(umaId, new HashSet<>(List.of(scopes)));

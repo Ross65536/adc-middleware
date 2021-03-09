@@ -10,7 +10,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.controllers.SpringUtils;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 

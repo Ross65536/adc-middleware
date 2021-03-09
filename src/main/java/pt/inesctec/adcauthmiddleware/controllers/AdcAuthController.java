@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.HttpException;
+import pt.inesctec.adcauthmiddleware.adc.dto.RepertoireDto;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementResource;
@@ -33,6 +34,7 @@ import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 
 /**
  * REST Controller to managing protected endpoints.
@@ -151,6 +153,14 @@ public class AdcAuthController extends AdcController {
         HttpServletRequest request,
         @PathVariable String repertoireId
     ) throws Exception {
+        RepertoireDto repertoire = new RepertoireDto(repertoireId, adcClient, dbService);
+
+        if (contentProtected) {
+            var bearer = SpringUtils.getBearer(request);
+            repertoire.processUma(bearer, umaFlow);
+        }
+
+
         RepertoireResource resource = new RepertoireResource(repertoireId, adcClient, dbService, csvConfig);
 
         if (contentProtected) {

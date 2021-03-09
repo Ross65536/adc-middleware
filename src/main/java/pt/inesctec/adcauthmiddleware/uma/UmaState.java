@@ -3,7 +3,7 @@ package pt.inesctec.adcauthmiddleware.uma;
 import java.util.List;
 import java.util.Set;
 
-import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
+import pt.inesctec.adcauthmiddleware.uma.dto.UmaResource;
 
 /**
  * Class for managing common UMA States across requests.
