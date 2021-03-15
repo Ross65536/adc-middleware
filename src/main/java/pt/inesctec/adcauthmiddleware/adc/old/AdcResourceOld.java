@@ -1,7 +1,6 @@
-package pt.inesctec.adcauthmiddleware.adc.dto;
+package pt.inesctec.adcauthmiddleware.adc.old;
 
 import java.io.InputStream;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -10,39 +9,32 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.AdcJsonDocumentParser;
 import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.FieldsFilter;
+import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
+import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
-import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
-import pt.inesctec.adcauthmiddleware.db.models.StudyMappings;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
-import pt.inesctec.adcauthmiddleware.uma.dto.UmaResource;
+import pt.inesctec.adcauthmiddleware.uma.UmaStateOld;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
 
 /**
  * Base class for processing the output of an ADC Resource (Repertoires, Rearrangements...)
+ * Deals with a single ADC resource
  */
-public abstract class AdcDto {
-    // Application's singletons
+public abstract class AdcResourceOld {
+    protected FieldClass fieldClass;
+
     protected AdcClient adcClient;
     protected DbService dbService;
+    protected CsvConfig csvConfig;
 
-    // ID in the ADC service
-    protected String adcId;
+    protected UmaStateOld umaStateOld = new UmaStateOld();
 
-    // ID in the UMA service
-    protected String umaId;
-
-    // List of UMA Field Accessibility mappings for the study this ADC resource belongs to
-    protected List<StudyMappings> fieldMappings;
-
-    // Defines if this resource should trigger the UMA workflow.
-    //  * If Disabled - Will map the resource to only output fields that have been defined as public
-    //  * If Enabled  - Will follow the UMA workflow normally
-    boolean umaEnabled = false;
-
-    public AdcDto(AdcClient adcClient, DbService dbService) {
-        this.adcClient  = adcClient;
-        this.dbService  = dbService;
+    public AdcResourceOld(FieldClass fieldClass, AdcClient adcClient, DbService dbService, CsvConfig csvConfig) {
+        this.fieldClass = fieldClass;
+        this.adcClient = adcClient;
+        this.dbService = dbService;
+        this.csvConfig = csvConfig;
     }
 
     /**
@@ -50,8 +42,18 @@ public abstract class AdcDto {
      * Must be implemented to return the UMA IDs(*) that identify this AdcResource in the Authorization service.
      * (*) Single value from a single Resource, multiple for ResourceSets
      *
+     * @return Set of UMA IDs
      */
-    public abstract void processUma(String bearerToken, UmaFlow umaFlow) throws Exception;
+    protected abstract Set<String> getUmaIds() throws Exception;
+
+    /**
+     * Returns the UMA scopes for the fields in this Request.
+     * The considered parameters are: "facets", "fields", "include_fields", and "filters".
+     * Filters operators can reference a field for the search and these are the fields considered.
+     *
+     * @return the UMA scopes.
+     */
+    protected abstract Set<String> getUmaScopes();
 
     /**
      * Abstract Function to be implemented by the ADC Resource.
@@ -63,10 +65,25 @@ public abstract class AdcDto {
     public abstract ResponseEntity<StreamingResponseBody> response() throws Exception;
 
     /**
+     * Sets the current AdcResource as being protected by UMA.
+     * Any output by the response() method will be controlled by the User's permissions
+     *
+     * @param bearerToken OIDC/UMA 2.0 Bearer Token (RPT)
+     * @param umaFlow UmaFlow object
+     * @throws Exception according to the UMA workflow
+     */
+    public void enableUma(String bearerToken, UmaFlow umaFlow) throws Exception {
+        umaStateOld.setEnabled(true);
+        umaStateOld.setUmaIds(this.getUmaIds());
+        umaStateOld.setScopes(this.getUmaScopes());
+        umaStateOld.setResources(umaFlow.execute(bearerToken, umaStateOld.getUmaIds(), umaStateOld.getScopes()));
+    }
+
+    /**
      * Build JSON streaming, filtered response.
      *
-     * @param resourceId          the resource's ID fields
-     * @param responseFilterField the response's field where the resources are set
+     * @param resourceId          name of the field that identifies this UMA resource in the AdcRequest response
+     * @param responseFilterField name of the JSON object in the AdcRequest response that contains this Resource
      * @param fieldMapper         the ID to granted fields mapper
      * @param adcRequest          the ADC request producer.
      * @return streaming response
@@ -82,13 +99,5 @@ public abstract class AdcDto {
         var filter = new FieldsFilter(fieldMapper, resourceId);
         var mapper = AdcJsonDocumentParser.buildJsonMapper(response, responseFilterField, filter);
         return SpringUtils.buildJsonStream(mapper);
-    }
-
-    public boolean isUmaEnabled() {
-        return umaEnabled;
-    }
-
-    public void setUmaEnabled(boolean umaEnabled) {
-        this.umaEnabled = umaEnabled;
     }
 }

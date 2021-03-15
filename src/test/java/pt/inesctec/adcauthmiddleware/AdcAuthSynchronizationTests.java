@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSet;
 import pt.inesctec.adcauthmiddleware.utils.*;
 
 import java.util.List;

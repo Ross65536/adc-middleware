@@ -2,8 +2,8 @@ package pt.inesctec.adcauthmiddleware.adc;
 
 import java.util.Set;
 
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSet;
 
 public final class AdcConstants {
     /**

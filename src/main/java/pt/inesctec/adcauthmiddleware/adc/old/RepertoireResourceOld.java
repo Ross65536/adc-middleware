@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware.adc.resources;
+package pt.inesctec.adcauthmiddleware.adc.old;
 
 import java.util.Set;
 import java.util.function.Function;
@@ -14,11 +14,11 @@ import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 
-public final class RepertoireResource extends AdcResource {
-    private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(RepertoireResource.class);
+public final class RepertoireResourceOld extends AdcResourceOld {
+    private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(RepertoireResourceOld.class);
     private final String repertoireId;
 
-    public RepertoireResource(String repertoireId, AdcClient adcClient, DbService dbService, CsvConfig csvConfig) {
+    public RepertoireResourceOld(String repertoireId, AdcClient adcClient, DbService dbService, CsvConfig csvConfig) {
         super(FieldClass.REPERTOIRE, adcClient, dbService, csvConfig);
         this.repertoireId = repertoireId;
     }
@@ -44,17 +44,18 @@ public final class RepertoireResource extends AdcResource {
     public ResponseEntity<StreamingResponseBody> response() throws Exception {
         Function<String, Set<String>> fieldMapper;
 
-        if (this.umaState.isEnabled()) {
+        if (this.umaStateOld.isEnabled()) {
             fieldMapper = UmaUtils.buildFieldMapper(
-                this.umaState.getResources(), this.fieldClass, csvConfig
+                this.umaStateOld.getResources(), this.fieldClass, csvConfig
             ).compose(this.dbService::getStudyUmaId);
-        }  else {
+        }
+        else {
             fieldMapper = (s) -> {
                 return csvConfig.getPublicFields(this.fieldClass);
             };
         }
 
-        return AdcResource.responseFilteredJson(
+        return AdcResourceOld.responseFilteredJson(
             RepertoireSet.UMA_ID_FIELD,
             RepertoireSet.RESPONSE_FILTER_FIELD,
             fieldMapper,

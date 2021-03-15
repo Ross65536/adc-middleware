@@ -1,7 +1,7 @@
 package pt.inesctec.adcauthmiddleware.utils;
 
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSet;
 
 import java.util.*;
 import java.util.stream.Collectors;

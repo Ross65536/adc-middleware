@@ -11,7 +11,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.models.RearrangementModel;
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyMappingsRepository;
@@ -28,7 +28,7 @@ public class DbService {
     @Autowired
     RepertoireRepository repertoireRepository;
     @Autowired
-    public StudyMappingsRepository studyMappingsRepository;
+    StudyMappingsRepository studyMappingsRepository;
 
     /**
      * Save resource in the DB.
@@ -158,5 +158,9 @@ public class DbService {
      */
     protected void deleteCache() {
         this.repertoireRepository.deleteAll();
+    }
+
+    public StudyMappingsRepository getStudyMappingsRepository() {
+        return studyMappingsRepository;
     }
 }
