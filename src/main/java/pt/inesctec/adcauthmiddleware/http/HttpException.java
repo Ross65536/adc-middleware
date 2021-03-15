@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware;
+package pt.inesctec.adcauthmiddleware.http;
 
 import java.util.Optional;
 

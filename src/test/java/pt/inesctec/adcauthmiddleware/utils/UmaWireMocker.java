@@ -4,7 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.common.base.Charsets;
 import org.springframework.http.HttpHeaders;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSet;
 
 import java.util.HashMap;
 import java.util.List;

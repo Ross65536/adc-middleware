@@ -8,8 +8,7 @@ import pt.inesctec.adcauthmiddleware.uma.dto.UmaResource;
 /**
  * Class for managing common UMA States across requests.
  */
-public class UmaState {
-    // UMA Status variables. Relevant for UMA related requests
+public class UmaStateOld {
     private boolean isEnabled = false;
     private Set<String> scopes;
     private Set<String> umaIds;

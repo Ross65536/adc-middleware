@@ -16,13 +16,13 @@ import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
-import pt.inesctec.adcauthmiddleware.config.FieldConfig;
+import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSet;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
 import pt.inesctec.adcauthmiddleware.db.models.StudyMappings;
 import pt.inesctec.adcauthmiddleware.db.models.Templates;
+import pt.inesctec.adcauthmiddleware.db.repository.AccessScopeRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyMappingsRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
@@ -55,9 +55,8 @@ public class SynchronizeService {
     TemplatesRepository templateRepository;
     @Autowired
     StudyMappingsRepository studyMappingsRepository;
-
     @Autowired
-    FieldConfig fieldConfig;
+    AccessScopeRepository accessScopeRepository;
 
     /**
      * Synchronize endpoint entrypoint.
@@ -208,8 +207,8 @@ public class SynchronizeService {
             }
         }
 
-        // Add new resources
-        var allUmaScopes = this.fieldConfig.getAllUmaScopes();
+        // Get the complete set of scopes present in the database, independently of the resource.
+        var allUmaScopes = this.accessScopeRepository.findAllNames();
 
         dbStudyIds = new HashSet<>(studyRepository.findAllMapByUmaId().values());
 

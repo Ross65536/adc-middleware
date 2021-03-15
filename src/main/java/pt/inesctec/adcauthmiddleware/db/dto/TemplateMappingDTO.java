@@ -13,7 +13,7 @@ public class TemplateMappingDto {
     // Contains the AccessScope for this mapping
     private AccessScopeDto scope;
     // Contains the AdcField IDs for the current AccessScope
-    private List<Long> fields;
+    private List<Integer> fields;
 
     /**
      * Build a TemplateMappingDTO by providing both the access scope and the list of field for that scope.
@@ -37,19 +37,19 @@ public class TemplateMappingDto {
      */
     public TemplateMappingDto(AccessScope scope) {
         this.scope = new AccessScopeDto(scope);
-        this.fields = new ArrayList<>();
+        this.fields = new ArrayList<Integer>();
     }
 
     // Manually add an ADC field
-    public void addField(long fieldId) {
+    public void addField(Integer fieldId) {
         this.fields.add(fieldId);
     }
 
-    public List<Long> getFields() {
+    public List<Integer> getFields() {
         return fields;
     }
 
-    public void setFields(List<Long> fields) {
+    public void setFields(List<Integer> fields) {
         this.fields = fields;
     }
 

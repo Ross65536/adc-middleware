@@ -4,7 +4,7 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
 
 /**
  * Models a rearrangement response but only with the ID fields.

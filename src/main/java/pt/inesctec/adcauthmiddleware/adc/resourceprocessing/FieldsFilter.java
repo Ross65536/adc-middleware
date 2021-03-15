@@ -19,11 +19,12 @@ import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
  * Field fragments as used here are the values between the fields separator.
  */
 public class FieldsFilter implements IFieldsFilter {
+    private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(FieldsFilter.class);
+
     /**
      * The fields separator REGEX.
      */
     private static final String SEPARATOR = "\\.";
-    private static org.slf4j.Logger Logger = LoggerFactory.getLogger(FieldsFilter.class);
     private final Function<String, Set<String>> fieldMapper;
     private final String idField;
 

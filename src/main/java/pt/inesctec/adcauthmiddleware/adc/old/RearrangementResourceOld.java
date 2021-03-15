@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware.adc.resources;
+package pt.inesctec.adcauthmiddleware.adc.old;
 
 import java.util.Set;
 import java.util.function.Function;
@@ -14,11 +14,11 @@ import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 
-public final class RearrangementResource extends AdcResource {
-    private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(RearrangementResource.class);
+public final class RearrangementResourceOld extends AdcResourceOld {
+    private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(RearrangementResourceOld.class);
     private String rearrangementId;
 
-    public RearrangementResource(String rearrangementId, AdcClient adcClient, DbService dbService, CsvConfig csvConfig) {
+    public RearrangementResourceOld(String rearrangementId, AdcClient adcClient, DbService dbService, CsvConfig csvConfig) {
         super(FieldClass.REARRANGEMENT, adcClient, dbService, csvConfig);
         this.rearrangementId = rearrangementId;
     }
@@ -44,9 +44,9 @@ public final class RearrangementResource extends AdcResource {
     public ResponseEntity<StreamingResponseBody> response() throws Exception {
         Function<String, Set<String>> fieldMapper;
 
-        if (this.umaState.isEnabled()) {
+        if (this.umaStateOld.isEnabled()) {
             fieldMapper = UmaUtils.buildFieldMapper(
-                this.umaState.getResources(), this.fieldClass, csvConfig
+                this.umaStateOld.getResources(), this.fieldClass, csvConfig
             ).compose(this.dbService::getRepertoireUmaId);
         }  else {
             fieldMapper = (s) -> {
@@ -54,7 +54,7 @@ public final class RearrangementResource extends AdcResource {
             };
         }
 
-        return AdcResource.responseFilteredJson(
+        return AdcResourceOld.responseFilteredJson(
             RearrangementSet.REPERTOIRE_ID_FIELD,
             RearrangementSet.RESPONSE_FILTER_FIELD,
             fieldMapper,

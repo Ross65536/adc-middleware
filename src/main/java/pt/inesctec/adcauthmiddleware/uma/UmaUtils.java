@@ -10,58 +10,13 @@ import java.util.stream.Collectors;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.slf4j.LoggerFactory;
-import pt.inesctec.adcauthmiddleware.adc.dto.AdcDto;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.controllers.AdcAuthController;
-import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
-import pt.inesctec.adcauthmiddleware.db.models.StudyMappings;
 import pt.inesctec.adcauthmiddleware.uma.dto.UmaResource;
 
 public class UmaUtils {
     private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcAuthController.class);
-
-    /**
-     * Auxiliary function for extracting the scope names from a AccessScope model
-     * @return Set of Access Scope names
-     */
-    public static Set<String> collectScopeNames(Set<AccessScope> accessScopes) {
-        return accessScopes.stream().map(AccessScope::getName).collect(Collectors.toSet());
-    }
-
-    /**
-     * Auxiliary function for extracting the scope names from a List of StudyMappings
-     * @return Set of Access Scope names
-     */
-    public static Set<String> collectAccessScopes(List<StudyMappings> studyMappings) {
-        return studyMappings.stream().map(s -> {
-            return s.getScope().getName();
-        }).collect(Collectors.toSet());
-    }
-
-    public static Function<String, Set<String>> protofieldMapper(Collection<AdcDto> resources) {
-        var validUmaFields = resources.stream().collect(
-            Collectors.toMap(
-                UmaResource::getUmaId, uma -> csvConfig.getFields(fieldClass, uma.getScopes())
-            )
-        );
-
-        var publicFields = csvConfig.getPublicFields(fieldClass);
-
-        return umaId -> {
-            if (umaId == null) {
-                Logger.warn(
-                    "A resource was returned by the repository with no mapping from resource ID to UMA ID. Consider synchronizing.");
-                return publicFields;
-            }
-
-            // TODO: Check for public study could be placed here?
-
-            // Default Empty Set
-            var fields = validUmaFields.getOrDefault(umaId, ImmutableSet.of());
-            return Sets.union(fields, publicFields);
-        };
-    }
 
     /**
      * Build mapper function from UMA ID to the permitted fields for each resource for the user, given by the UMA resource list.

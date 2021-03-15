@@ -56,12 +56,15 @@ public class UmaFlow {
 
     /**
      * Execute UMA workflow for multiple resources:
-     * - Emits a permissions ticket if no token is provided
-     * - Or returns the introspected RPT token resources.
+     * - Emits a permissions ticket if no token is provided;
+     * - If a permission ticket is provided, returns the introspected RPT token resources:
+     *
+     * The introspected RPT token resources represent the list of resources the user has access to,
+     * along with the scopes the user has access to.
      *
      * @param bearerToken    OIDC/UMA 2.0 Bearer Token (RPT)
-     * @param umaIds         set of UMA ids for the requested resources
-     * @param umaScopes      the scopes set for the request (for emitting permissions ticket).
+     * @param umaIds         Set of UMA ids for the requested resources
+     * @param umaScopes      The scopes to check for accessibility
      * @return the introspected RPT resources.
      * @throws Exception when emitting a permission ticket or an internal error occurs.
      */
@@ -86,12 +89,15 @@ public class UmaFlow {
 
     /**
      * Execute UMA workflow for a single resource ID.
-     * - Emits a permissions ticket if no token is provided
-     * - Or returns the introspected RPT token resources.
+     * - Emits a permissions ticket if no token is provided;
+     * - If a permission ticket is provided, returns the introspected RPT token resources:
+     *
+     * The introspected RPT token resources represent the list of resources the user has access to,
+     * along with the scopes the user has access to.
      *
      * @param bearerToken    OIDC/UMA 2.0 Bearer Token (RPT)
      * @param umaId          UMA id for the requested resource
-     * @param umaScopes      the scopes set for the request (for emitting permissions ticket).
+     * @param umaScopes      The scopes to check for accessibility
      * @return the introspected RPT resources.
      * @throws Exception when emitting a permission ticket or an internal error occurs.
      */

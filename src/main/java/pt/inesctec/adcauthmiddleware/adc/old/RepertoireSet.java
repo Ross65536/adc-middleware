@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware.adc.resources;
+package pt.inesctec.adcauthmiddleware.adc.old;
 
 import java.util.Collections;
 import java.util.List;
@@ -16,7 +16,7 @@ import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
-public final class RepertoireSet extends AdcResourceSet {
+public final class RepertoireSet extends AdcResourceOldSet {
     /**
      * The repertoire's ID field name.
      */
@@ -74,10 +74,10 @@ public final class RepertoireSet extends AdcResourceSet {
         if (this.adcSearch.isFacetsSearch()) {
             List<String> resourceIds = Collections.<String>emptyList();
 
-            if (umaState.isEnabled()) {
+            if (umaStateOld.isEnabled()) {
                 resourceIds = UmaUtils.filterFacets(
-                    umaState.getResources(),
-                    umaState.getScopes(),
+                    umaStateOld.getResources(),
+                    umaStateOld.getScopes(),
                     (String umaId) -> CollectionsUtils.toSet(this.dbService.getUmaStudyId(umaId))
                 );
             }
@@ -87,12 +87,12 @@ public final class RepertoireSet extends AdcResourceSet {
                 RepertoireSet.UMA_ID_FIELD,
                 this.adcClient::searchRepertoiresAsStream,
                 resourceIds,
-                !umaState.getScopes().isEmpty());
+                !umaStateOld.getScopes().isEmpty());
         }
 
         Function<String, Set<String>> fieldMapper;
 
-        if (umaState.isEnabled()) {
+        if (umaStateOld.isEnabled()) {
             fieldMapper = this.setupFieldMapper(fieldClass, RepertoireSet.UMA_ID_FIELD);
         } else {
             fieldMapper = this.setupPublicFieldMapper(fieldClass, RepertoireSet.UMA_ID_FIELD);

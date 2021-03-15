@@ -25,7 +25,7 @@ public class UmaClient {
     private static Logger Logger = LoggerFactory.getLogger(UmaClient.class);
 
     @Autowired
-    private UmaConfig umaConfig;
+    private final UmaConfig umaConfig;
     private UmaWellKnown wellKnown;
     private AccessToken accessToken = null;
 

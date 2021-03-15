@@ -368,22 +368,10 @@ The CSV can include other columns after these which are ignored.
 
 The middleware needs to synchronize with the backend periodically. No automatic synchronization is performed so you must invoke synchronization when data in the resource server changes, namely when: a repertoire or rearrangement ir added, deleted or updated (study, repertoire_id and sequence_id fields).
 
-To synchronize you can make the following request to the `/airr/v1/synchronize` endpoint using the password as Bearer token:
+To synchronize you can make the following request to the `/airr/v1/synchronize` endpoint using an Access Token from a user that has the role defined in the `app.synchronizeRole` property.
 
 ```shell script
-curl --location --request POST "$MIDDLEWARE_HOST/airr/v1/synchronize" --header "Authorization: Bearer $THE_PASSWORD"
-```
-
-
-#### Generating password
-
-You need to hash a BCrypt password with 10 rounds to use the synchronization endpoint
-
-```shell script
-sdk install springboot # need https://sdkman.io/ installed
-PASSWORD=$(xxd -l 32 -c 100000 -p /dev/urandom) # or use a different password
-spring encodepassword -a bcrypt $PASSWORD # $THE_PASSWORD
-# example acceptable password: 'master' for '$2a$10$qr81MrxWblqZlMAt5kf/9.xdBPubtDMuoV3DRKgTk2bu.SPazsaTm'
+curl --location --request POST "$MIDDLEWARE_HOST/airr/v1/synchronize" --header "Authorization: Bearer $ACCESS_TOKEN"
 ```
 
 ### Public fields 
@@ -572,10 +560,6 @@ TSV support is implemented in the middleware itself by translating JSON to TSV.
   For ORCID put `https://orcid.org/oauth/authorize` in the `Authorization URL`, `https://orcid.org/oauth/token` in the token url, set `Client Authentication` to `Client secret sent as post` and input the client ID and client secret from the previous step in `Client ID` and `Client Secret`. Save
 
   For EGI Checkin put `https://aai-dev.egi.eu/oidc/authorize` in the `Authorization URL`, `https://aai-dev.egi.eu/oidc/token` in the token url, set `Client secret sent as post` and input client ID and secret. Save
-
-## Implementation Details
-
-You can see [here](./PSEUDOCODE.md) a python-like pseudo-code which describes this whole middleware server's working.
 
 ## Notes
 

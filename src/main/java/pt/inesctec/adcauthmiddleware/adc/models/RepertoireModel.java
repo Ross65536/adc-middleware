@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSet;
 
 /**
  * Models a repertoire response element, but with only the ID fields and the study title.
