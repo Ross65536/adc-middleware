@@ -73,6 +73,7 @@ public abstract class AdcController {
 
         var fieldTypes = this.csvConfig.getFieldsTypes(fieldClass);
         var requestedFields = adcSearch.getRequestedFields(FieldClass.REARRANGEMENT, this.csvConfig);
+
         try {
             AdcSearchRequest.validate(adcSearch, fieldTypes, requestedFields);
         } catch (AdcException e) {

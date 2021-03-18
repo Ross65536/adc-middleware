@@ -1,7 +1,5 @@
 package pt.inesctec.adcauthmiddleware.adc.resources;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -12,27 +10,22 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSetOld;
-import pt.inesctec.adcauthmiddleware.db.models.AdcFieldType;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
-import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
-import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 
-public class RepertoireLoader extends AdcResourceLoader {
-    private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(RepertoireLoader.class);
+public class RearrangementLoader extends AdcResourceLoader {
+    private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(RearrangementLoader.class);
 
-    public RepertoireLoader(AdcClient adcClient, DbService dbService) {
-        super("repertoire", adcClient, dbService);
+    public RearrangementLoader(AdcClient adcClient, DbService dbService) {
+        super("rearrangement", adcClient, dbService);
     }
 
     @Override
     public void load(String adcId) throws Exception {
-        super.load();
-
-        String umaId = this.dbService.getRepertoireUmaId(adcId);
+        String umaId = this.dbService.getRearrangementUmaId(adcId);
 
         if (umaId == null) {
-            Logger.error("Non-existing repertoire with ID {}. Is database /synchronized?", adcId);
+            Logger.error("Non-existing rearrangement with ID {}. Is database /synchronized?", adcId);
             throw SpringUtils.buildHttpException(HttpStatus.NOT_FOUND, "Not found");
         }
 
@@ -42,10 +35,8 @@ public class RepertoireLoader extends AdcResourceLoader {
 
     @Override
     public void load(AdcSearchRequest adcSearch) throws Exception {
-        super.load();
-
-        Set<String> umaIds = this.adcClient.searchRepertoireStudyIds(adcSearch).stream()
-            .map(id -> this.dbService.getStudyUmaId(id))
+        Set<String> umaIds = this.adcClient.searchRearrangementRepertoireIds(adcSearch).stream()
+            .map(id -> this.dbService.getRepertoireUmaId(id))
             .collect(Collectors.toSet());
 
         this.resourceState.setUmaIds(umaIds);
@@ -63,25 +54,6 @@ public class RepertoireLoader extends AdcResourceLoader {
 
     @Override
     public ResponseEntity<StreamingResponseBody> response(AdcSearchRequest adcSearch) throws Exception {
-        if (adcSearch.isFacetsSearch()) {
-            List<String> resourceIds = Collections.<String>emptyList();
-
-            if (resourceState.isUmaEnabled()) {
-                resourceIds = UmaUtils.filterFacets(
-                    resourceState.getResources().values(),
-                    resourceState.getScopes(),
-                    (String umaId) -> CollectionsUtils.toSet(this.dbService.getStudyIdByUmaId(umaId))
-                );
-            }
-
-            return AdcResourceLoader.responseFilteredFacets(
-                adcSearch,
-                RepertoireSetOld.UMA_ID_FIELD,
-                this.adcClient::searchRepertoiresAsStream,
-                resourceIds, resourceState.isUmaEnabled()
-            );
-        }
-
         return responseFilteredJson(
             RepertoireSetOld.UMA_ID_FIELD,
             RepertoireSetOld.RESPONSE_FILTER_FIELD,

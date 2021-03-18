@@ -1,7 +1,7 @@
 package pt.inesctec.adcauthmiddleware.utils;
 
 import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
-import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSetOld;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -59,13 +59,13 @@ public class ModelFactory {
   public static Map<String, Object> buildRepertoire(String id) {
     var stringPrefix = id + "-";
     return TestCollections.mapOf(
-        Pair.of(RepertoireSet.ID_FIELD, "r" + id),
+        Pair.of(RepertoireSetOld.ID_FIELD, "r" + id),
         Pair.of(
-            RepertoireSet.STUDY_BASE,
+            RepertoireSetOld.STUDY_BASE,
             TestCollections.mapOf(
-                Pair.of(RepertoireSet.STUDY_ID_BASE, "s" + id),
+                Pair.of(RepertoireSetOld.STUDY_ID_BASE, "s" + id),
                 Pair.of(
-                    RepertoireSet.STUDY_TITLE_BASE,
+                    RepertoireSetOld.STUDY_TITLE_BASE,
                     stringPrefix + TestConstants.generateHexString(8)),
                 Pair.of(
                     "study_type",

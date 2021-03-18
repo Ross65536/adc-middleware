@@ -62,7 +62,7 @@ public final class RearrangementSet extends AdcResourceOldSet {
             List<String> resourceIds = Collections.<String>emptyList();
 
             if (umaStateOld.isEnabled()) {
-                resourceIds = UmaUtils.filterFacets(
+                resourceIds = UmaUtils.filterFacetsOld(
                     umaStateOld.getResources(), umaStateOld.getScopes(), this.dbService::getUmaRepertoireModel
                 );
             }

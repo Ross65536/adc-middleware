@@ -26,13 +26,10 @@ import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.old.RearrangementResourceOld;
 import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
-import pt.inesctec.adcauthmiddleware.adc.old.RepertoireResourceOld;
-import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSet;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
-import pt.inesctec.adcauthmiddleware.adc.resources.ResourceState;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
@@ -157,27 +154,18 @@ public class AdcAuthController extends AdcController {
         HttpServletRequest request,
         @PathVariable String repertoireId
     ) throws Exception {
-        ResourceState resourceState = new ResourceState();
         RepertoireLoader repertoire = new RepertoireLoader(adcClient, dbService);
 
-        resourceState.setUmaIds(repertoire.loadUmaIds(repertoireId));
+        repertoire.load(repertoireId);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
-            repertoire.processUma(bearer, umaFlow, resourceState);
+            repertoire.processUma(bearer, umaFlow);
         }
 
-        repertoire.loadFieldMappings(umaConfig, resourceState);
+        repertoire.loadFieldMappings(umaConfig);
 
-
-        RepertoireResourceOld resource = new RepertoireResourceOld(repertoireId, adcClient, dbService, csvConfig);
-
-        if (contentProtected) {
-            var bearer = SpringUtils.getBearer(request);
-            resource.enableUma(bearer, umaFlow);
-        }
-
-        return resource.response();
+        return repertoire.response(repertoireId);
     }
 
     /**
@@ -226,14 +214,19 @@ public class AdcAuthController extends AdcController {
         @RequestBody AdcSearchRequest adcSearch
     ) throws Exception {
         this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
-        RepertoireSet repertoireResource = new RepertoireSet(adcSearch, adcClient, dbService, csvConfig);
+
+        RepertoireLoader repertoire = new RepertoireLoader(adcClient, dbService);
+
+        repertoire.load(adcSearch);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
-            repertoireResource.enableUma(bearer, this.umaFlow);
+            repertoire.processUma(bearer, umaFlow);
         }
 
-        return repertoireResource.response();
+        repertoire.loadFieldMappings(umaConfig);
+
+        return repertoire.response(adcSearch);
     }
 
     /**

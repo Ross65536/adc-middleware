@@ -105,14 +105,14 @@ public class AdcSearchRequest {
      */
     public Set<String> getRequestedFields(FieldClass fieldClass, CsvConfig csvConfig) {
         final Set<String> fields = this.isFieldsEmpty() ? Set.of() : this.getFields();
+
         final Set<String> includeFields = this.isIncludeFieldsEmpty()
             ? Set.of()
             : csvConfig.getFields(fieldClass, this.getIncludeFields());
 
         final Set<String> requestedFields = Sets.union(fields, includeFields);
 
-        return new HashSet<>(
-            requestedFields.isEmpty()
+        return new HashSet<>(fields.isEmpty()
                 ? csvConfig.getFieldsTypes(fieldClass).keySet()
                 : requestedFields);
     }

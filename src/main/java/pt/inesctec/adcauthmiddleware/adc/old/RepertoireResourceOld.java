@@ -56,8 +56,8 @@ public final class RepertoireResourceOld extends AdcResourceOld {
         }
 
         return AdcResourceOld.responseFilteredJson(
-            RepertoireSet.UMA_ID_FIELD,
-            RepertoireSet.RESPONSE_FILTER_FIELD,
+            RepertoireSetOld.UMA_ID_FIELD,
+            RepertoireSetOld.RESPONSE_FILTER_FIELD,
             fieldMapper,
             () -> this.adcClient.getRepertoireAsStream(this.repertoireId));
     }
