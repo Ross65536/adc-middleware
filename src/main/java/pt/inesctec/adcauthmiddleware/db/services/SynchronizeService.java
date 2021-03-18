@@ -17,7 +17,7 @@ import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
 import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
-import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSetOld;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
 import pt.inesctec.adcauthmiddleware.db.models.StudyMappings;
@@ -88,9 +88,9 @@ public class SynchronizeService {
 
         // Start by querying the ADC service to determine available Repertoires
         var repertoireSearch = new AdcSearchRequest().addFields(
-            RepertoireSet.ID_FIELD,
-            RepertoireSet.UMA_ID_FIELD,
-            RepertoireSet.STUDY_TITLE_FIELD
+            RepertoireSetOld.ID_FIELD,
+            RepertoireSetOld.UMA_ID_FIELD,
+            RepertoireSetOld.STUDY_TITLE_FIELD
         );
 
         var repertoires = this.adcClient.searchRepertoires(repertoireSearch);

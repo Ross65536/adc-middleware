@@ -18,7 +18,7 @@ import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
 import pt.inesctec.adcauthmiddleware.adc.models.internal.AdcFacetsResponse;
 import pt.inesctec.adcauthmiddleware.adc.models.internal.AdcIdsResponse;
 import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
-import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSetOld;
 import pt.inesctec.adcauthmiddleware.config.AdcConfiguration;
 import pt.inesctec.adcauthmiddleware.http.HttpFacade;
 import pt.inesctec.adcauthmiddleware.http.HttpRequestBuilderFacade;
@@ -194,13 +194,13 @@ public class AdcClient {
     public Set<String> searchRepertoireStudyIds(AdcSearchRequest adcRequest) throws Exception {
         Preconditions.checkArgument(adcRequest.isJsonFormat());
 
-        var idsQuery = adcRequest.queryClone().withFacets(RepertoireSet.UMA_ID_FIELD);
+        var idsQuery = adcRequest.queryClone().withFacets(RepertoireSetOld.UMA_ID_FIELD);
         var request = this.buildSearchRequest("repertoire", idsQuery);
         var facets = HttpFacade.makeExpectJsonRequest(
             request, AdcFacetsResponse.class
         ).getFacets();
 
-        return processStringFacets(facets, RepertoireSet.UMA_ID_FIELD);
+        return processStringFacets(facets, RepertoireSetOld.UMA_ID_FIELD);
     }
 
     /**

@@ -178,12 +178,14 @@ public class FieldsFilter implements IFieldsFilter {
         }
 
         var resourceId = FieldsFilter.getFieldRecursive(resource, this.idField.split(SEPARATOR));
+
         if (resourceId.isEmpty()) {
             Logger.error("Id field " + this.idField + " not present in returned JSON object");
             return Optional.empty();
         }
 
         var fields = this.fieldMapper.apply(resourceId.get());
+
         if (fields.isEmpty()) {
             return Optional.empty();
         }
