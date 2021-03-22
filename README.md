@@ -168,6 +168,12 @@ With arguments:
 ./gradlew bootRun --args='--server.port=9999' # --server.port equivalent to java's -Dserver.port 
 ```
 
+With explicit configuration arguments:
+
+```shell
+./gradlew bootRun --args='--spring.config.location=classpath:/application.properties,./dev.properties'
+```
+
 #### Dev properties configuration example
 
 file `dev.properties` (You need to update `uma.clientSecret`):
@@ -217,7 +223,7 @@ If you wish to trigger migrations manually without running the application, run 
 
 If using IntelliJ IDEA, make sure to provide `-Dflyway.configFiles=dev.properties` as `VM options`.
 
-Developer's note: **Avoid changing older/previous migration scripts at all costs**. Flyway is a revision-based system and the migration workflow follows all migration scripts sequentially. If an older existing migration script is changed, **it will cause a checksum error with any existing database** you try to migrate. If the existing data model required changes, please create a new script. 
+Developer's note: **Avoid changing older/previous migration scripts at all costs**. Flyway is a revision-based system and the migration workflow follows all migration scripts sequentially. If an older existing migration script is changed, **it will cause a checksum error with any existing database** you try to migrate. If the existing data model requires changes, please create a new script. 
 
 More details about Flyway can be found on:
 
