@@ -12,10 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
-import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.db.services.SynchronizeService;
+import pt.inesctec.adcauthmiddleware.http.SyncException;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 
 /**
  * REST Controller for managing dataset synchronization requests.

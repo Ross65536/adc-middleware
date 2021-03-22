@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware.adc.resources;
+package pt.inesctec.adcauthmiddleware.adc.old;
 
 import java.util.Collections;
 import java.util.List;
@@ -16,7 +16,7 @@ import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
-public final class RepertoireSet extends AdcResourceSet {
+public final class RepertoireSetOld extends AdcResourceOldSet {
     /**
      * The repertoire's ID field name.
      */
@@ -52,7 +52,7 @@ public final class RepertoireSet extends AdcResourceSet {
      */
     public static final String STUDY_TITLE_BASE = "study_title";
 
-    public RepertoireSet(AdcSearchRequest adcSearch, AdcClient adcClient, DbService dbService, CsvConfig csvConfig) {
+    public RepertoireSetOld(AdcSearchRequest adcSearch, AdcClient adcClient, DbService dbService, CsvConfig csvConfig) {
         super(FieldClass.REPERTOIRE, adcSearch, adcClient, dbService, csvConfig);
     }
 
@@ -74,33 +74,33 @@ public final class RepertoireSet extends AdcResourceSet {
         if (this.adcSearch.isFacetsSearch()) {
             List<String> resourceIds = Collections.<String>emptyList();
 
-            if (umaState.isEnabled()) {
-                resourceIds = UmaUtils.filterFacets(
-                    umaState.getResources(),
-                    umaState.getScopes(),
-                    (String umaId) -> CollectionsUtils.toSet(this.dbService.getUmaStudyId(umaId))
+            if (umaStateOld.isEnabled()) {
+                resourceIds = UmaUtils.filterFacetsOld(
+                    umaStateOld.getResources(),
+                    umaStateOld.getScopes(),
+                    (String umaId) -> CollectionsUtils.toSet(this.dbService.getStudyIdByUmaId(umaId))
                 );
             }
 
             return responseFilteredFacets(
                 this.adcSearch,
-                RepertoireSet.UMA_ID_FIELD,
+                RepertoireSetOld.UMA_ID_FIELD,
                 this.adcClient::searchRepertoiresAsStream,
                 resourceIds,
-                !umaState.getScopes().isEmpty());
+                !umaStateOld.getScopes().isEmpty());
         }
 
         Function<String, Set<String>> fieldMapper;
 
-        if (umaState.isEnabled()) {
-            fieldMapper = this.setupFieldMapper(fieldClass, RepertoireSet.UMA_ID_FIELD);
+        if (umaStateOld.isEnabled()) {
+            fieldMapper = this.setupFieldMapper(fieldClass, RepertoireSetOld.UMA_ID_FIELD);
         } else {
-            fieldMapper = this.setupPublicFieldMapper(fieldClass, RepertoireSet.UMA_ID_FIELD);
+            fieldMapper = this.setupPublicFieldMapper(fieldClass, RepertoireSetOld.UMA_ID_FIELD);
         }
 
         return responseFilteredJson(
-            RepertoireSet.UMA_ID_FIELD,
-            RepertoireSet.RESPONSE_FILTER_FIELD,
+            RepertoireSetOld.UMA_ID_FIELD,
+            RepertoireSetOld.RESPONSE_FILTER_FIELD,
             fieldMapper.compose(this.dbService::getStudyUmaId),
             () -> this.adcClient.searchRepertoiresAsStream(adcSearch));
     }

@@ -20,19 +20,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import pt.inesctec.adcauthmiddleware.HttpException;
+import pt.inesctec.adcauthmiddleware.http.HttpException;
+import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireLoader;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementResource;
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RearrangementResourceOld;
+import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
+import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 
 /**
  * REST Controller to managing protected endpoints.
@@ -46,6 +47,8 @@ public class AdcAuthController extends AdcController {
     protected DbService dbService;
     @Autowired
     protected UmaFlow umaFlow;
+    @Autowired
+    protected UmaConfig umaConfig;
 
     @PostConstruct
     public void initialize() {
@@ -151,14 +154,18 @@ public class AdcAuthController extends AdcController {
         HttpServletRequest request,
         @PathVariable String repertoireId
     ) throws Exception {
-        RepertoireResource resource = new RepertoireResource(repertoireId, adcClient, dbService, csvConfig);
+        RepertoireLoader repertoire = new RepertoireLoader(adcClient, dbService);
+
+        repertoire.load(repertoireId);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
-            resource.enableUma(bearer, umaFlow);
+            repertoire.processUma(bearer, umaFlow);
         }
 
-        return resource.response();
+        repertoire.loadFieldMappings(umaConfig);
+
+        return repertoire.response(repertoireId);
     }
 
     /**
@@ -178,7 +185,7 @@ public class AdcAuthController extends AdcController {
         HttpServletRequest request,
         @PathVariable String rearrangementId
     ) throws Exception {
-        RearrangementResource resource = new RearrangementResource(rearrangementId, adcClient, dbService, csvConfig);
+        RearrangementResourceOld resource = new RearrangementResourceOld(rearrangementId, adcClient, dbService, csvConfig);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
@@ -207,14 +214,19 @@ public class AdcAuthController extends AdcController {
         @RequestBody AdcSearchRequest adcSearch
     ) throws Exception {
         this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
-        RepertoireSet repertoireResource = new RepertoireSet(adcSearch, adcClient, dbService, csvConfig);
+
+        RepertoireLoader repertoire = new RepertoireLoader(adcClient, dbService);
+
+        repertoire.load(adcSearch);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
-            repertoireResource.enableUma(bearer, this.umaFlow);
+            repertoire.processUma(bearer, umaFlow);
         }
 
-        return repertoireResource.response();
+        repertoire.loadFieldMappings(umaConfig);
+
+        return repertoire.response(adcSearch);
     }
 
     /**

@@ -37,4 +37,36 @@ public class StudyMappings {
         this.field = templateMapping.getField();
         this.study = study;
     }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public Study getStudy() {
+        return study;
+    }
+
+    public void setStudy(Study study) {
+        this.study = study;
+    }
+
+    public AccessScope getScope() {
+        return scope;
+    }
+
+    public void setScope(AccessScope scope) {
+        this.scope = scope;
+    }
+
+    public AdcFields getField() {
+        return field;
+    }
+
+    public void setField(AdcFields field) {
+        this.field = field;
+    }
 }

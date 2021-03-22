@@ -1,0 +1,250 @@
+package pt.inesctec.adcauthmiddleware.adc.resources;
+
+import javax.annotation.PostConstruct;
+import java.io.InputStream;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+
+import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import pt.inesctec.adcauthmiddleware.adc.AdcClient;
+import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
+import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.AdcJsonDocumentParser;
+import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.FieldsFilter;
+import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.IFieldsFilter;
+import pt.inesctec.adcauthmiddleware.config.UmaConfig;
+import pt.inesctec.adcauthmiddleware.db.models.AdcFieldType;
+import pt.inesctec.adcauthmiddleware.db.services.DbService;
+import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
+import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
+import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
+
+/**
+ * Base class for processing the output of an ADC Resource (Repertoires, Rearrangements...)
+ */
+public abstract class AdcResourceLoader {
+    private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcResourceLoader.class);
+
+    // Application's singletons
+    protected AdcClient adcClient;
+    protected DbService dbService;
+
+    protected ResourceState resourceState = new ResourceState();
+    protected String adcFieldTypeName;
+    protected AdcFieldType adcFieldType;
+
+    public AdcResourceLoader(String adcFieldTypeName, AdcClient adcClient, DbService dbService) {
+        this.adcClient        = adcClient;
+        this.dbService        = dbService;
+        this.adcFieldTypeName = adcFieldTypeName;
+    }
+
+    /**
+     * Load specific parameters on initialization
+     */
+    public void load() {
+        this.adcFieldType = this.dbService.getAdcFieldType(this.adcFieldTypeName);
+    }
+
+    /**
+     * Load UMA IDs that identify the resource in the UMA Service
+     *
+     * Used for single resource access
+     *
+     * @param adcId ID that identifies the resource in the ADC service
+     * @return Set of UMA IDs
+     */
+    public abstract void load(String adcId) throws Exception;
+
+    /**
+     * Load UMA IDs that identify the resource in the UMA Service
+     *
+     * Used for ADC Search requests (multiple resources/no specific ID)
+     *
+     * @param adcSearch {@link AdcSearchRequest}
+     */
+    public abstract void load(AdcSearchRequest adcSearch) throws Exception;
+
+    /**
+     * Load scopes for resource
+     *
+     * @return Possible set of UMA scopes for the specific resource
+     * @throws Exception on internal errors
+     */
+    protected Set<String> loadScopes() throws Exception {
+        return this.dbService.getStudyMappingsRepository().findScopesByUmaIds(
+            this.resourceState.getUmaIds(), this.adcFieldType
+        );
+    }
+
+    /**
+     * Load scopes for multiple resources returned by an AdcSearchRequest
+     *
+     * @param adcSearch {@link AdcSearchRequest}
+     * @return Possible set of UMA scopes for the specific resource
+     * @throws Exception on internal errors
+     */
+    protected Set<String> loadScopes(AdcSearchRequest adcSearch) throws Exception {
+        /*final Set<String> requestedFields = adcSearch.isFacetsSearch()
+            ? Set.of(adcSearch.getFacets())
+            : adcSearch.getRequestedFields(fieldClass, this.csvConfig);
+
+        final Set<String> filtersFields = adcSearch.getRequestedFilterFields();
+        final Set<String> allConsideredFields = Sets.union(requestedFields, filtersFields);
+
+        return this.dbService.getStudyMappingsRepository().findScopesByUmaIdsAndByFields(
+            this.resourceState.getUmaIds(), this.adcFieldType.getId(), allConsideredFields
+        );*/
+
+        return this.dbService.getStudyMappingsRepository().findScopesByUmaIds(
+            this.resourceState.getUmaIds(), this.adcFieldType
+        );
+    }
+
+    /**
+     * Abstract Function to be implemented by a specific resource loader.
+     * Must be implemented to return the UMA ID that identifies this resource in the Authorization service.
+     *
+     * @param bearerToken OIDC/UMA 2.0 Bearer Token (RPT)
+     * @param umaFlow UmaFlow object
+     * @throws Exception when emitting a permission ticket or an internal error occurs.
+     */
+    public void processUma(String bearerToken, UmaFlow umaFlow) throws Exception {
+        if (resourceState.getScopes().isEmpty()) {
+            String error = MessageFormat.format(
+                "Internal Error - Error while processing UMA: No scopes were found while trying to determine the permissions for UMA IDs: {}. Failed to run loadScopes()?",
+                resourceState.getResources().toString()
+            );
+            Logger.error(error);
+            throw new Exception(error);
+        }
+
+        resourceState.setUmaEnabled(true);
+        resourceState.setFromUmaResources(umaFlow.execute(
+            bearerToken, resourceState.getUmaIds(), resourceState.getScopes()
+        ));
+    }
+
+    /**
+     * Loads ADC field mappings according to the defined settings in the UMA Service the Middleware's database
+     *
+     * @param umaConfig UMA configuration
+     * @throws Exception on internal errors, i.e. database errors since this is method highly dependant on DB access
+     */
+    public void loadFieldMappings(UmaConfig umaConfig) throws Exception {
+        // Iterate requested resources
+        for(String umaId : resourceState.getUmaIds()) {
+            List<String> scopes = new ArrayList<>();
+
+            // Public Request
+            if (!resourceState.isUmaEnabled()) {
+                scopes.add(umaConfig.getPublicScopeName());
+            }
+            // Protected Request
+            else {
+                // If it's a protected request but if for some reason it fails to determine the resource in the UMA service
+                // Fallback to public fields
+                if (resourceState.getResources().isEmpty() || !resourceState.getResources().containsKey(umaId)) {
+                    Logger.warn("Unable to determine resource with UMA ID {} - not present in UMA Service. Is database /synchronized?", umaId);
+                    scopes.add(umaConfig.getPublicScopeName());
+                } else {
+                    scopes = new ArrayList<>(
+                        resourceState.getResources().get(umaId).getUmaResource().getScopes()
+                    );
+                }
+            }
+
+            List<String> fields = this.dbService.getStudyMappingsRepository().findMappings(
+                umaId, this.adcFieldType, scopes
+            );
+
+            // If the resource wasn't returned by the UMA Service, create a Resource with no UMA State
+            if (!resourceState.getResources().containsKey(umaId)) {
+                resourceState.getResources().put(umaId, new AdcResource());
+            }
+
+            resourceState.getResources().get(umaId).setFieldMappings(fields);
+        }
+    }
+
+    /**
+     * Abstract Function to be implemented by the resource loader.
+     * Should be the final step in a controller and returns the ADC compliant response for the current entity,
+     * filtered according to the User's permissions.
+     *
+     * @param adcId Single ADC resource ID
+     * @return ResponseEntity
+     */
+    public abstract ResponseEntity<StreamingResponseBody> response(String adcId) throws Exception;
+
+    /**
+     * Abstract Function to be implemented by the resource loader.
+     * Should be the final step in a controller and returns the ADC compliant response for the current entity,
+     * filtered according to the User's permissions.
+     *
+     * @param adcSearch for ADC search requests
+     * @return ResponseEntity
+     */
+    public abstract ResponseEntity<StreamingResponseBody> response(AdcSearchRequest adcSearch) throws Exception;
+
+    /**
+     * Build JSON streaming, filtered response.
+     *
+     * @param resourceId          name of the field that identifies this UMA resource in the AdcRequest response
+     * @param responseFilterField name of the JSON object in the AdcRequest response that contains this Resource
+     * @param fieldMapper         the ID to granted fields mapper
+     * @param adcRequest          the ADC request producer.
+     * @return streaming response
+     * @throws Exception on error
+     */
+    public static ResponseEntity<StreamingResponseBody> responseFilteredJson(
+        String resourceId,
+        String responseFilterField,
+        Function<String, Set<String>> fieldMapper,
+        ThrowingSupplier<InputStream, Exception> adcRequest
+    ) throws Exception {
+        var response = SpringUtils.catchForwardingError(adcRequest);
+        var filter = new FieldsFilter(fieldMapper, resourceId);
+        var mapper = AdcJsonDocumentParser.buildJsonMapper(response, responseFilterField, filter);
+        return SpringUtils.buildJsonStream(mapper);
+    }
+
+    /**
+     * Core facets request.
+     *
+     * @param adcSearch        the user's ADC query.
+     * @param resourceId       the resource's ID field
+     * @param adcRequest       the request function
+     * @param resourceIds      the permitted list of resource IDs for facets.
+     * @param isProtected      whether the request made is protected or public.
+     * @return the streamed facets.
+     * @throws Exception on error.
+     */
+    public static ResponseEntity<StreamingResponseBody> responseFilteredFacets(
+        AdcSearchRequest adcSearch,
+        String resourceId,
+        ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest,
+        List<String> resourceIds,
+        boolean isProtected
+    ) throws Exception {
+        boolean filterResponse = false;
+
+        if (isProtected) { // non public facets field
+            adcSearch.withFieldIn(resourceId, resourceIds);
+            filterResponse = resourceIds.isEmpty();
+        }
+
+        var is = SpringUtils.catchForwardingError(() -> adcRequest.apply(adcSearch));
+        // will only perform whitelist filtering if rpt grants access to nothing, for partial access the
+        // backend must perform the filtering
+        IFieldsFilter filter = filterResponse ? FieldsFilter.BlockingFilter : FieldsFilter.OpenFilter;
+        var mapper = AdcJsonDocumentParser.buildJsonMapper(is, AdcConstants.ADC_FACETS, filter);
+        return SpringUtils.buildJsonStream(mapper);
+    }
+}

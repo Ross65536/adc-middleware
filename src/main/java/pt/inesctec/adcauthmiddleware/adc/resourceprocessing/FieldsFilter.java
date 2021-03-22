@@ -19,11 +19,12 @@ import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
  * Field fragments as used here are the values between the fields separator.
  */
 public class FieldsFilter implements IFieldsFilter {
+    private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(FieldsFilter.class);
+
     /**
      * The fields separator REGEX.
      */
     private static final String SEPARATOR = "\\.";
-    private static org.slf4j.Logger Logger = LoggerFactory.getLogger(FieldsFilter.class);
     private final Function<String, Set<String>> fieldMapper;
     private final String idField;
 
@@ -177,12 +178,14 @@ public class FieldsFilter implements IFieldsFilter {
         }
 
         var resourceId = FieldsFilter.getFieldRecursive(resource, this.idField.split(SEPARATOR));
+
         if (resourceId.isEmpty()) {
             Logger.error("Id field " + this.idField + " not present in returned JSON object");
             return Optional.empty();
         }
 
         var fields = this.fieldMapper.apply(resourceId.get());
+
         if (fields.isEmpty()) {
             return Optional.empty();
         }

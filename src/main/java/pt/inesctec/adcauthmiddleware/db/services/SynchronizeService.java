@@ -2,7 +2,6 @@ package pt.inesctec.adcauthmiddleware.db.services;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -17,21 +16,20 @@ import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
-import pt.inesctec.adcauthmiddleware.config.FieldConfig;
+import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSetOld;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
 import pt.inesctec.adcauthmiddleware.db.models.StudyMappings;
-import pt.inesctec.adcauthmiddleware.db.models.TemplateMappings;
 import pt.inesctec.adcauthmiddleware.db.models.Templates;
+import pt.inesctec.adcauthmiddleware.db.repository.AccessScopeRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyMappingsRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.TemplatesRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaResourceAttributes;
+import pt.inesctec.adcauthmiddleware.uma.dto.UmaRegistrationResource;
+import pt.inesctec.adcauthmiddleware.uma.dto.UmaResourceAttributes;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
 /**
@@ -57,9 +55,8 @@ public class SynchronizeService {
     TemplatesRepository templateRepository;
     @Autowired
     StudyMappingsRepository studyMappingsRepository;
-
     @Autowired
-    FieldConfig fieldConfig;
+    AccessScopeRepository accessScopeRepository;
 
     /**
      * Synchronize endpoint entrypoint.
@@ -91,9 +88,9 @@ public class SynchronizeService {
 
         // Start by querying the ADC service to determine available Repertoires
         var repertoireSearch = new AdcSearchRequest().addFields(
-            RepertoireSet.ID_FIELD,
-            RepertoireSet.UMA_ID_FIELD,
-            RepertoireSet.STUDY_TITLE_FIELD
+            RepertoireSetOld.ID_FIELD,
+            RepertoireSetOld.UMA_ID_FIELD,
+            RepertoireSetOld.STUDY_TITLE_FIELD
         );
 
         var repertoires = this.adcClient.searchRepertoires(repertoireSearch);
@@ -210,8 +207,8 @@ public class SynchronizeService {
             }
         }
 
-        // Add new resources
-        var allUmaScopes = this.fieldConfig.getAllUmaScopes();
+        // Get the complete set of scopes present in the database, independently of the resource.
+        var allUmaScopes = this.accessScopeRepository.findAllNames();
 
         dbStudyIds = new HashSet<>(studyRepository.findAllMapByUmaId().values());
 
@@ -250,7 +247,7 @@ public class SynchronizeService {
             // Register study with the default template mappings
             Templates defaultTemplate = templateRepository.findDefault();
 
-            Logger.info("Registering newly found Studies with default template: {}, id: {}",
+            Logger.info("Registering newly found Study with default template: {}, id: {}",
                 defaultTemplate.getName(), defaultTemplate.getId()
             );
 

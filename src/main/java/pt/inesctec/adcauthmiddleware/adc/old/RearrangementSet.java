@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware.adc.resources;
+package pt.inesctec.adcauthmiddleware.adc.old;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +18,7 @@ import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
-public final class RearrangementSet extends AdcResourceSet {
+public final class RearrangementSet extends AdcResourceOldSet {
     /**
      * The rearrangement's ID field name.
      */
@@ -61,9 +61,9 @@ public final class RearrangementSet extends AdcResourceSet {
         if (adcSearch.isFacetsSearch()) {
             List<String> resourceIds = Collections.<String>emptyList();
 
-            if (umaState.isEnabled()) {
-                resourceIds = UmaUtils.filterFacets(
-                    umaState.getResources(), umaState.getScopes(), this.dbService::getUmaRepertoireModel
+            if (umaStateOld.isEnabled()) {
+                resourceIds = UmaUtils.filterFacetsOld(
+                    umaStateOld.getResources(), umaStateOld.getScopes(), this.dbService::getUmaRepertoireModel
                 );
             }
 
@@ -72,13 +72,13 @@ public final class RearrangementSet extends AdcResourceSet {
                 RearrangementSet.REPERTOIRE_ID_FIELD,
                 this.adcClient::searchRearrangementsAsStream,
                 resourceIds,
-                !umaState.getScopes().isEmpty());
+                !umaStateOld.getScopes().isEmpty());
         }
 
         // TODO: Could this be a class parameter? Maybe move it to enableUma? Too specific?
         Function<String, Set<String>> fieldMapper;
 
-        if (umaState.isEnabled()) {
+        if (umaStateOld.isEnabled()) {
             fieldMapper = setupFieldMapper(fieldClass, RearrangementSet.REPERTOIRE_ID_FIELD);
         } else {
             fieldMapper = setupPublicFieldMapper(fieldClass, RearrangementSet.REPERTOIRE_ID_FIELD);

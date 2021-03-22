@@ -6,7 +6,7 @@ import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
-import pt.inesctec.adcauthmiddleware.HttpException;
+import pt.inesctec.adcauthmiddleware.http.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
@@ -15,6 +15,7 @@ import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 
 @RequestMapping("${app.airrBasepath}")
 public abstract class AdcController {
@@ -72,6 +73,7 @@ public abstract class AdcController {
 
         var fieldTypes = this.csvConfig.getFieldsTypes(fieldClass);
         var requestedFields = adcSearch.getRequestedFields(FieldClass.REARRANGEMENT, this.csvConfig);
+
         try {
             AdcSearchRequest.validate(adcSearch, fieldTypes, requestedFields);
         } catch (AdcException e) {

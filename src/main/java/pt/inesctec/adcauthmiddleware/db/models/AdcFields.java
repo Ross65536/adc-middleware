@@ -12,7 +12,7 @@ import javax.persistence.ManyToOne;
 public class AdcFields {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private int id;
 
     @Column(unique = true, nullable = false)
     private String name;
@@ -21,11 +21,11 @@ public class AdcFields {
     @JoinColumn(name = "id_type", nullable = false)
     private AdcFieldType type;
 
-    public long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
 

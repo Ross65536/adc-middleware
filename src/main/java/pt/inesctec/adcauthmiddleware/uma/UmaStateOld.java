@@ -3,13 +3,12 @@ package pt.inesctec.adcauthmiddleware.uma;
 import java.util.List;
 import java.util.Set;
 
-import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
+import pt.inesctec.adcauthmiddleware.uma.dto.UmaResource;
 
 /**
  * Class for managing common UMA States across requests.
  */
-public class UmaState {
-    // UMA Status variables. Relevant for UMA related requests
+public class UmaStateOld {
     private boolean isEnabled = false;
     private Set<String> scopes;
     private Set<String> umaIds;

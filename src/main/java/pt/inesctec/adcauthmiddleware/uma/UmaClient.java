@@ -11,13 +11,13 @@ import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.http.HttpFacade;
 import pt.inesctec.adcauthmiddleware.http.HttpRequestBuilderFacade;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaRegistrationResource;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
-import pt.inesctec.adcauthmiddleware.uma.models.internal.AccessToken;
-import pt.inesctec.adcauthmiddleware.uma.models.internal.Ticket;
-import pt.inesctec.adcauthmiddleware.uma.models.internal.TokenIntrospection;
-import pt.inesctec.adcauthmiddleware.uma.models.internal.UmaResourceCreate;
-import pt.inesctec.adcauthmiddleware.uma.models.internal.UmaWellKnown;
+import pt.inesctec.adcauthmiddleware.uma.dto.UmaRegistrationResource;
+import pt.inesctec.adcauthmiddleware.uma.dto.UmaResource;
+import pt.inesctec.adcauthmiddleware.uma.dto.internal.AccessToken;
+import pt.inesctec.adcauthmiddleware.uma.dto.internal.Ticket;
+import pt.inesctec.adcauthmiddleware.uma.dto.internal.TokenIntrospection;
+import pt.inesctec.adcauthmiddleware.uma.dto.internal.UmaResourceCreate;
+import pt.inesctec.adcauthmiddleware.uma.dto.internal.UmaWellKnown;
 import pt.inesctec.adcauthmiddleware.utils.Utils;
 
 @Component
@@ -25,7 +25,7 @@ public class UmaClient {
     private static Logger Logger = LoggerFactory.getLogger(UmaClient.class);
 
     @Autowired
-    private UmaConfig umaConfig;
+    private final UmaConfig umaConfig;
     private UmaWellKnown wellKnown;
     private AccessToken accessToken = null;
 
@@ -61,12 +61,11 @@ public class UmaClient {
     public String requestPermissionsTicket(UmaResource... resources) throws Exception {
         this.updateAccessToken();
         var uri = Utils.buildUrl(this.getWellKnownInstance().getPermissionEndpoint());
-        var request =
-                new HttpRequestBuilderFacade()
-                        .postJson(uri, resources)
-                        .expectJson()
-                        .withBearer(this.accessToken.getAccessToken())
-                        .build();
+        var request = new HttpRequestBuilderFacade()
+            .postJson(uri, resources)
+            .expectJson()
+            .withBearer(this.accessToken.getAccessToken())
+            .build();
 
         try {
             return HttpFacade.makeExpectJsonRequest(request, Ticket.class).getTicket();
@@ -89,14 +88,13 @@ public class UmaClient {
                 "token", token,
                 "token_type_hint", isRpt ? "requesting_party_token" : "access_token"
         );
-        var request =
-                new HttpRequestBuilderFacade()
-                        .postForm(uri, form)
-                        .expectJson()
-                        // TODO update to bearer once keycloak follows spec
-                        // Keycloak doesn't follow UMA spec in allowing UMA access tokens to be used here
-                        .withBasicAuth(this.umaConfig.getClientId(), this.umaConfig.getClientSecret())
-                        .build();
+        var request = new HttpRequestBuilderFacade()
+            .postForm(uri, form)
+            .expectJson()
+            // TODO update to bearer once keycloak follows spec
+            // Keycloak doesn't follow UMA spec in allowing UMA access tokens to be used here
+            .withBasicAuth(this.umaConfig.getClientId(), this.umaConfig.getClientSecret())
+            .build();
 
         TokenIntrospection introspection = null;
         try {
@@ -117,11 +115,11 @@ public class UmaClient {
         // TODO only update token if necessary, use refresh token
 
         Logger.info("Getting new UMA access token");
-        var body =
-                Map.of(
-                        "grant_type", "client_credentials",
-                        "client_id", this.umaConfig.getClientId(),
-                        "client_secret", this.umaConfig.getClientSecret());
+        var body = Map.of(
+            "grant_type", "client_credentials",
+            "client_id", this.umaConfig.getClientId(),
+            "client_secret", this.umaConfig.getClientSecret()
+        );
 
         var uri = Utils.buildUrl(this.getWellKnownInstance().getTokenEndpoint());
         AccessToken accessToken = null;

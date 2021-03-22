@@ -9,9 +9,9 @@ import java.util.Set;
 import com.google.common.collect.ImmutableList;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import pt.inesctec.adcauthmiddleware.controllers.SpringUtils;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
+import pt.inesctec.adcauthmiddleware.uma.dto.UmaResource;
 
 /**
  * Responsible for the UMA flow.
@@ -45,8 +45,7 @@ public class UmaFlow {
      * @throws Exception on internal error.
      */
     public TicketException noRptToken(Collection<String> umaIds, Set<String> umaScopes) throws Exception {
-        var umaResources =
-            umaIds.stream()
+        var umaResources = umaIds.stream()
             .filter(Objects::nonNull)
             .distinct()
             .map(id -> new UmaResource(id, umaScopes))
@@ -56,17 +55,21 @@ public class UmaFlow {
     }
 
     /**
-     * Execute UMA workflow for multiple resources.
-     * Emits a permissions ticket or returns the introspected RPT token resources.
+     * Execute UMA workflow for multiple resources:
+     * - Emits a permissions ticket if no token is provided;
+     * - If a permission ticket is provided, returns the introspected RPT token resources:
+     *
+     * The introspected RPT token resources represent the list of resources the user has access to,
+     * along with the scopes the user has access to.
      *
      * @param bearerToken    OIDC/UMA 2.0 Bearer Token (RPT)
-     * @param umaIds         set of UMA ids for the requested resources
-     * @param umaScopes      the scopes set for the request (for emitting permissions ticket).
+     * @param umaIds         Set of UMA ids for the requested resources
+     * @param umaScopes      The scopes to check for accessibility
      * @return the introspected RPT resources.
      * @throws Exception when emitting a permission ticket or an internal error occurs.
      */
     public List<UmaResource> execute(String bearerToken, Set<String> umaIds, Set<String> umaScopes) throws Exception {
-        // empty scopes means public access, no UMA flow followed
+        // Empty scopes means public access, no UMA flow followed
         if (umaScopes.isEmpty()) {
             return ImmutableList.of();
         }
@@ -75,21 +78,26 @@ public class UmaFlow {
             return this.umaClient.introspectToken(bearerToken, true).getPermissions();
         }
 
+        // When no resources return, just err
         if (umaIds.isEmpty()) {
-            // when no resources return, just err
             throw SpringUtils.buildHttpException(HttpStatus.UNAUTHORIZED, null);
         }
 
+        // When no token is provided
         throw this.noRptToken(umaIds, umaScopes);
     }
 
     /**
      * Execute UMA workflow for a single resource ID.
-     * Emits a permissions ticket or returns the introspected RPT token resources.
+     * - Emits a permissions ticket if no token is provided;
+     * - If a permission ticket is provided, returns the introspected RPT token resources:
+     *
+     * The introspected RPT token resources represent the list of resources the user has access to,
+     * along with the scopes the user has access to.
      *
      * @param bearerToken    OIDC/UMA 2.0 Bearer Token (RPT)
      * @param umaId          UMA id for the requested resource
-     * @param umaScopes      the scopes set for the request (for emitting permissions ticket).
+     * @param umaScopes      The scopes to check for accessibility
      * @return the introspected RPT resources.
      * @throws Exception when emitting a permission ticket or an internal error occurs.
      */

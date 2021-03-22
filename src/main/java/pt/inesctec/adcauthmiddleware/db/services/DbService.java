@@ -11,14 +11,14 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.models.RearrangementModel;
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
+import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
+import pt.inesctec.adcauthmiddleware.db.models.AdcFieldType;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
+import pt.inesctec.adcauthmiddleware.db.repository.AdcFieldTypeRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
+import pt.inesctec.adcauthmiddleware.db.repository.StudyMappingsRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
 
-/**
- * Responsible for managing, synchronizing the middleware's DB, cache and the Authorization Service.
- */
 @Component
 public class DbService {
     private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(DbService.class);
@@ -29,6 +29,10 @@ public class DbService {
     StudyRepository studyRepository;
     @Autowired
     RepertoireRepository repertoireRepository;
+    @Autowired
+    StudyMappingsRepository studyMappingsRepository;
+    @Autowired
+    AdcFieldTypeRepository adcFieldTypeRepository;
 
     /**
      * Save resource in the DB.
@@ -78,6 +82,7 @@ public class DbService {
     @Cacheable(value = CacheConstants.REPERTOIRES_CACHE_NAME, unless = "#result==null")
     public String getRepertoireUmaId(String repertoireId) {
         var repertoire = this.repertoireRepository.findByRepertoireId(repertoireId);
+
         if (repertoire == null) {
             return null;
         }
@@ -127,7 +132,7 @@ public class DbService {
      * @param umaId the UMA ID.
      * @return study ID. Null if no mapping exists.
      */
-    public String getUmaStudyId(String umaId) {
+    public String getStudyIdByUmaId(String umaId) {
         var study = this.studyRepository.findByUmaId(umaId);
         return study == null ? null : study.getStudyId();
     }
@@ -157,5 +162,17 @@ public class DbService {
      */
     protected void deleteCache() {
         this.repertoireRepository.deleteAll();
+    }
+
+    public StudyMappingsRepository getStudyMappingsRepository() {
+        return studyMappingsRepository;
+    }
+
+    public AdcFieldTypeRepository getAdcFieldTypeRepository() {
+        return adcFieldTypeRepository;
+    }
+
+    public AdcFieldType getAdcFieldType(String adcFieldTypeName) {
+        return this.getAdcFieldTypeRepository().findByName(adcFieldTypeName);
     }
 }

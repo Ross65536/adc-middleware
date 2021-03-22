@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware.controllers;
+package pt.inesctec.adcauthmiddleware.utils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
@@ -15,10 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import pt.inesctec.adcauthmiddleware.HttpException;
+import pt.inesctec.adcauthmiddleware.http.HttpException;
 import pt.inesctec.adcauthmiddleware.http.ClientError;
 import pt.inesctec.adcauthmiddleware.http.Json;
-import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
 
 public final class SpringUtils {
 

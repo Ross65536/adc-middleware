@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware.adc.resources;
+package pt.inesctec.adcauthmiddleware.adc.old;
 
 import java.io.InputStream;
 import java.util.Collections;
@@ -19,7 +19,7 @@ import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.IFieldsFilter;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
-import pt.inesctec.adcauthmiddleware.controllers.SpringUtils;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingFunction;
@@ -29,10 +29,10 @@ import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
  * Base class for processing the output of ADC Resources (Repertoires, Rearrangements...) from AdcSearchRequest
  * Deals with multiple ADC resource sets
  */
-public abstract class AdcResourceSet extends AdcResource {
+public abstract class AdcResourceOldSet extends AdcResourceOld {
     protected AdcSearchRequest adcSearch;
 
-    public AdcResourceSet(FieldClass fieldClass, AdcSearchRequest adcSearch, AdcClient adcClient, DbService dbService, CsvConfig csvConfig) {
+    public AdcResourceOldSet(FieldClass fieldClass, AdcSearchRequest adcSearch, AdcClient adcClient, DbService dbService, CsvConfig csvConfig) {
         super(fieldClass, adcClient, dbService, csvConfig);
         this.adcSearch = adcSearch;
     }
@@ -87,7 +87,7 @@ public abstract class AdcResourceSet extends AdcResource {
             this.adcSearch.addField(resourceId);
         }
 
-        return UmaUtils.buildFieldMapper(umaState.getResources(), fieldClass, csvConfig).andThen(
+        return UmaUtils.buildFieldMapper(umaStateOld.getResources(), fieldClass, csvConfig).andThen(
             fields -> {
                 // Prevent indirect queries to inaccessible fields
                 // Don't return resources where the access level does not match the one in the
