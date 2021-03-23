@@ -20,6 +20,7 @@ import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.config.csv.IncludeField;
+import pt.inesctec.adcauthmiddleware.db.models.AdcFieldType;
 
 /**
  * Models a user's ADC search request body.
@@ -103,7 +104,7 @@ public class AdcSearchRequest {
      * @param csvConfig CsvConfig object
      * @return the set of fields that were requested.
      */
-    public Set<String> getRequestedFields(FieldClass fieldClass, CsvConfig csvConfig) {
+    public Set<String> getRequestedFieldsCsv(FieldClass fieldClass, CsvConfig csvConfig) {
         final Set<String> fields = this.isFieldsEmpty() ? Set.of() : this.getFields();
 
         final Set<String> includeFields = this.isIncludeFieldsEmpty()
@@ -112,9 +113,30 @@ public class AdcSearchRequest {
 
         final Set<String> requestedFields = Sets.union(fields, includeFields);
 
-        return new HashSet<>(fields.isEmpty()
+        return new HashSet<>(requestedFields.isEmpty()
                 ? csvConfig.getFieldsTypes(fieldClass).keySet()
                 : requestedFields);
+    }
+
+    /**
+     * Get the fields that correspond to this Request, non-facets.
+     * This includes the "fields" attribute and specific fields present in "filter" operations.
+     *
+     * If no specific fields were requested, an empty Set will be returned, meaning the user
+     * requested no fields.
+     *
+     * @return the set requested fields.
+     */
+    // TODO: Could expand this method to check "include_fields" somehow?
+    public Set<String> getRequestedFields() {
+        final Set<String> fields       = this.isFieldsEmpty() ? Set.of() : this.getFields();
+        final Set<String> filterFields = this.getRequestedFilterFields();
+
+        /*final Set<String> includeFields = this.isIncludeFieldsEmpty()
+            ? Set.of()
+            : csvConfig.getFields(fieldClass, this.getIncludeFields());*/
+
+        return Sets.union(fields, filterFields);
     }
 
     public Set<String> getFields() {
@@ -170,6 +192,11 @@ public class AdcSearchRequest {
     @JsonIgnore
     public boolean isJsonFormat() {
         return format == null || format.equals("json");
+    }
+
+    @JsonIgnore
+    public boolean isTsvFormat() {
+        return format.equals("tsv");
     }
 
     @JsonIgnore

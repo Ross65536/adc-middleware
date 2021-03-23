@@ -20,12 +20,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementLoader;
 import pt.inesctec.adcauthmiddleware.http.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireLoader;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
-import pt.inesctec.adcauthmiddleware.adc.old.RearrangementResourceOld;
-import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
@@ -185,14 +184,18 @@ public class AdcAuthController extends AdcController {
         HttpServletRequest request,
         @PathVariable String rearrangementId
     ) throws Exception {
-        RearrangementResourceOld resource = new RearrangementResourceOld(rearrangementId, adcClient, dbService, csvConfig);
+        RearrangementLoader rearrangement = new RearrangementLoader(adcClient, dbService);
+
+        rearrangement.load(rearrangementId);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
-            resource.enableUma(bearer, umaFlow);
+            rearrangement.processUma(bearer, umaFlow);
         }
 
-        return resource.response();
+        rearrangement.loadFieldMappings(umaConfig);
+
+        return rearrangement.response(rearrangementId);
     }
 
     /**
@@ -248,13 +251,18 @@ public class AdcAuthController extends AdcController {
         @RequestBody AdcSearchRequest adcSearch
     ) throws Exception {
         validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT, true);
-        RearrangementSet rearrangementResource = new RearrangementSet(adcSearch, adcClient, dbService, csvConfig);
+
+        RearrangementLoader rearrangement = new RearrangementLoader(adcClient, dbService);
+
+        rearrangement.load(adcSearch);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
-            rearrangementResource.enableUma(bearer, this.umaFlow);
+            rearrangement.processUma(bearer, umaFlow);
         }
 
-        return rearrangementResource.response();
+        rearrangement.loadFieldMappings(umaConfig);
+
+        return rearrangement.response(adcSearch);
     }
 }

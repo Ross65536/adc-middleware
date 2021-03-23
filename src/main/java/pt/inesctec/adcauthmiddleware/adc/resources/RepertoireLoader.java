@@ -11,8 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
-import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSetOld;
-import pt.inesctec.adcauthmiddleware.db.models.AdcFieldType;
+import pt.inesctec.adcauthmiddleware.adc.RepertoireConstants;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
@@ -55,16 +54,17 @@ public class RepertoireLoader extends AdcResourceLoader {
     @Override
     public ResponseEntity<StreamingResponseBody> response(String adcId) throws Exception {
         return AdcResourceLoader.responseFilteredJson(
-            RepertoireSetOld.UMA_ID_FIELD,
-            RepertoireSetOld.RESPONSE_FILTER_FIELD,
+            RepertoireConstants.UMA_ID_FIELD,
+            RepertoireConstants.RESPONSE_FILTER_FIELD,
             this.resourceState.setupFieldMapper().compose(this.dbService::getStudyUmaId),
             () -> this.adcClient.getRepertoireAsStream(adcId));
     }
 
     @Override
     public ResponseEntity<StreamingResponseBody> response(AdcSearchRequest adcSearch) throws Exception {
+        // TODO: Repertoire Facets
         if (adcSearch.isFacetsSearch()) {
-            List<String> resourceIds = Collections.<String>emptyList();
+            List<String> resourceIds = Collections.emptyList();
 
             if (resourceState.isUmaEnabled()) {
                 resourceIds = UmaUtils.filterFacets(
@@ -76,16 +76,18 @@ public class RepertoireLoader extends AdcResourceLoader {
 
             return AdcResourceLoader.responseFilteredFacets(
                 adcSearch,
-                RepertoireSetOld.UMA_ID_FIELD,
+                RepertoireConstants.UMA_ID_FIELD,
                 this.adcClient::searchRepertoiresAsStream,
-                resourceIds, resourceState.isUmaEnabled()
+                resourceIds,
+                resourceState.isUmaEnabled()
             );
         }
 
         return responseFilteredJson(
-            RepertoireSetOld.UMA_ID_FIELD,
-            RepertoireSetOld.RESPONSE_FILTER_FIELD,
+            RepertoireConstants.UMA_ID_FIELD,
+            RepertoireConstants.RESPONSE_FILTER_FIELD,
             this.resourceState.setupFieldMapper().compose(this.dbService::getStudyUmaId),
-            () -> this.adcClient.searchRepertoiresAsStream(adcSearch));
+            () -> this.adcClient.searchRepertoiresAsStream(adcSearch)
+        );
     }
 }
