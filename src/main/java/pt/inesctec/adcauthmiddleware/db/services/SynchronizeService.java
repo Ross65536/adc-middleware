@@ -16,8 +16,8 @@ import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
-import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
-import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSetOld;
+import pt.inesctec.adcauthmiddleware.adc.RearrangementConstants;
+import pt.inesctec.adcauthmiddleware.adc.RepertoireConstants;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
 import pt.inesctec.adcauthmiddleware.db.models.StudyMappings;
@@ -88,16 +88,16 @@ public class SynchronizeService {
 
         // Start by querying the ADC service to determine available Repertoires
         var repertoireSearch = new AdcSearchRequest().addFields(
-            RepertoireSetOld.ID_FIELD,
-            RepertoireSetOld.UMA_ID_FIELD,
-            RepertoireSetOld.STUDY_TITLE_FIELD
+            RepertoireConstants.ID_FIELD,
+            RepertoireConstants.UMA_ID_FIELD,
+            RepertoireConstants.STUDY_TITLE_FIELD
         );
 
         var repertoires = this.adcClient.searchRepertoires(repertoireSearch);
 
         CollectionsUtils.assertList(
             repertoires, e -> e.getRepertoireId() != null,
-            "Repertoires response must have a " + RearrangementSet.REPERTOIRE_ID_FIELD
+            "Repertoires response must have a " + RearrangementConstants.REPERTOIRE_ID_FIELD
         );
 
         boolean syncSuccessful = true;

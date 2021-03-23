@@ -84,19 +84,19 @@ public class UmaUtils {
      *
      * From the UMA resource list and scopes obtain the list of resource IDs that can be safely processed for the resource type.
      *
-     * @param umaResources the UMA resources and scopes.
-     * @param umaScopes    the UMA scopes that the user must have access to for the resource, otherwise the resource is not considered.
-     * @param umaIdGetter  function that returns the collection of resource IDs given the UMA ID.
+     * @param adcResources   the UMA resources and scopes.
+     * @param umaScopes      the UMA scopes that the user must have access to for the resource, otherwise the resource is not considered.
+     * @param resourceGetter function that returns the collection of resource IDs given an UMA ID.
      * @return the filtered collection of resource IDs.
      */
     public static List<String> filterFacets(
-        Collection<AdcResource> umaResources,
+        Collection<AdcResource> adcResources,
         Set<String> umaScopes,
-        Function<String, Set<String>> umaIdGetter
+        Function<String, Set<String>> resourceGetter
     ) {
-        return umaResources.stream()
+        return adcResources.stream()
             .filter(resource -> !Sets.intersection(umaScopes, resource.getUmaResource().getScopes()).isEmpty())
-            .map(resource -> umaIdGetter.apply(resource.getUmaResource().getUmaId()))
+            .map(resource -> resourceGetter.apply(resource.getUmaResource().getUmaId()))
             .filter(Objects::nonNull)
             .flatMap(Collection::stream)
             .filter(Objects::nonNull)

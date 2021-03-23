@@ -1,7 +1,7 @@
 package pt.inesctec.adcauthmiddleware.utils;
 
-import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
-import pt.inesctec.adcauthmiddleware.adc.old.RepertoireSetOld;
+import pt.inesctec.adcauthmiddleware.adc.RearrangementConstants;
+import pt.inesctec.adcauthmiddleware.adc.RepertoireConstants;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -59,13 +59,13 @@ public class ModelFactory {
   public static Map<String, Object> buildRepertoire(String id) {
     var stringPrefix = id + "-";
     return TestCollections.mapOf(
-        Pair.of(RepertoireSetOld.ID_FIELD, "r" + id),
+        Pair.of(RepertoireConstants.ID_FIELD, "r" + id),
         Pair.of(
-            RepertoireSetOld.STUDY_BASE,
+            RepertoireConstants.STUDY_BASE,
             TestCollections.mapOf(
-                Pair.of(RepertoireSetOld.STUDY_ID_BASE, "s" + id),
+                Pair.of(RepertoireConstants.STUDY_ID_BASE, "s" + id),
                 Pair.of(
-                    RepertoireSetOld.STUDY_TITLE_BASE,
+                    RepertoireConstants.STUDY_TITLE_BASE,
                     stringPrefix + TestConstants.generateHexString(8)),
                 Pair.of(
                     "study_type",
@@ -88,8 +88,8 @@ public class ModelFactory {
       String repertoireId, String rearrangementId) {
     var stringPrefix = rearrangementId + "-";
     return TestCollections.mapOf(
-        Pair.of(RearrangementSet.REPERTOIRE_ID_FIELD, repertoireId),
-        Pair.of(RearrangementSet.ID_FIELD, "r" + rearrangementId),
+        Pair.of(RearrangementConstants.REPERTOIRE_ID_FIELD, repertoireId),
+        Pair.of(RearrangementConstants.ID_FIELD, "r" + rearrangementId),
         Pair.of("sequence", stringPrefix + TestConstants.generateHexString(10)),
         Pair.of("rearrangement_id", stringPrefix + TestConstants.generateHexString(10)),
         Pair.of("sequence_aa", stringPrefix + TestConstants.generateHexString(10)));
