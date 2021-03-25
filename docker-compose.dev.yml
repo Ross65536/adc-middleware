@@ -18,7 +18,7 @@ services:
   db:
     image: postgres:12
     volumes:
-      - keycloak_db:/var/lib/postgresql/data:delegated
+      - middleware_db:/var/lib/postgresql/data:delegated
     ports:
       - 5432:5432
     environment:
@@ -27,4 +27,4 @@ services:
       POSTGRES_PASSWORD: password
 
 volumes:
-  keycloak_db:
+  middleware_db:

@@ -24,7 +24,7 @@ public class TemplateDto {
         for (var mapping : template.getMappings()) {
             long scopeId = mapping.getScope().getId();
 
-            TemplateMappingDto tmDto = mapScopeFields.getOrDefault(scopeId, new TemplateMappingDto(mapping.getScope()));
+            TemplateMappingDto tmDto = mapScopeFields.getOrDefault(scopeId, new TemplateMappingDto(mapping.getScope().getId()));
             tmDto.addField(mapping.getField().getId());
 
             mapScopeFields.put(scopeId, tmDto);
