@@ -104,6 +104,7 @@ public class AdcSearchRequest {
      * @param csvConfig CsvConfig object
      * @return the set of fields that were requested.
      */
+    @JsonIgnore
     public Set<String> getRequestedFieldsCsv(FieldClass fieldClass, CsvConfig csvConfig) {
         final Set<String> fields = this.isFieldsEmpty() ? Set.of() : this.getFields();
 
@@ -121,13 +122,13 @@ public class AdcSearchRequest {
     /**
      * Get the fields that correspond to this Request, non-facets.
      * This includes the "fields" attribute and specific fields present in "filter" operations.
-     *
      * If no specific fields were requested, an empty Set will be returned, meaning the user
      * requested no fields.
      *
      * @return the set requested fields.
      */
     // TODO: Could expand this method to check "include_fields" somehow?
+    @JsonIgnore
     public Set<String> getRequestedFields() {
         final Set<String> fields       = this.isFieldsEmpty() ? Set.of() : this.getFields();
         final Set<String> filterFields = this.getRequestedFilterFields();
@@ -176,11 +177,6 @@ public class AdcSearchRequest {
         this.format = format;
     }
 
-    @JsonIgnore
-    public void unsetFormat() {
-        this.format = null;
-    }
-
     public String getFacets() {
         return facets;
     }
@@ -196,7 +192,7 @@ public class AdcSearchRequest {
 
     @JsonIgnore
     public boolean isTsvFormat() {
-        return format.equals("tsv");
+        return format != null && format.equals("tsv");
     }
 
     @JsonIgnore

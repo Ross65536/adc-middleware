@@ -56,8 +56,6 @@ public class UmaUtils {
     }
 
     /**
-     * TODO: Delete
-     *
      * From the UMA resource list and scopes obtain the list of resource IDs that can be safely processed for the resource type.
      *
      * @param umaResources the UMA resources and scopes.
@@ -65,6 +63,7 @@ public class UmaUtils {
      * @param umaIdGetter  function that returns the collection of resource IDs given the UMA ID.
      * @return the filtered collection of resource IDs.
      */
+    // TODO: Delete
     public static List<String> filterFacetsOld(
         Collection<UmaResource> umaResources,
         Set<String> umaScopes,
@@ -81,7 +80,6 @@ public class UmaUtils {
     }
 
     /**
-     *
      * From the UMA resource list and scopes obtain the list of resource IDs that can be safely processed for the resource type.
      *
      * @param adcResources   the UMA resources and scopes.

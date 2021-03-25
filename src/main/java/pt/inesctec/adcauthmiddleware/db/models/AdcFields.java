@@ -21,6 +21,8 @@ public class AdcFields {
     @JoinColumn(name = "id_type", nullable = false)
     private AdcFieldType type;
 
+    protected AdcFields() {}
+
     public int getId() {
         return id;
     }
@@ -44,6 +46,4 @@ public class AdcFields {
     public void setType(AdcFieldType type) {
         this.type = type;
     }
-
-    protected AdcFields() {};
 }

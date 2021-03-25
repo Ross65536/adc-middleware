@@ -217,11 +217,6 @@ public class SynchronizeService {
             var umaName = String.format("study ID: %s; title: %s", newStudyId, studyTitle);
             var resource = new UmaRegistrationResource(umaName, AdcConstants.UMA_STUDY_TYPE, allUmaScopes);
 
-            var umaAttributes = new UmaResourceAttributes();
-            umaAttributes.setPublicFields(Set.of("repertoire_id"));
-
-            resource.setAttributes(umaAttributes);
-
             String createdUmaId;
             try {
                 createdUmaId = this.umaClient.createUmaResource(resource);
