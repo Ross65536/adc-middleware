@@ -2,13 +2,15 @@ package pt.inesctec.adcauthmiddleware.db.dto;
 
 import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
 
-public class AdcFieldDto {
+public class AdcFieldsDto {
     private long id;
     private String name;
+    private long class_id;
 
-    public AdcFieldDto(AdcFields adcFields) {
+    public AdcFieldsDto(AdcFields adcFields) {
         this.id = adcFields.getId();
         this.name = adcFields.getName();
+        this.class_id = adcFields.getType().getId();
     }
 
     public long getId() {
@@ -23,7 +25,9 @@ public class AdcFieldDto {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public void setName(String name) { this.name = name; }
+
+    public long getClass_id() { return class_id; }
+
+    public void setClass_id(long class_id) { this.class_id = class_id; }
 }
