@@ -20,19 +20,19 @@ public class Study {
     private long id;
 
     /**
-     * String of the Study ID provided by the ADC Service
+     * String of the Study ID provided by the ADC Service.
      */
     @Column(unique = true, nullable = false)
     private String studyId;
 
     /**
-     * String of the UMA ID provided by the UMA Authorization Service
+     * String of the UMA ID provided by the UMA Authorization Service.
      */
     @Column(unique = true, nullable = false)
     private String umaId;
 
     /**
-     * Field Accessibility mappings for this particular Study
+     * Field Accessibility mappings for this particular Study.
      */
     @OneToMany(
         mappedBy = "study",

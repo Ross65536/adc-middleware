@@ -18,6 +18,8 @@ public class AccessScope {
     @Column(unique = true, nullable = false)
     private String name;
 
+    protected AccessScope() {}
+
     public int getId() {
         return id;
     }
@@ -33,6 +35,4 @@ public class AccessScope {
     public void setName(String name) {
         this.name = name;
     }
-
-    protected AccessScope() {};
 }
