@@ -9,7 +9,7 @@ import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
 /**
  * DTO for mapping an AccessScope with their AdcFields.
  */
-public class TemplateMappingDTO {
+public class TemplateMappingDto {
     // Contains the AccessScope for this mapping
     private long scope;
     // Contains the AdcField IDs for the current AccessScope
@@ -21,7 +21,7 @@ public class TemplateMappingDTO {
      * @param scope Scope to be added to this Mapping
      * @param fields List of ADC Fields to be mapped
      */
-    public TemplateMappingDTO(long scope, List<AdcFields> fields) {
+    public TemplateMappingDto(long scope, List<AdcFields> fields) {
         this.scope = scope;
 
         for (var field : fields) {
@@ -35,7 +35,7 @@ public class TemplateMappingDTO {
      *
      * @param scope Scope to be added to this Mapping
      */
-    public TemplateMappingDTO(long scope) {
+    public TemplateMappingDto(long scope) {
         this.scope = scope;
         this.fields = new ArrayList<Integer>();
     }

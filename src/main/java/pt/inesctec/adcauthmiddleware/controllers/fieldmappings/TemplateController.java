@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import pt.inesctec.adcauthmiddleware.controllers.ResourceController;
-import pt.inesctec.adcauthmiddleware.db.dto.TemplateDTO;
-import pt.inesctec.adcauthmiddleware.db.dto.TemplatesListDTO;
+import pt.inesctec.adcauthmiddleware.db.dto.TemplateDto;
+import pt.inesctec.adcauthmiddleware.db.dto.TemplatesListDto;
 import pt.inesctec.adcauthmiddleware.db.models.Templates;
 import pt.inesctec.adcauthmiddleware.db.repository.TemplatesRepository;
 
@@ -36,10 +36,10 @@ public class TemplateController extends ResourceController {
             value = "/templates",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<TemplatesListDTO>> templateList() throws Exception {
+    public ResponseEntity<List<TemplatesListDto>> templateList() throws Exception {
         List<Templates> templates = templatesRepository.findAll();
-        List<TemplatesListDTO> templateList = templates.stream()
-                .map(TemplatesListDTO::new)
+        List<TemplatesListDto> templateList = templates.stream()
+                .map(TemplatesListDto::new)
                 .collect(Collectors.toList());
         return new ResponseEntity<>(templateList, HttpStatus.OK);
     }
@@ -54,10 +54,10 @@ public class TemplateController extends ResourceController {
             value = "/templates/{templateId}",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TemplateDTO> templateSingle(
+    public ResponseEntity<TemplateDto> templateSingle(
             @PathVariable Long templateId
     ) throws Exception {
-        TemplateDTO template = new TemplateDTO(templatesRepository.findById(templateId).get());
+        TemplateDto template = new TemplateDto(templatesRepository.findById(templateId).get());
         return new ResponseEntity<>(template, HttpStatus.OK);
     }
 }
