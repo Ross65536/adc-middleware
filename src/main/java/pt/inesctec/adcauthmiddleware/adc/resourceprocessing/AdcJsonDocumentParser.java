@@ -76,7 +76,6 @@ public class AdcJsonDocumentParser {
      */
     public static StreamingResponseBody buildTsvMapper(InputStream response, String mappedField, IFieldsFilter filter, Map<String, FieldType> headerFields) {
         return os -> {
-
             var jsonWriter = new AdcTsvWriter(os, headerFields);
             var mapper = new AdcJsonDocumentParser(response, mappedField, filter, jsonWriter);
             mapper.process();
