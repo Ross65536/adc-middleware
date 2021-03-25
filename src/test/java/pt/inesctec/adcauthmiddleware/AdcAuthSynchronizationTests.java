@@ -44,7 +44,7 @@ public class AdcAuthSynchronizationTests extends TestBase {
     String accessToken = umaInit();
     UmaWireMocker.wireListResources(umaMock, accessToken);
 
-    synchronize();
+    synchronize(accessToken);
 
     this.assertRepertoireNotFound("1");
   }
@@ -58,7 +58,7 @@ public class AdcAuthSynchronizationTests extends TestBase {
     UmaWireMocker.wireListResources(umaMock, accessToken);
     var umaId = UmaWireMocker.wireCreateResource(umaMock, repertoire, accessToken);
 
-    synchronize();
+    synchronize(accessToken);
 
     assertRepertoireTicketRequest(repertoire, accessToken, umaId);
   }
@@ -70,7 +70,7 @@ public class AdcAuthSynchronizationTests extends TestBase {
     String accessToken = umaInit();
     UmaWireMocker.wireListResources(umaMock, accessToken);
     var umaId1 = UmaWireMocker.wireCreateResource(umaMock, repertoire1, accessToken);
-    synchronize();
+    synchronize(accessToken);
     assertRepertoireTicketRequest(repertoire1, accessToken, umaId1);
 
     umaMock.resetMappings();
@@ -78,13 +78,16 @@ public class AdcAuthSynchronizationTests extends TestBase {
 
     var repertoire2 = ModelFactory.buildRepertoire("2");
     wireSyncRepertoires(repertoire1, repertoire2);
+
+    var name = "name 123";
     accessToken = umaInit();
     UmaWireMocker.wireListResources(umaMock, accessToken, umaId1);
-    var name = "name 123";
     UmaWireMocker.wireGetResource(umaMock, umaId1, name, List.of("123", TestConstants.UMA_SEQUENCE_SCOPE), accessToken);
-    UmaWireMocker.wirePutResource(umaMock, umaId1, name, List.of("123", TestConstants.UMA_SEQUENCE_SCOPE, TestConstants.UMA_STATISTICS_SCOPE), accessToken, AdcConstants.UMA_STUDY_TYPE);
+    UmaWireMocker.wirePutResource(umaMock, umaId1, name, List.of("123", TestConstants.UMA_PUBLIC_SCOPE, TestConstants.UMA_SEQUENCE_SCOPE, TestConstants.UMA_STATISTICS_SCOPE), accessToken, AdcConstants.UMA_STUDY_TYPE);
+
     var umaId2 = UmaWireMocker.wireCreateResource(umaMock, repertoire2, accessToken);
-    synchronize();
+    synchronize(accessToken);
+
     assertRepertoireTicketRequest(repertoire2, accessToken, umaId2);
     assertRepertoireTicketRequest(repertoire1, accessToken, umaId1);
     umaMock.verify(1, WireMock.putRequestedFor(WireMock.urlEqualTo(UmaWireMocker.UMA_RESOURCE_REGISTRATION_PATH + "/" + umaId1)));
@@ -97,7 +100,7 @@ public class AdcAuthSynchronizationTests extends TestBase {
     String accessToken = umaInit();
     UmaWireMocker.wireListResources(umaMock, accessToken);
     var umaId1 = UmaWireMocker.wireCreateResource(umaMock, repertoire1, accessToken);
-    synchronize();
+    synchronize(accessToken);
     assertRepertoireTicketRequest(repertoire1, accessToken, umaId1);
 
     umaMock.resetMappings();
@@ -112,7 +115,7 @@ public class AdcAuthSynchronizationTests extends TestBase {
     var name = "name 123";
     UmaWireMocker.wireGetResource(umaMock, umaId1, name, List.of("123", TestConstants.UMA_SEQUENCE_SCOPE), accessToken);
     UmaWireMocker.wirePutResource(umaMock, umaId1, name, null, accessToken, AdcConstants.UMA_DELETED_STUDY_TYPE);
-    synchronize();
+    synchronize(accessToken);
     assertRepertoireTicketRequest(repertoire2, accessToken, umaId2);
     assertRepertoireNotFound(TestCollections.getString(repertoire1, RepertoireConstants.ID_FIELD));
     umaMock.verify(1, WireMock.putRequestedFor(WireMock.urlEqualTo(UmaWireMocker.UMA_RESOURCE_REGISTRATION_PATH + "/" + umaId1)));
@@ -127,7 +130,7 @@ public class AdcAuthSynchronizationTests extends TestBase {
     var name = "name 123";
     UmaWireMocker.wireGetResource(umaMock, danglingUmaId, name, List.of("123", TestConstants.UMA_SEQUENCE_SCOPE), accessToken);
     UmaWireMocker.wirePutResource(umaMock, danglingUmaId, name, null, accessToken, AdcConstants.UMA_DELETED_STUDY_TYPE);
-    synchronize();
+    synchronize(accessToken);
 
     umaMock.verify(1, WireMock.putRequestedFor(WireMock.urlEqualTo(UmaWireMocker.UMA_RESOURCE_REGISTRATION_PATH + "/" + danglingUmaId)));
   }
@@ -153,8 +156,8 @@ public class AdcAuthSynchronizationTests extends TestBase {
         this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT, repertoireId), ticket);
   }
 
-  private void synchronize() {
-    String accessToken = umaInit();
+  private void synchronize(String accessToken) {
+    //String accessToken = umaInit();
     this.requests.postEmpty(
         this.buildMiddlewareUrl(TestConstants.SYNCHRONIZE_PATH_FRAGMENT),
         accessToken,

@@ -7,8 +7,8 @@ import java.util.Set;
 import pt.inesctec.adcauthmiddleware.uma.dto.UmaResource;
 
 /**
- * Class for representing the state of an ADC Resource
- * Maintains its UMA Resource state and Field Mappings for controlling accessibility
+ * Class for representing the state of an ADC Resource.
+ * Maintains its UMA Resource state and Field Mappings for controlling accessibility.
  *
  */
 public class AdcResource {
@@ -22,7 +22,7 @@ public class AdcResource {
     public AdcResource() {}
 
     /**
-     * Initialize Resource using only its UMA state
+     * Initialize Resource using only its UMA state.
      *
      * @param umaResource UmaResource object
      */
@@ -31,7 +31,7 @@ public class AdcResource {
     }
 
     /**
-     * Initialize Resource using only determined Field Mappings
+     * Initialize Resource using only determined Field Mappings.
      * Used in case the Resource doesn't have an UMA state.
      * I.e. the user didn't have permission to access it,
      * so it will contain public mappings

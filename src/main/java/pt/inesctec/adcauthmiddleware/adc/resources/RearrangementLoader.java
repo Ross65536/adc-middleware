@@ -66,7 +66,7 @@ public class RearrangementLoader extends AdcResourceLoader {
             RearrangementConstants.REPERTOIRE_ID_FIELD,
             RearrangementConstants.RESPONSE_FILTER_FIELD,
             this.resourceState.setupFieldMapper().compose(this.dbService::getRepertoireUmaId),
-            () -> this.adcClient.getRepertoireAsStream(adcId));
+            () -> this.adcClient.getRearrangementAsStream(adcId));
     }
 
     @Override
@@ -109,7 +109,7 @@ public class RearrangementLoader extends AdcResourceLoader {
             RearrangementConstants.REPERTOIRE_ID_FIELD,
             RearrangementConstants.RESPONSE_FILTER_FIELD,
             this.resourceState.setupFieldMapper().compose(this.dbService::getRepertoireUmaId),
-            () -> this.adcClient.searchRepertoiresAsStream(adcSearch)
+            () -> this.adcClient.searchRearrangementsAsStream(adcSearch)
         );
     }
 

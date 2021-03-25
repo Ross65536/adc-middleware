@@ -47,7 +47,7 @@ public class UmaConfig {
     private String resourceOwner;
 
     /**
-     * Name of the Access Scope name shared between the UMA
+     * Name of the Access Scope name shared between the UMA.
      */
     private String publicScopeName;
 

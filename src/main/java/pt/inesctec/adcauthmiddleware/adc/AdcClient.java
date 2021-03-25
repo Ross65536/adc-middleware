@@ -92,8 +92,7 @@ public class AdcClient {
      * @throws IOException          on error
      * @throws InterruptedException on error
      */
-    public InputStream getRepertoireAsStream(String repertoireId)
-            throws IOException, InterruptedException {
+    public InputStream getRepertoireAsStream(String repertoireId) throws IOException, InterruptedException {
         final URI uri = this.getResourceServerPath("repertoire", repertoireId);
 
         var request = new HttpRequestBuilderFacade().getJson(uri).build();
