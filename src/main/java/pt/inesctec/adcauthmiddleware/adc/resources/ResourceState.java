@@ -13,7 +13,7 @@ import pt.inesctec.adcauthmiddleware.uma.dto.UmaResource;
 /**
  * Resource State Manager
  * Class for managing common ADC Resources, UMA States and Field accessibility across requests.
- *
+ * <br>
  * Resource Loading workflow:
  * <ul>
  *   <li>Determine UMA IDs that identify the ADC Resource</li>
@@ -78,7 +78,6 @@ public class ResourceState {
 
     /**
      * Set Resources from a list of UmaResources. Will map resources in the following format:
-     *
      * Map[UMA ID] => AdcResource
      *
      * @param resources list of UmaResources

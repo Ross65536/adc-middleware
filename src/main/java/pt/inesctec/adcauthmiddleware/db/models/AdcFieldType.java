@@ -15,6 +15,8 @@ public class AdcFieldType {
     @Column(unique = true, nullable = false)
     private String name;
 
+    protected AdcFieldType() {}
+
     public int getId() {
         return id;
     }
@@ -30,6 +32,4 @@ public class AdcFieldType {
     public void setName(String name) {
         this.name = name;
     }
-
-    protected AdcFieldType() {}
 }

@@ -46,15 +46,13 @@ public class AdcTsvWriter implements IAdcWriter {
      * @param writeHeaders true if TSV header is to be written in response. false otherwise.
      * @return the writer
      */
-    private static ObjectWriter buildCsvMapper(
-            Map<String, FieldType> headerFields, boolean writeHeaders) {
+    private static ObjectWriter buildCsvMapper(Map<String, FieldType> headerFields, boolean writeHeaders) {
         CsvSchema.Builder schema = new CsvSchema.Builder();
         schema.setUseHeader(writeHeaders);
         schema.setColumnSeparator('\t');
         schema.setLineSeparator('\n');
         schema.setArrayElementSeparator(",");
         schema.disableQuoteChar();
-
 
         for (var p : headerFields.entrySet()) {
             var field = p.getKey();

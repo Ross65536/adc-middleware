@@ -23,7 +23,7 @@ public class TestBase {
   protected int port;
 
   protected String buildMiddlewareUrl(String ... path) {
-    return "http://localhost:" + port + TestConstants.buildAirrPath(path);
+    return "http://127.0.0.1:" + port + TestConstants.buildAirrPath(path);
   }
 
 }

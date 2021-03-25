@@ -11,7 +11,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.models.RearrangementModel;
-import pt.inesctec.adcauthmiddleware.adc.old.RearrangementSet;
+import pt.inesctec.adcauthmiddleware.adc.RearrangementConstants;
 import pt.inesctec.adcauthmiddleware.db.models.AdcFieldType;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.repository.AdcFieldTypeRepository;
@@ -119,7 +119,7 @@ public class DbService {
 
         var repertoireId = rearrangements.get(0).getRepertoireId();
         if (repertoireId == null) {
-            Logger.error("Response's rearrangement can't have a null " + RearrangementSet.ID_FIELD);
+            Logger.error("Response's rearrangement can't have a null " + RearrangementConstants.ID_FIELD);
             return null;
         }
 
@@ -138,12 +138,12 @@ public class DbService {
     }
 
     /**
-     * Get the set of repertoire IDs given an UMA ID.
+     * Get the set of Repertoire IDs given an UMA ID.
      *
      * @param umaId the UMA ID.
      * @return repertoire IDs. null if a mapping in the chain does not exist.
      */
-    public Set<String> getUmaRepertoireModel(String umaId) {
+    public Set<String> getRepertoireIdsByUmaId(String umaId) {
         var study = this.studyRepository.findByUmaId(umaId);
         if (study == null) {
             return null;

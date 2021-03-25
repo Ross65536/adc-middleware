@@ -56,9 +56,10 @@ public class UmaFlow {
 
     /**
      * Execute UMA workflow for multiple resources:
-     * - Emits a permissions ticket if no token is provided;
-     * - If a permission ticket is provided, returns the introspected RPT token resources:
-     *
+     * <ul>
+     *     <li>Emits a permissions ticket if no token is provided;</li>
+     *     <li>If a permission ticket is provided, returns the introspected RPT token resources:</li>
+     * </ul>
      * The introspected RPT token resources represent the list of resources the user has access to,
      * along with the scopes the user has access to.
      *
@@ -89,9 +90,10 @@ public class UmaFlow {
 
     /**
      * Execute UMA workflow for a single resource ID.
-     * - Emits a permissions ticket if no token is provided;
-     * - If a permission ticket is provided, returns the introspected RPT token resources:
-     *
+     * <ul>
+     *     <li>Emits a permissions ticket if no token is provided;</li>
+     *     <li>If a permission ticket is provided, returns the introspected RPT token resources</li>
+     * </ul>
      * The introspected RPT token resources represent the list of resources the user has access to,
      * along with the scopes the user has access to.
      *
