@@ -2,11 +2,11 @@ package pt.inesctec.adcauthmiddleware.db.dto;
 
 import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
 
-public class AccessScopeDto {
+public class AccessScopeDTO {
     private int id;
     private String name;
 
-    public AccessScopeDto(AccessScope scope) {
+    public AccessScopeDTO(AccessScope scope) {
         this.id = scope.getId();
         this.name = scope.getName();
     }

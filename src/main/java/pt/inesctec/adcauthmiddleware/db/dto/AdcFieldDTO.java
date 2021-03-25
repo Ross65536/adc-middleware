@@ -2,11 +2,11 @@ package pt.inesctec.adcauthmiddleware.db.dto;
 
 import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
 
-public class AdcFieldDto {
+public class AdcFieldDTO {
     private long id;
     private String name;
 
-    public AdcFieldDto(AdcFields adcFields) {
+    public AdcFieldDTO(AdcFields adcFields) {
         this.id = adcFields.getId();
         this.name = adcFields.getName();
     }
