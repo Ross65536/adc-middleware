@@ -29,10 +29,10 @@ public class FieldContent {
      * @param validFieldTypes the valid fields and types.
      * @throws AdcException on validation error.
      */
-    public void validate(String errorField, Map<String, FieldType> validFieldTypes)
-            throws AdcException {
+    public void validate(String errorField, Map<String, FieldType> validFieldTypes) throws AdcException {
         String fieldName = errorField + ".field";
         FiltersUtils.assertNonNull(fieldName, field);
+
         if (!validFieldTypes.containsKey(field)) {
             throw new AdcException(String.format("'%s' value '%s' is not valid", fieldName, field));
         }

@@ -963,12 +963,12 @@ public class AdcAuthEndpointTests extends TestBase {
         var token = UmaWireMocker.wireTokenIntrospection(
             umaMock,
             ModelFactory.buildUmaResource(this.firstRepertoireUmaId, TestConstants.UMA_ALL_SCOPES),
-            ModelFactory.buildUmaResource(
-                this.secondRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE)));
+            ModelFactory.buildUmaResource(this.secondRepertoireUmaId, Set.of(TestConstants.UMA_STATISTICS_SCOPE))
+        );
 
-        var actual =
-            this.requests.postJson(
-                this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token);
+        var actual = this.requests.postJson(
+            this.buildMiddlewareUrl(TestConstants.REPERTOIRE_PATH_FRAGMENT), request, 200, token
+        );
 
         // second repertoire is filtered out because of the "filters"
         assertThat(actual)

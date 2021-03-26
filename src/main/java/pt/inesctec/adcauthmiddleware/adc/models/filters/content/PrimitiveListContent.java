@@ -29,8 +29,7 @@ public class PrimitiveListContent extends FieldContent {
     }
 
     @Override
-    public void validate(String errorField, Map<String, FieldType> validFieldTypes)
-            throws AdcException {
+    public void validate(String errorField, Map<String, FieldType> validFieldTypes) throws AdcException {
         super.validate(errorField, validFieldTypes);
 
         String fieldName = errorField + ".value";
@@ -46,10 +45,9 @@ public class PrimitiveListContent extends FieldContent {
                 }
                 break;
             default:
-                throw new AdcException(
-                        String.format(
-                                "'%s' must be of type JSON string array as indicated by field '%s'",
-                                fieldName, this.getField()));
+                throw new AdcException(String.format(
+                    "'%s' must be of type JSON string array as indicated by field '%s'", fieldName, this.getField()
+                ));
         }
     }
 }

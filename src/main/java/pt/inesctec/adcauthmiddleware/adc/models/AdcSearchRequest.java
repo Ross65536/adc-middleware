@@ -45,22 +45,17 @@ public class AdcSearchRequest {
      * Validates that the user request is semantically correct.
      * TODO: Possibly delete this function and remove everywhere where its called. It serves no purpose as validation should be done on the Repository's side
      *
-     * @param adcSearch          the user's request
      * @param validFieldTypes    map of all the valid fields for the resource type of the endpoint and their corresponding types.
      * @param tsvRequestedFields the set of fields that are requested (from 'fields', 'include_fields'). Only applicable in a TSV request.
      * @throws AdcException on validation error.
      */
-    public static void validate(
-            AdcSearchRequest adcSearch,
-            Map<String, FieldType> validFieldTypes,
-            Set<String> tsvRequestedFields)
-            throws AdcException {
-        var fields = adcSearch.getFields();
-        if (fields != null && adcSearch.getFacets() != null) {
+    public void validate(Map<String, FieldType> validFieldTypes, Set<String> tsvRequestedFields) throws AdcException {
+        var fields = this.getFields();
+        if (fields != null && this.getFacets() != null) {
             throw new AdcException("Can't use 'fields' and 'facets' at the same time in request");
         }
 
-        if (adcSearch.getIncludeFields() != null && adcSearch.getFacets() != null) {
+        if (this.getIncludeFields() != null && this.getFacets() != null) {
             throw new AdcException("Can't use 'include_fields' and 'facets' at the same time in request");
         }
 
@@ -72,17 +67,17 @@ public class AdcSearchRequest {
             }
         }
 
-        if (adcSearch.facets != null && !validFieldTypes.containsKey(adcSearch.facets)) {
-            throw new AdcException(String.format("'facets' '%s' value is not valid", adcSearch.facets));
+        if (this.facets != null && !validFieldTypes.containsKey(this.facets)) {
+            throw new AdcException(String.format("'facets' '%s' value is not valid", this.facets));
         }
 
-        if (adcSearch.filters != null) {
-            adcSearch.filters.validate("filters", validFieldTypes);
+        if (this.filters != null) {
+            this.filters.validate("filters", validFieldTypes);
         }
 
-        final boolean isTsv = !adcSearch.isJsonFormat();
+        final boolean isTsv = !this.isJsonFormat();
         if (isTsv) {
-            if (adcSearch.isFacetsSearch()) {
+            if (this.isFacetsSearch()) {
                 throw new AdcException("can't return TSV format for facets");
             }
 

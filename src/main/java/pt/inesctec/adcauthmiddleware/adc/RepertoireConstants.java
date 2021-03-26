@@ -51,4 +51,9 @@ public final class RepertoireConstants {
      * The repertoire's study's study title second fragment name.
      */
     public static final String STUDY_TITLE_BASE = "study_title";
+
+    /**
+     * Database {@link pt.inesctec.adcauthmiddleware.db.models.AdcFieldType} name
+     */
+    public static final String DB_FIELDTYPE = "repertoire";
 }

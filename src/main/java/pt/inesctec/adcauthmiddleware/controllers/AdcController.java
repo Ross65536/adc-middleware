@@ -6,6 +6,8 @@ import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
+import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
+import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.http.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
@@ -25,6 +27,8 @@ public abstract class AdcController {
     protected CsvConfig csvConfig;
     @Autowired
     protected AdcClient adcClient;
+    @Autowired
+    protected DbService dbService;
 
     protected static org.slf4j.Logger Logger;
     protected Delayer repertoiresDelayer;
@@ -39,8 +43,8 @@ public abstract class AdcController {
      * @throws HttpException on validation error
      */
     protected void validateAdcSearch(
-        AdcSearchRequest adcSearch, FieldClass fieldClass, boolean tsvEnabled) throws HttpException {
-
+        AdcSearchRequest adcSearch, String adcFieldTypeName, boolean tsvEnabled
+    ) throws HttpException {
         if (adcSearch.isFacetsSearch() && !this.appConfig.isFacetsEnabled()) {
             throw SpringUtils.buildHttpException(
                 HttpStatus.NOT_IMPLEMENTED,
@@ -71,14 +75,20 @@ public abstract class AdcController {
                 HttpStatus.UNPROCESSABLE_ENTITY, "TSV format not enabled for this endpoint");
         }
 
-        var fieldTypes = this.csvConfig.getFieldsTypes(fieldClass);
-        var requestedFields = adcSearch.getRequestedFieldsCsv(FieldClass.REARRANGEMENT, this.csvConfig);
+        //var fieldTypes = this.csvConfig.getFieldsTypes(fieldClass);
+        var validFields = dbService.getAdcFieldsRepository().findByType(
+            dbService.getAdcFieldType(adcFieldTypeName)
+        );
+
+        var requestedFields = adcSearch.getRequestedFields();
 
         try {
-            AdcSearchRequest.validate(adcSearch, fieldTypes, requestedFields);
+            adcSearch.validate(validFields, requestedFields);
         } catch (AdcException e) {
             throw SpringUtils.buildHttpException(
-                HttpStatus.UNPROCESSABLE_ENTITY, "Invalid input JSON: " + e.getMessage());
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                "Invalid input JSON: " + e.getMessage()
+            );
         }
     }
 }

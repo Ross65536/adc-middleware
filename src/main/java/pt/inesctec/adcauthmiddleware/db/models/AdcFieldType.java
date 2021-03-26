@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 
 @Entity
 public class AdcFieldType {
@@ -14,6 +15,8 @@ public class AdcFieldType {
 
     @Column(unique = true, nullable = false)
     private String name;
+
+
 
     protected AdcFieldType() {}
 

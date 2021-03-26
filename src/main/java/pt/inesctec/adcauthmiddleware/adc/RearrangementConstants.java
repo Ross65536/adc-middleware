@@ -31,4 +31,9 @@ public final class RearrangementConstants {
      * The ADC document (JSON object) response's field name for the rearrangement list.
      */
     public static final String RESPONSE_FILTER_FIELD = "Rearrangement";
+
+    /**
+     * Database {@link pt.inesctec.adcauthmiddleware.db.models.AdcFieldType} name
+     */
+    public static final String DB_FIELDTYPE = "rearrangement";
 }
