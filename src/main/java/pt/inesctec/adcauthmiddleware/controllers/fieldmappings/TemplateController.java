@@ -27,7 +27,7 @@ public class TemplateController extends ResourceController {
     private TemplatesRepository templatesRepository;
 
     /**
-     * Field Mappings for a Study.
+     * Field Mappings for a Template.
      *
      * @return JSON list of Templates
      * @throws Exception for connection failures, authentication failure
@@ -45,7 +45,7 @@ public class TemplateController extends ResourceController {
     }
 
     /**
-     * Field Mappings for a Study.
+     * Field Mappings for a Template.
      *
      * @return JSON of Template along with Field Mappings
      * @throws Exception for connection failures, authentication failure
