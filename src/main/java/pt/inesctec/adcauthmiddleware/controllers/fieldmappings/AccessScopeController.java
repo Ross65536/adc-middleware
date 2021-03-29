@@ -1,5 +1,8 @@
 package pt.inesctec.adcauthmiddleware.controllers.fieldmappings;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,9 +15,6 @@ import pt.inesctec.adcauthmiddleware.controllers.ResourceController;
 import pt.inesctec.adcauthmiddleware.db.dto.AccessScopeDto;
 import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
 import pt.inesctec.adcauthmiddleware.db.repository.AccessScopeRepository;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 public class AccessScopeController extends ResourceController {

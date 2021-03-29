@@ -6,7 +6,6 @@ import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
 import pt.inesctec.adcauthmiddleware.db.models.AdcFieldType;
 import pt.inesctec.adcauthmiddleware.db.models.StudyMappings;
 

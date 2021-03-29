@@ -1,13 +1,10 @@
 package pt.inesctec.adcauthmiddleware.controllers;
 
-import java.util.Set;
-
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
-import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyMappingsRepository;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
 

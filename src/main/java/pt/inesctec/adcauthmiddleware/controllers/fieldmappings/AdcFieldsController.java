@@ -1,5 +1,8 @@
 package pt.inesctec.adcauthmiddleware.controllers.fieldmappings;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,9 +15,6 @@ import pt.inesctec.adcauthmiddleware.controllers.ResourceController;
 import pt.inesctec.adcauthmiddleware.db.dto.AdcFieldsDto;
 import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
 import pt.inesctec.adcauthmiddleware.db.repository.AdcFieldsRepository;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 public class AdcFieldsController extends ResourceController {

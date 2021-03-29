@@ -7,14 +7,10 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.slf4j.LoggerFactory;
 import pt.inesctec.adcauthmiddleware.adc.resources.AdcResource;
-import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.controllers.AdcAuthController;
-import pt.inesctec.adcauthmiddleware.uma.dto.UmaResource;
 
 public class UmaUtils {
     private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcAuthController.class);

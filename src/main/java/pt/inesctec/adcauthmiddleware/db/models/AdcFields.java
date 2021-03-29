@@ -1,13 +1,15 @@
 package pt.inesctec.adcauthmiddleware.db.models;
 
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 public class AdcFields {
@@ -46,5 +48,24 @@ public class AdcFields {
 
     public void setType(AdcFieldType type) {
         this.type = type;
+    }
+
+    /**
+     * Auxiliary function to check if name is present in a list of {@link AdcFields}
+     *
+     * @return true if present
+     */
+    @Transient
+    public static boolean listContains(List<AdcFields> list, String name) {
+        return list.stream().map(AdcFields::getName).anyMatch(name::equals);
+    }
+
+    /**
+     * Get a List of names from a list of {@link AdcFields}
+     *
+     * @return List of {@link AdcFields} names
+     */
+    public static List<String> toNameList(List<AdcFields> adcFields) {
+        return adcFields.stream().map(AdcFields::getName).collect(Collectors.toList());
     }
 }

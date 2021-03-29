@@ -6,15 +6,13 @@ import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
-import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
-import pt.inesctec.adcauthmiddleware.db.services.DbService;
-import pt.inesctec.adcauthmiddleware.http.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
+import pt.inesctec.adcauthmiddleware.db.services.DbService;
+import pt.inesctec.adcauthmiddleware.http.HttpException;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
 import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
@@ -38,7 +36,7 @@ public abstract class AdcController {
      * Validate that the user's ADC query is semantically correct. Also enforces disabled features as set in the configuration.
      *
      * @param adcSearch  the user's ADC query
-     * @param fieldClass the resource type
+     * @param adcFieldTypeName Base Field Class of this request
      * @param tsvEnabled whether TSV is enabled for the considered endpoint.
      * @throws HttpException on validation error
      */
@@ -69,8 +67,7 @@ public abstract class AdcController {
                     + " are blacklisted");
         }
 
-        final boolean isTsv = !adcSearch.isJsonFormat();
-        if (isTsv && !tsvEnabled) {
+        if (adcSearch.isTsvFormat() && !tsvEnabled) {
             throw SpringUtils.buildHttpException(
                 HttpStatus.UNPROCESSABLE_ENTITY, "TSV format not enabled for this endpoint");
         }

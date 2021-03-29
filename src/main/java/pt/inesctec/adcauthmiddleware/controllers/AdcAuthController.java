@@ -2,7 +2,6 @@ package pt.inesctec.adcauthmiddleware.controllers;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableMap;
@@ -22,15 +21,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.adc.RearrangementConstants;
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementLoader;
-import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
-import pt.inesctec.adcauthmiddleware.http.HttpException;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireLoader;
+import pt.inesctec.adcauthmiddleware.adc.RepertoireConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
+import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementLoader;
+import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireLoader;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.db.services.DbService;
+import pt.inesctec.adcauthmiddleware.http.HttpException;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
@@ -217,7 +214,7 @@ public class AdcAuthController extends AdcController {
         HttpServletRequest request,
         @RequestBody AdcSearchRequest adcSearch
     ) throws Exception {
-        this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
+        this.validateAdcSearch(adcSearch, RepertoireConstants.DB_FIELDTYPE, false);
 
         RepertoireLoader repertoire = new RepertoireLoader(adcClient, dbService);
 

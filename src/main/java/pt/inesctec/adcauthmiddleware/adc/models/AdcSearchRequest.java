@@ -1,9 +1,9 @@
 package pt.inesctec.adcauthmiddleware.adc.models;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -18,9 +18,8 @@ import pt.inesctec.adcauthmiddleware.adc.models.filters.content.PrimitiveListCon
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.PrimitiveListContentFilter;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.config.csv.IncludeField;
-import pt.inesctec.adcauthmiddleware.db.models.AdcFieldType;
+import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
 
 /**
  * Models a user's ADC search request body.
@@ -43,14 +42,16 @@ public class AdcSearchRequest {
 
     /**
      * Validates that the user request is semantically correct.
-     * TODO: Possibly delete this function and remove everywhere where its called. It serves no purpose as validation should be done on the Repository's side
      *
-     * @param validFieldTypes    map of all the valid fields for the resource type of the endpoint and their corresponding types.
+     * @param validFields   list of all valid fields for the resource type of the endpoint and their corresponding types.
      * @param tsvRequestedFields the set of fields that are requested (from 'fields', 'include_fields'). Only applicable in a TSV request.
      * @throws AdcException on validation error.
      */
-    public void validate(Map<String, FieldType> validFieldTypes, Set<String> tsvRequestedFields) throws AdcException {
+    @JsonIgnore
+    public void validate(List<AdcFields> validFields, Set<String> tsvRequestedFields) throws AdcException {
         var fields = this.getFields();
+        var validFieldNames = AdcFields.toNameList(validFields);
+
         if (fields != null && this.getFacets() != null) {
             throw new AdcException("Can't use 'fields' and 'facets' at the same time in request");
         }
@@ -59,24 +60,27 @@ public class AdcSearchRequest {
             throw new AdcException("Can't use 'include_fields' and 'facets' at the same time in request");
         }
 
+        // Validate if unknown fields are being requested
         if (fields != null && !fields.isEmpty()) {
-            for (var field : fields) {
-                if (!validFieldTypes.containsKey(field)) {
-                    throw new AdcException(String.format("'fields' '%s' value is not valid", field));
-                }
+            var fieldsToValidate = new ArrayList<>(fields);
+            fieldsToValidate.removeAll(validFieldNames);
+
+            if (!fieldsToValidate.isEmpty()) {
+                throw new AdcException(
+                    String.format("One or more fields aren't known ADC Fields: %s", fields.toString())
+                );
             }
         }
 
-        if (this.facets != null && !validFieldTypes.containsKey(this.facets)) {
+        if (this.facets != null && !validFieldNames.contains(this.facets)) {
             throw new AdcException(String.format("'facets' '%s' value is not valid", this.facets));
         }
 
         if (this.filters != null) {
-            this.filters.validate("filters", validFieldTypes);
+            this.filters.validate("filters", validFields);
         }
 
-        final boolean isTsv = !this.isJsonFormat();
-        if (isTsv) {
+        if (this.isTsvFormat()) {
             if (this.isFacetsSearch()) {
                 throw new AdcException("can't return TSV format for facets");
             }
@@ -84,7 +88,8 @@ public class AdcSearchRequest {
             for (var field : tsvRequestedFields) {
                 if (field.contains(AdcConstants.ADC_FIELD_SEPARATOR)) {
                     throw new AdcException(
-                            String.format("TSV: The field %s requested cannot be a nested document", field));
+                        String.format("TSV: The field %s requested cannot be a nested document", field)
+                    );
                 }
             }
         }
