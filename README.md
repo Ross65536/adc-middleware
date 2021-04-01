@@ -24,7 +24,7 @@ Example deployment for testing in localhost.
 0. Clone the repository:
 
   ```shell script
-  git clone https://github.com/ireceptorplus-inesctec/adc-middleware
+git clone https://github.com/ireceptorplus-inesctec/adc-middleware
   ```
 
 1. Load repository test data:
@@ -33,17 +33,19 @@ Example deployment for testing in localhost.
 
   Download backend data (for testing):
   ```shell script
-  cd example
-  curl -L https://github.com/Ross65536/adc-middleware/releases/download/data/repository-data.tar.gz > repository-data.tar.gz
-  tar -xvzf repository-data.tar.gz -C data/
-  sudo chown -R $(whoami) data/mongodb/
+cd example
+curl -L https://github.com/Ross65536/adc-middleware/releases/download/data/repository-data.tar.gz > repository-data.tar.gz
+tar -xvzf repository-data.tar.gz -C data/
+sudo chown -R $(whoami) data/mongodb/
   ```
 
 2. Load all components:
 
-  (Optional) build middleware docker image locally:
+  (Optional) build middleware docker image locally and push it to Docker Hub:
   ```shell script
-  docker build -t ireceptorplus-inesctec/adc-middleware .
+docker login registry-1.docker.io --username=yourhubusername --password=yourpassword
+docker build -t irpinesctec/adc-middleware:$IMG_TAG .
+docker push irpinesctec/adc-middleware:$IMG_TAG
   ```
 
   Load components
@@ -356,6 +358,7 @@ spring.cache.type=simple
 
 Value for the `app.adcCsvConfigPath` config param. You can use the default provided `./field-mapping.csv` or extend it.
 The CSV must have header:
+
 - `class`: Specifies whether the field is a `Repertoire` or `Rearrangement`
 - `field`: The field. For nested objects demark with `.`. Example `subject.age_unit.value` or `repertoire_id`. Supports arrays.
 - `protection`: Whether the field is publicly access or protected. Public means any user can access this information, protected means only users that were given access to with the specific scope can access the field information. Valid values are `public` and `protected`. 
