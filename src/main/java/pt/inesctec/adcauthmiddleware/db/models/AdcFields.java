@@ -51,7 +51,7 @@ public class AdcFields {
     }
 
     /**
-     * Auxiliary function to check if name is present in a list of {@link AdcFields}
+     * Auxiliary function to check if name is present in a list of {@link AdcFields}.
      *
      * @return true if present
      */
@@ -61,7 +61,7 @@ public class AdcFields {
     }
 
     /**
-     * Get a List of names from a list of {@link AdcFields}
+     * Get a List of names from a list of {@link AdcFields}.
      *
      * @return List of {@link AdcFields} names
      */

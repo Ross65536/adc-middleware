@@ -37,7 +37,7 @@ public final class RepertoireConstants {
     public static final String STUDY_TITLE_BASE = "study_title";
 
     /**
-     * Database {@link pt.inesctec.adcauthmiddleware.db.models.AdcFieldType} name
+     * Database {@link pt.inesctec.adcauthmiddleware.db.models.AdcFieldType} name.
      */
     public static final String DB_FIELDTYPE = "repertoire";
 }

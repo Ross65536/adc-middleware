@@ -24,7 +24,7 @@ public class AdcFieldTypeController extends ResourceController {
     private AdcFieldTypeRepository adcFieldTypeRepository;
 
     /**
-     * Adc Field Types
+     * Adc Field Types.
      *
      * @return JSON list of Adc Field Types
      * @throws Exception for connection failures, authentication failure

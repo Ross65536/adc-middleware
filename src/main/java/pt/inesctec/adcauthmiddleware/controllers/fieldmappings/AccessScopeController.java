@@ -24,7 +24,7 @@ public class AccessScopeController extends ResourceController {
     private AccessScopeRepository accessScopeRepository;
 
     /**
-     * Access scopes
+     * Access scopes.
      *
      * @return JSON list of Access Scopes
      * @throw Exception for connection failures, authentication failures

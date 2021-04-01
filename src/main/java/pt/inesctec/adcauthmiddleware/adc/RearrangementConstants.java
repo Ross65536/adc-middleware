@@ -17,7 +17,7 @@ public final class RearrangementConstants {
     public static final String RESPONSE_FILTER_FIELD = "Rearrangement";
 
     /**
-     * Database {@link pt.inesctec.adcauthmiddleware.db.models.AdcFieldType} name
+     * Database {@link pt.inesctec.adcauthmiddleware.db.models.AdcFieldType} name.
      */
     public static final String DB_FIELDTYPE = "rearrangement";
 }
