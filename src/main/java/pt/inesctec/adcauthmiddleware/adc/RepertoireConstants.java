@@ -1,21 +1,5 @@
 package pt.inesctec.adcauthmiddleware.adc;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import pt.inesctec.adcauthmiddleware.adc.AdcClient;
-import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
-import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.db.services.DbService;
-import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
-import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
-
 public final class RepertoireConstants {
     /**
      * The repertoire's ID field name.
@@ -51,4 +35,9 @@ public final class RepertoireConstants {
      * The repertoire's study's study title second fragment name.
      */
     public static final String STUDY_TITLE_BASE = "study_title";
+
+    /**
+     * Database {@link pt.inesctec.adcauthmiddleware.db.models.AdcFieldType} name.
+     */
+    public static final String DB_FIELDTYPE = "repertoire";
 }

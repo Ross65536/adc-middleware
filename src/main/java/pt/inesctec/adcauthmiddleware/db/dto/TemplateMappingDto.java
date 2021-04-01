@@ -3,7 +3,6 @@ package pt.inesctec.adcauthmiddleware.db.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
 import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
 
 /**

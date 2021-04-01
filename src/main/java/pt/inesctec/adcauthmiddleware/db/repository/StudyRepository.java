@@ -1,7 +1,6 @@
 package pt.inesctec.adcauthmiddleware.db.repository;
 
 import javax.transaction.Transactional;
-
 import java.util.Map;
 import java.util.stream.Collectors;
 

@@ -10,11 +10,12 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
-import pt.inesctec.adcauthmiddleware.adc.models.RearrangementModel;
 import pt.inesctec.adcauthmiddleware.adc.RearrangementConstants;
+import pt.inesctec.adcauthmiddleware.adc.models.RearrangementModel;
 import pt.inesctec.adcauthmiddleware.db.models.AdcFieldType;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.repository.AdcFieldTypeRepository;
+import pt.inesctec.adcauthmiddleware.db.repository.AdcFieldsRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.RepertoireRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyMappingsRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
@@ -33,6 +34,8 @@ public class DbService {
     StudyMappingsRepository studyMappingsRepository;
     @Autowired
     AdcFieldTypeRepository adcFieldTypeRepository;
+    @Autowired
+    AdcFieldsRepository adcFieldsRepository;
 
     /**
      * Save resource in the DB.
@@ -170,6 +173,10 @@ public class DbService {
 
     public AdcFieldTypeRepository getAdcFieldTypeRepository() {
         return adcFieldTypeRepository;
+    }
+
+    public AdcFieldsRepository getAdcFieldsRepository() {
+        return adcFieldsRepository;
     }
 
     public AdcFieldType getAdcFieldType(String adcFieldTypeName) {
