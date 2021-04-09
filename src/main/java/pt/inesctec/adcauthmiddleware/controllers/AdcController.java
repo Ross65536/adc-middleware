@@ -38,11 +38,16 @@ public abstract class AdcController {
      * @param adcSearch  the user's ADC query
      * @param adcFieldTypeName Base Field Class of this request
      * @param tsvEnabled whether TSV is enabled for the considered endpoint.
+     * @return validated adcSearch
      * @throws HttpException on validation error
      */
-    protected void validateAdcSearch(
+    protected AdcSearchRequest validateAdcSearch(
         AdcSearchRequest adcSearch, String adcFieldTypeName, boolean tsvEnabled
     ) throws HttpException {
+        if (adcSearch == null) {
+            adcSearch = new AdcSearchRequest();
+        }
+
         if (adcSearch.isFacetsSearch() && !this.appConfig.isFacetsEnabled()) {
             throw SpringUtils.buildHttpException(
                 HttpStatus.NOT_IMPLEMENTED,
@@ -87,5 +92,7 @@ public abstract class AdcController {
                 "Invalid input JSON: " + e.getMessage()
             );
         }
+
+        return adcSearch;
     }
 }

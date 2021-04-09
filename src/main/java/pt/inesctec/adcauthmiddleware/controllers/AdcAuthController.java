@@ -207,14 +207,14 @@ public class AdcAuthController extends AdcController {
     @RequestMapping(
         value = "/repertoire",
         method = { RequestMethod.GET, RequestMethod.POST },
-        consumes = MediaType.APPLICATION_JSON_VALUE,
+        //consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> repertoireList(
         @RequestHeader(value = "Content-Protected", defaultValue = "false") Boolean contentProtected,
         HttpServletRequest request,
-        @RequestBody AdcSearchRequest adcSearch
+        @RequestBody(required = false) AdcSearchRequest adcSearch
     ) throws Exception {
-        this.validateAdcSearch(adcSearch, RepertoireConstants.DB_FIELDTYPE, false);
+        adcSearch = this.validateAdcSearch(adcSearch, RepertoireConstants.DB_FIELDTYPE, false);
 
         RepertoireLoader repertoire = new RepertoireLoader(adcClient, dbService);
 
@@ -241,14 +241,14 @@ public class AdcAuthController extends AdcController {
     @RequestMapping(
         value = "/rearrangement",
         method = { RequestMethod.GET, RequestMethod.POST },
-        consumes = MediaType.APPLICATION_JSON_VALUE,
+        //consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> rearrangementList(
         @RequestHeader(value = "Content-Protected", defaultValue = "false") Boolean contentProtected,
         HttpServletRequest request,
         @RequestBody AdcSearchRequest adcSearch
     ) throws Exception {
-        validateAdcSearch(adcSearch, RearrangementConstants.DB_FIELDTYPE, true);
+        adcSearch = validateAdcSearch(adcSearch, RearrangementConstants.DB_FIELDTYPE, true);
 
         RearrangementLoader rearrangement = new RearrangementLoader(adcClient, dbService);
 
