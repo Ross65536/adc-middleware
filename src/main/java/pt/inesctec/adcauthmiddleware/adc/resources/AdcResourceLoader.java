@@ -1,10 +1,8 @@
 package pt.inesctec.adcauthmiddleware.adc.resources;
 
-import javax.annotation.PostConstruct;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -227,8 +225,13 @@ public abstract class AdcResourceLoader {
         ThrowingSupplier<InputStream, Exception> adcRequest
     ) throws Exception {
         var response = SpringUtils.catchForwardingError(adcRequest);
+
+        /*var stringBody = CharStreams.toString(new InputStreamReader(response, Charsets.UTF_8));
+        System.out.println(stringBody);*/
+
         var filter = new FieldsFilter(fieldMapper, resourceId);
         var mapper = AdcJsonDocumentParser.buildJsonMapper(response, responseFilterField, filter);
+
         return SpringUtils.buildJsonStream(mapper);
     }
 

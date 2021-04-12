@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.http.HttpFacade;
 import pt.inesctec.adcauthmiddleware.http.HttpRequestBuilderFacade;
-import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.uma.dto.UmaRegistrationResource;
 import pt.inesctec.adcauthmiddleware.uma.dto.UmaResource;
 import pt.inesctec.adcauthmiddleware.uma.dto.internal.AccessToken;
@@ -18,6 +17,7 @@ import pt.inesctec.adcauthmiddleware.uma.dto.internal.Ticket;
 import pt.inesctec.adcauthmiddleware.uma.dto.internal.TokenIntrospection;
 import pt.inesctec.adcauthmiddleware.uma.dto.internal.UmaResourceCreate;
 import pt.inesctec.adcauthmiddleware.uma.dto.internal.UmaWellKnown;
+import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.utils.Utils;
 
 @Component

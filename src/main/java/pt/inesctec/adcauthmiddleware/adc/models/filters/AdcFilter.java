@@ -1,6 +1,6 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -12,7 +12,7 @@ import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.NumberCo
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.PrimitiveContentFilter;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.PrimitiveListContentFilter;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.StringContentFilter;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
+import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -53,10 +53,10 @@ public abstract class AdcFilter {
      * sub-filters or content objects's corresponding method.
      *
      * @param field           the path used for emitting user friendly error messages.
-     * @param validFieldTypes the map of valid fields and their types.
+     * @param validFields the map of valid fields
      * @throws AdcException on validation error.
      */
-    public void validate(String field, Map<String, FieldType> validFieldTypes) throws AdcException {
+    public void validate(String field, List<AdcFields> validFields) throws AdcException {
         FiltersUtils.assertNonNull(field + ".op", op);
     }
 

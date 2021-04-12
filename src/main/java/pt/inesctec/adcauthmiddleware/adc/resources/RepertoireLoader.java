@@ -10,8 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
-import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.RepertoireConstants;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
@@ -83,7 +83,7 @@ public class RepertoireLoader extends AdcResourceLoader {
             );
         }
 
-        return responseFilteredJson(
+        return AdcResourceLoader.responseFilteredJson(
             RepertoireConstants.UMA_ID_FIELD,
             RepertoireConstants.RESPONSE_FILTER_FIELD,
             this.resourceState.setupFieldMapper().compose(this.dbService::getStudyUmaId),

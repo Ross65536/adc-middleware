@@ -1,11 +1,10 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
+import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
 
 /**
  * An adc logical filter, like 'and', 'or'.
@@ -22,11 +21,11 @@ public class LogicalFilter extends AdcFilter {
     }
 
     @Override
-    public void validate(String field, Map<String, FieldType> validFieldTypes) throws AdcException {
-        super.validate(field, validFieldTypes);
+    public void validate(String field, List<AdcFields> validFields) throws AdcException {
+        super.validate(field, validFields);
         FiltersUtils.assertNonNull(field + ".content", content);
         for (int i = 0; i < content.size(); i++) {
-            content.get(i).validate(field + ".content." + i, validFieldTypes);
+            content.get(i).validate(field + ".content." + i, validFields);
         }
     }
 

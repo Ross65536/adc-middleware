@@ -1,5 +1,8 @@
 package pt.inesctec.adcauthmiddleware.controllers.fieldmappings;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,9 +16,6 @@ import pt.inesctec.adcauthmiddleware.db.dto.AdcFieldTypeDto;
 import pt.inesctec.adcauthmiddleware.db.models.AdcFieldType;
 import pt.inesctec.adcauthmiddleware.db.repository.AdcFieldTypeRepository;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @RestController
 public class AdcFieldTypeController extends ResourceController {
     private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(ResourceController.class);
@@ -24,7 +24,7 @@ public class AdcFieldTypeController extends ResourceController {
     private AdcFieldTypeRepository adcFieldTypeRepository;
 
     /**
-     * Adc Classes.
+     * Adc Field Types.
      *
      * @return JSON list of Adc Classes
      * @throws Exception for connection failures, authentication failure

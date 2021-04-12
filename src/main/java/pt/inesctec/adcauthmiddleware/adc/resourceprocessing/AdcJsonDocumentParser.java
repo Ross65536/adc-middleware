@@ -131,6 +131,7 @@ public class AdcJsonDocumentParser {
         while (parser.nextToken() != JsonToken.END_ARRAY) {
             var map = parser.readValueAs(ObjectNode.class);
             var mapped = this.filter.mapResource(map);
+
             if (mapped.isPresent()) {
                 consumer.accept(mapped.get());
             }

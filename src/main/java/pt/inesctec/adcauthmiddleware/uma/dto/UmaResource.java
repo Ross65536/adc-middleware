@@ -6,7 +6,6 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
 
 /**
  * DTO for UMA resources. Used to interact with the UMA service.

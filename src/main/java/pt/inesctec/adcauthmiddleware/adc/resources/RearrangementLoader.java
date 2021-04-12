@@ -13,8 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
-import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.RearrangementConstants;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.AdcJsonDocumentParser;
 import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.FieldsFilter;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
@@ -105,7 +105,7 @@ public class RearrangementLoader extends AdcResourceLoader {
                 requestedFieldTypes);*/
         }
 
-        return responseFilteredJson(
+        return AdcResourceLoader.responseFilteredJson(
             RearrangementConstants.REPERTOIRE_ID_FIELD,
             RearrangementConstants.RESPONSE_FILTER_FIELD,
             this.resourceState.setupFieldMapper().compose(this.dbService::getRepertoireUmaId),
