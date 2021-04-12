@@ -2,7 +2,6 @@ package pt.inesctec.adcauthmiddleware.controllers;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableMap;
@@ -21,24 +20,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import pt.inesctec.adcauthmiddleware.HttpException;
+import pt.inesctec.adcauthmiddleware.adc.RearrangementConstants;
+import pt.inesctec.adcauthmiddleware.adc.RepertoireConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementResource;
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireResource;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
-import pt.inesctec.adcauthmiddleware.config.AppConfig;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.db.DbRepository;
-import pt.inesctec.adcauthmiddleware.uma.UmaClient;
+import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementLoader;
+import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireLoader;
+import pt.inesctec.adcauthmiddleware.config.UmaConfig;
+import pt.inesctec.adcauthmiddleware.http.HttpException;
 import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.exceptions.UmaFlowException;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 
 /**
- * class responsible for the protected endpoints.
+ * REST Controller to managing protected endpoints.
  */
 @RestController
 public class AdcAuthController extends AdcController {
@@ -46,11 +43,9 @@ public class AdcAuthController extends AdcController {
     private static final Pattern JsonErrorPattern = Pattern.compile(".*line: (\\d+), column: (\\d+).*");
 
     @Autowired
-    protected DbRepository dbRepository;
-    @Autowired
     protected UmaFlow umaFlow;
     @Autowired
-    protected UmaClient umaClient;
+    protected UmaConfig umaConfig;
 
     @PostConstruct
     public void initialize() {
@@ -127,18 +122,6 @@ public class AdcAuthController extends AdcController {
     }
 
     /**
-     * Logs synchronization endpoint user errors.
-     *
-     * @param e exception
-     * @return 401 status code
-     */
-    @ExceptionHandler(SyncException.class)
-    public ResponseEntity<String> synchronizeErrorHandler(SyncException e) {
-        Logger.info("Synchronize: {}", e.getMessage());
-        return SpringUtils.buildJsonErrorResponse(HttpStatus.UNAUTHORIZED, null);
-    }
-
-    /**
      * Logs unhandled internal exceptions. Errors here can indicate a logic error or bug.
      *
      * @param e exception
@@ -168,14 +151,18 @@ public class AdcAuthController extends AdcController {
         HttpServletRequest request,
         @PathVariable String repertoireId
     ) throws Exception {
-        RepertoireResource resource = new RepertoireResource(repertoireId, adcClient, dbRepository, csvConfig);
+        RepertoireLoader repertoire = new RepertoireLoader(adcClient, dbService);
+
+        repertoire.load(repertoireId);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
-            resource.enableUma(bearer, umaFlow);
+            repertoire.processUma(bearer, umaFlow);
         }
 
-        return resource.response();
+        repertoire.loadFieldMappings(umaConfig);
+
+        return repertoire.response(repertoireId);
     }
 
     /**
@@ -195,14 +182,18 @@ public class AdcAuthController extends AdcController {
         HttpServletRequest request,
         @PathVariable String rearrangementId
     ) throws Exception {
-        RearrangementResource resource = new RearrangementResource(rearrangementId, adcClient, dbRepository, csvConfig);
+        RearrangementLoader rearrangement = new RearrangementLoader(adcClient, dbService);
+
+        rearrangement.load(rearrangementId);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
-            resource.enableUma(bearer, umaFlow);
+            rearrangement.processUma(bearer, umaFlow);
         }
 
-        return resource.response();
+        rearrangement.loadFieldMappings(umaConfig);
+
+        return rearrangement.response(rearrangementId);
     }
 
     /**
@@ -215,23 +206,28 @@ public class AdcAuthController extends AdcController {
      */
     @RequestMapping(
         value = "/repertoire",
-        method = RequestMethod.POST,
-        consumes = MediaType.APPLICATION_JSON_VALUE,
+        method = { RequestMethod.GET, RequestMethod.POST },
+        //consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> repertoireList(
         @RequestHeader(value = "Content-Protected", defaultValue = "false") Boolean contentProtected,
         HttpServletRequest request,
-        @RequestBody AdcSearchRequest adcSearch
+        @RequestBody(required = false) AdcSearchRequest adcSearch
     ) throws Exception {
-        this.validateAdcSearch(adcSearch, FieldClass.REPERTOIRE, false);
-        RepertoireSet repertoireResource = new RepertoireSet(adcSearch, adcClient, dbRepository, csvConfig);
+        adcSearch = this.validateAdcSearch(adcSearch, RepertoireConstants.DB_FIELDTYPE, false);
+
+        RepertoireLoader repertoire = new RepertoireLoader(adcClient, dbService);
+
+        repertoire.load(adcSearch);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
-            repertoireResource.enableUma(bearer, this.umaFlow);
+            repertoire.processUma(bearer, umaFlow);
         }
 
-        return repertoireResource.response();
+        repertoire.loadFieldMappings(umaConfig);
+
+        return repertoire.response(adcSearch);
     }
 
     /**
@@ -244,53 +240,27 @@ public class AdcAuthController extends AdcController {
      */
     @RequestMapping(
         value = "/rearrangement",
-        method = RequestMethod.POST,
-        consumes = MediaType.APPLICATION_JSON_VALUE,
+        method = { RequestMethod.GET, RequestMethod.POST },
+        //consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> rearrangementList(
         @RequestHeader(value = "Content-Protected", defaultValue = "false") Boolean contentProtected,
         HttpServletRequest request,
         @RequestBody AdcSearchRequest adcSearch
     ) throws Exception {
-        validateAdcSearch(adcSearch, FieldClass.REARRANGEMENT, true);
-        RearrangementSet rearrangementResource = new RearrangementSet(adcSearch, adcClient, dbRepository, csvConfig);
+        adcSearch = validateAdcSearch(adcSearch, RearrangementConstants.DB_FIELDTYPE, true);
+
+        RearrangementLoader rearrangement = new RearrangementLoader(adcClient, dbService);
+
+        rearrangement.load(adcSearch);
 
         if (contentProtected) {
             var bearer = SpringUtils.getBearer(request);
-            rearrangementResource.enableUma(bearer, this.umaFlow);
+            rearrangement.processUma(bearer, umaFlow);
         }
 
-        return rearrangementResource.response();
-    }
+        rearrangement.loadFieldMappings(umaConfig);
 
-    /**
-     * The synchronize endpoint. Not part of ADC v1. Protected by password set in the configuration file. Extension of the middleware.
-     * Performs state synchronization between the repository and the UMA authorization server and this middleware's DB.
-     * Resets the delays pool request times.
-     *
-     * @param request the user request
-     * @return OK on successful synchronization or an error code when a process in the synchronization fails.
-     * @throws Exception on user errors such as invalid password or some internal errors.
-     */
-    @RequestMapping(value = "/synchronize", method = RequestMethod.POST)
-    public Map<String, Object> synchronize(HttpServletRequest request) throws Exception {
-        String bearer = SpringUtils.getBearer(request);
-        if (bearer == null) {
-            throw new SyncException("Invalid user credential format");
-        }
-
-        var tokenResources = this.umaClient.introspectToken(bearer, false);
-
-        if (!tokenResources.getRoles().contains(this.appConfig.getSynchronizeRole())) {
-            throw new SyncException("User not allowed to synchronize resources");
-        }
-
-        if (!this.dbRepository.synchronize()) {
-            throw SpringUtils.buildHttpException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "One or more DB or UMA resources failed to synchronize, check logs");
-        }
-
-        return SpringUtils.buildStatusMessage(200, null);
+        return rearrangement.response(adcSearch);
     }
 }

@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware.uma.models.internal;
+package pt.inesctec.adcauthmiddleware.uma.dto.internal;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

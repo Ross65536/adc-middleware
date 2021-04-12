@@ -15,6 +15,10 @@ public class AdcFieldType {
     @Column(unique = true, nullable = false)
     private String name;
 
+
+
+    protected AdcFieldType() {}
+
     public int getId() {
         return id;
     }

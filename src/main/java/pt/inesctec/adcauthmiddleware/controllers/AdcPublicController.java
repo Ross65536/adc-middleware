@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,17 +14,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import pt.inesctec.adcauthmiddleware.HttpException;
-import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
+import pt.inesctec.adcauthmiddleware.http.HttpException;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 
 /**
  * class responsible for the unprotected endpoints. Performs forwarding for these endpoints to the repository.
  */
 @RestController
 public class AdcPublicController extends AdcController {
-    private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcPublicController.class);
+    private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcPublicController.class);
 
     @PostConstruct
     public void initialize() {
@@ -37,7 +36,7 @@ public class AdcPublicController extends AdcController {
      * Returns forwarding error status and body when the repository returns a non-OK status code.
      *
      * @param e Exception
-     * @return status + body + contentType from the erroring repository response.
+     * @return status + body + contentType from the error repository response.
      */
     @ExceptionHandler(HttpException.class)
     public ResponseEntity<String> httpExceptionForward(HttpException e) {

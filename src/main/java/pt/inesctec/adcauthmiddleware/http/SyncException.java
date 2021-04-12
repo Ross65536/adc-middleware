@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware.controllers;
+package pt.inesctec.adcauthmiddleware.http;
 
 /**
  * Thrown on the synchronization endpoint on user errors.

@@ -17,32 +17,39 @@ import org.springframework.validation.annotation.Validated;
 public class UmaConfig {
 
     /**
-     * complete URL for the UMA well known document (discovery document).
+     * Complete URL of AuthZ well-known endpoint.
+     * The well-known endpoint contains crucial metadata related to the specified authorization service.
      */
     @NonNull
     @URL(regexp = "^(http|https).*")
     private String wellKnownUrl;
 
     /**
-     * The client ID set for the middleware in Keycloak.
+     * The client ID set for the middleware in AuthZ Service.
      */
     @NonNull
     @NotBlank
     private String clientId;
 
     /**
-     * The client secret set for the middleware in Keycloak.
+     * The client secret set for the middleware in the AuthZ Service.
      */
     @NonNull
     @NotBlank
     private String clientSecret;
 
     /**
-     * Keycloak specific. The username of the Keycloak user which will be set as the resource owner for all of the created resources.
+     * Username of the UMA user which will be set as the resource owner for all of the created resources.
+     * Keycloak specific.
      */
     @NonNull
     @NotBlank
     private String resourceOwner;
+
+    /**
+     * Name of the Access Scope name shared between the UMA.
+     */
+    private String publicScopeName;
 
     @NonNull
     public String getWellKnownUrl() {
@@ -77,5 +84,17 @@ public class UmaConfig {
 
     public void setResourceOwner(@NonNull String resourceOwner) {
         this.resourceOwner = resourceOwner;
+    }
+
+    // Will return null when not set in the .properties file or when it's defined as an empty string
+    public String getPublicScopeName() {
+        if (publicScopeName.isEmpty()) {
+            return null;
+        }
+        return publicScopeName;
+    }
+
+    public void setPublicScopeName(String publicScopeName) {
+        this.publicScopeName = publicScopeName;
     }
 }

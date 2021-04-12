@@ -1,103 +1,61 @@
 package pt.inesctec.adcauthmiddleware.adc.resources;
 
-import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import pt.inesctec.adcauthmiddleware.adc.AdcClient;
-import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.AdcJsonDocumentParser;
-import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.FieldsFilter;
-import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.controllers.SpringUtils;
-import pt.inesctec.adcauthmiddleware.db.DbRepository;
-import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
-import pt.inesctec.adcauthmiddleware.uma.UmaState;
-import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
+import pt.inesctec.adcauthmiddleware.uma.dto.UmaResource;
 
 /**
- * Base class for processing the output of an ADC Resource (Repertoires, Rearrangements...)
- * Deals with a single ADC resource
+ * Class for representing the state of an ADC Resource.
+ * Maintains its UMA Resource state and Field Mappings for controlling accessibility.
+ *
  */
-public abstract class AdcResource {
-    protected FieldClass fieldClass;
+public class AdcResource {
+    // UMA Resource corresponding to this Resource. May be Null, in case we're dealing with a
+    // request that doesn't involve UMA processing.
+    private UmaResource umaResource;
 
-    protected AdcClient adcClient;
-    protected DbRepository dbRepository;
-    protected CsvConfig csvConfig;
+    // Field Mapping for controlling accessibility - List fields that are accessible on this resource
+    private List<String> fieldMappings = new ArrayList<>();
 
-    protected UmaState umaState = new UmaState();
+    public AdcResource() {}
 
-    public AdcResource(FieldClass fieldClass, AdcClient adcClient, DbRepository dbRepository, CsvConfig csvConfig) {
-        this.fieldClass = fieldClass;
-        this.adcClient = adcClient;
-        this.dbRepository = dbRepository;
-        this.csvConfig = csvConfig;
+    /**
+     * Initialize Resource using only its UMA state.
+     *
+     * @param umaResource UmaResource object
+     */
+    public AdcResource(UmaResource umaResource) {
+        this.umaResource = umaResource;
     }
 
     /**
-     * Abstract Function to be implemented by the ADC Resource.
-     * Must be implemented to return a Set of UMA ids that identify this AdcResource with their UMA ID in the
-     * Authorization service.
+     * Initialize Resource using only determined Field Mappings.
+     * Used in case the Resource doesn't have an UMA state.
+     * I.e. the user didn't have permission to access it,
+     * so it will contain public mappings
      *
-     * @return Set
+     * @param fieldMappings List of Accessible fields
      */
-    protected abstract Set<String> getUmaIds() throws Exception;
-
-    /**
-     * Returns the UMA scopes for the fields in this Request.
-     * The considered parameters are: "facets", "fields", "include_fields", and "filters".
-     * Filters operators can reference a field for the search and these are the fields considered.
-     *
-     * @return the UMA scopes.
-     */
-    protected abstract Set<String> getUmaScopes();
-
-    /**
-     * Abstract Function to be implemented by the ADC Resource.
-     * Should be the final step in a controller and returns the ADC compliant response for the current entity,
-     * filtered according to the User's permissions.
-     *
-     * @return ResponseEntity
-     */
-    public abstract ResponseEntity<StreamingResponseBody> response() throws Exception;
-
-    /**
-     * Sets the current AdcResource as being protected by UMA.
-     * Any output by the response() method will be controlled by the User's permissions
-     *
-     * @param bearerToken OIDC/UMA 2.0 Bearer Token (RPT)
-     * @param umaFlow UmaFlow object
-     * @throws Exception according to the UMA workflow
-     */
-    public void enableUma(String bearerToken, UmaFlow umaFlow) throws Exception {
-        umaState.setUmaIds(this.getUmaIds());
-        umaState.setScopes(this.getUmaScopes());
-        umaState.setResources(umaFlow.execute(bearerToken, umaState.getUmaIds(), umaState.getScopes()));
-        umaState.isEnabled();
+    public AdcResource(List<String> fieldMappings) {
+        this.fieldMappings = fieldMappings;
     }
 
-    /**
-     * Build JSON streaming, filtered response.
-     *
-     * @param resourceId          the resource's ID fields
-     * @param responseFilterField the response's field where the resources are set
-     * @param fieldMapper         the ID to granted fields mapper
-     * @param adcRequest          the ADC request producer.
-     * @return streaming response
-     * @throws Exception on error
-     */
-    public static ResponseEntity<StreamingResponseBody> responseFilteredJson(
-        String resourceId,
-        String responseFilterField,
-        Function<String, Set<String>> fieldMapper,
-        ThrowingSupplier<InputStream, Exception> adcRequest
-    ) throws Exception {
-        var response = SpringUtils.catchForwardingError(adcRequest);
-        var filter = new FieldsFilter(fieldMapper, resourceId);
-        var mapper = AdcJsonDocumentParser.buildJsonMapper(response, responseFilterField, filter);
-        return SpringUtils.buildJsonStream(mapper);
+    public UmaResource getUmaResource() {
+        return umaResource;
+    }
+
+    public void setUmaResource(UmaResource umaResource) {
+        this.umaResource = umaResource;
+    }
+
+    public Set<String> getFieldMappings() {
+        return new HashSet<>(fieldMappings);
+    }
+
+    public void setFieldMappings(List<String> fieldMappings) {
+        this.fieldMappings = fieldMappings;
     }
 }

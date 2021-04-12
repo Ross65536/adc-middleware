@@ -2,9 +2,6 @@ package pt.inesctec.adcauthmiddleware.adc;
 
 import java.util.Set;
 
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
-
 public final class AdcConstants {
     /**
      * The UMA type value used when creating a UMA resource.
@@ -19,10 +16,10 @@ public final class AdcConstants {
      * The set of all used and mandatory repertoire and rearrangement fields. Used for the CSV configuration file validation.
      */
     public static final Set<String> AllUsedFields = Set.of(
-        RepertoireSet.UMA_ID_FIELD,
-        RepertoireSet.STUDY_TITLE_FIELD,
-        RepertoireSet.ID_FIELD,
-        RearrangementSet.ID_FIELD
+        RepertoireConstants.UMA_ID_FIELD,
+        RepertoireConstants.STUDY_TITLE_FIELD,
+        RepertoireConstants.ID_FIELD,
+        RearrangementConstants.ID_FIELD
     );
 
     /**

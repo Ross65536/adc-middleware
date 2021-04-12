@@ -18,6 +18,8 @@ public class AccessScope {
     @Column(unique = true, nullable = false)
     private String name;
 
+    protected AccessScope() {}
+
     public int getId() {
         return id;
     }

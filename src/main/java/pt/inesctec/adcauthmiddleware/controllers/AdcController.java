@@ -6,18 +6,16 @@ import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
-import pt.inesctec.adcauthmiddleware.HttpException;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.db.DbRepository;
-import pt.inesctec.adcauthmiddleware.uma.UmaClient;
-import pt.inesctec.adcauthmiddleware.uma.UmaFlow;
+import pt.inesctec.adcauthmiddleware.db.services.DbService;
+import pt.inesctec.adcauthmiddleware.http.HttpException;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 
 @RequestMapping("${app.airrBasepath}")
 public abstract class AdcController {
@@ -27,6 +25,8 @@ public abstract class AdcController {
     protected CsvConfig csvConfig;
     @Autowired
     protected AdcClient adcClient;
+    @Autowired
+    protected DbService dbService;
 
     protected static org.slf4j.Logger Logger;
     protected Delayer repertoiresDelayer;
@@ -36,12 +36,17 @@ public abstract class AdcController {
      * Validate that the user's ADC query is semantically correct. Also enforces disabled features as set in the configuration.
      *
      * @param adcSearch  the user's ADC query
-     * @param fieldClass the resource type
+     * @param adcFieldTypeName Base Field Class of this request
      * @param tsvEnabled whether TSV is enabled for the considered endpoint.
+     * @return validated adcSearch
      * @throws HttpException on validation error
      */
-    protected void validateAdcSearch(
-        AdcSearchRequest adcSearch, FieldClass fieldClass, boolean tsvEnabled) throws HttpException {
+    protected AdcSearchRequest validateAdcSearch(
+        AdcSearchRequest adcSearch, String adcFieldTypeName, boolean tsvEnabled
+    ) throws HttpException {
+        if (adcSearch == null) {
+            adcSearch = new AdcSearchRequest();
+        }
 
         if (adcSearch.isFacetsSearch() && !this.appConfig.isFacetsEnabled()) {
             throw SpringUtils.buildHttpException(
@@ -58,6 +63,7 @@ public abstract class AdcController {
         var filtersBlacklist = this.appConfig.getFiltersOperatorsBlacklist();
         Set<String> actualFiltersOperators = adcSearch.getFiltersOperators();
         Sets.SetView<String> operatorDiff = Sets.intersection(filtersBlacklist, actualFiltersOperators);
+
         if (!operatorDiff.isEmpty()) {
             throw SpringUtils.buildHttpException(
                 HttpStatus.NOT_IMPLEMENTED,
@@ -66,19 +72,27 @@ public abstract class AdcController {
                     + " are blacklisted");
         }
 
-        final boolean isTsv = !adcSearch.isJsonFormat();
-        if (isTsv && !tsvEnabled) {
+        if (adcSearch.isTsvFormat() && !tsvEnabled) {
             throw SpringUtils.buildHttpException(
                 HttpStatus.UNPROCESSABLE_ENTITY, "TSV format not enabled for this endpoint");
         }
 
-        var fieldTypes = this.csvConfig.getFieldsTypes(fieldClass);
-        var requestedFields = adcSearch.getRequestedFields(FieldClass.REARRANGEMENT, this.csvConfig);
+        //var fieldTypes = this.csvConfig.getFieldsTypes(fieldClass);
+        var validFields = dbService.getAdcFieldsRepository().findByType(
+            dbService.getAdcFieldType(adcFieldTypeName)
+        );
+
+        var requestedFields = adcSearch.getRequestedFields();
+
         try {
-            AdcSearchRequest.validate(adcSearch, fieldTypes, requestedFields);
+            adcSearch.validate(validFields, requestedFields);
         } catch (AdcException e) {
             throw SpringUtils.buildHttpException(
-                HttpStatus.UNPROCESSABLE_ENTITY, "Invalid input JSON: " + e.getMessage());
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                "Invalid input JSON: " + e.getMessage()
+            );
         }
+
+        return adcSearch;
     }
 }

@@ -12,8 +12,6 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
 import org.springframework.stereotype.Component;
-import pt.inesctec.adcauthmiddleware.adc.resources.RearrangementSet;
-import pt.inesctec.adcauthmiddleware.adc.resources.RepertoireSet;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RearrangementModel;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
@@ -62,7 +60,7 @@ public class AdcClient {
      */
     private static Set<String> processStringFacets(List<Map<String, Object>> facets, String facetsField) throws Exception {
         Utils.assertNotNull(facets);
-        CollectionsUtils.assertMapListContainsKeys(facets, facetsField);
+        CollectionsUtils.assertMapListContainsKeys(facets, Set.of(facetsField));
 
         return facets.stream().filter(facet -> {
             var count = (Integer) facet.get("count");
@@ -94,8 +92,7 @@ public class AdcClient {
      * @throws IOException          on error
      * @throws InterruptedException on error
      */
-    public InputStream getRepertoireAsStream(String repertoireId)
-            throws IOException, InterruptedException {
+    public InputStream getRepertoireAsStream(String repertoireId) throws IOException, InterruptedException {
         final URI uri = this.getResourceServerPath("repertoire", repertoireId);
 
         var request = new HttpRequestBuilderFacade().getJson(uri).build();
@@ -172,7 +169,7 @@ public class AdcClient {
      * @return the matching repertoire models.
      * @throws Exception on error
      */
-    public List<RepertoireModel> getRepertoireModel(AdcSearchRequest adcRequest) throws Exception {
+    public List<RepertoireModel> searchRepertoires(AdcSearchRequest adcRequest) throws Exception {
         Preconditions.checkArgument(adcRequest.getFacets() == null);
         Preconditions.checkArgument(adcRequest.isJsonFormat());
 
@@ -191,16 +188,16 @@ public class AdcClient {
      * @return the set of study IDs
      * @throws Exception on error
      */
-    public Set<String> getRepertoireStudyIds(AdcSearchRequest adcRequest) throws Exception {
+    public Set<String> searchRepertoireStudyIds(AdcSearchRequest adcRequest) throws Exception {
         Preconditions.checkArgument(adcRequest.isJsonFormat());
 
-        var idsQuery = adcRequest.queryClone().withFacets(RepertoireSet.UMA_ID_FIELD);
+        var idsQuery = adcRequest.queryClone().withFacets(RepertoireConstants.UMA_ID_FIELD);
         var request = this.buildSearchRequest("repertoire", idsQuery);
         var facets = HttpFacade.makeExpectJsonRequest(
             request, AdcFacetsResponse.class
         ).getFacets();
 
-        return processStringFacets(facets, RepertoireSet.UMA_ID_FIELD);
+        return processStringFacets(facets, RepertoireConstants.UMA_ID_FIELD);
     }
 
     /**
@@ -211,14 +208,14 @@ public class AdcClient {
      * @return the set of repertoire IDs
      * @throws Exception on error
      */
-    public Set<String> getRearrangementRepertoireModel(AdcSearchRequest adcRequest) throws Exception {
+    public Set<String> searchRearrangementRepertoireIds(AdcSearchRequest adcRequest) throws Exception {
         Preconditions.checkArgument(adcRequest.isJsonFormat());
 
-        var idsQuery = adcRequest.queryClone().withFacets(RearrangementSet.REPERTOIRE_ID_FIELD);
+        var idsQuery = adcRequest.queryClone().withFacets(RearrangementConstants.REPERTOIRE_ID_FIELD);
         var request = this.buildSearchRequest("rearrangement", idsQuery);
         var facets = HttpFacade.makeExpectJsonRequest(request, AdcFacetsResponse.class).getFacets();
 
-        return processStringFacets(facets, RearrangementSet.REPERTOIRE_ID_FIELD);
+        return processStringFacets(facets, RearrangementConstants.REPERTOIRE_ID_FIELD);
     }
 
     /**

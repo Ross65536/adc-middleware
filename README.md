@@ -4,7 +4,7 @@
 
 Middleware server for handling access control for [ADC v1 HTTP API](https://docs.airr-community.org/en/latest/api/adc_api.html) compliant repositories.
 
-Check out Docker image [here](https://hub.docker.com/repository/docker/ros65536/adc-middleware)
+Check out Docker image [here](https://hub.docker.com/repository/docker/irpinesctec/adc-middleware)
 
 Project runs on java 11, with (modified) google java style guide.
 
@@ -24,7 +24,7 @@ Example deployment for testing in localhost.
 0. Clone the repository:
 
   ```shell script
-  git clone https://github.com/ireceptorplus-inesctec/adc-middleware
+git clone https://github.com/ireceptorplus-inesctec/adc-middleware
   ```
 
 1. Load repository test data:
@@ -33,17 +33,19 @@ Example deployment for testing in localhost.
 
   Download backend data (for testing):
   ```shell script
-  cd example
-  curl -L https://github.com/Ross65536/adc-middleware/releases/download/data/repository-data.tar.gz > repository-data.tar.gz
-  tar -xvzf repository-data.tar.gz -C data/
-  sudo chown -R $(whoami) data/mongodb/
+cd example
+curl -L https://github.com/Ross65536/adc-middleware/releases/download/data/repository-data.tar.gz > repository-data.tar.gz
+tar -xvzf repository-data.tar.gz -C data/
+sudo chown -R $(whoami) data/mongodb/
   ```
 
 2. Load all components:
 
-  (Optional) build middleware docker image locally:
+  (Optional) build middleware docker image locally and push it to Docker Hub:
   ```shell script
-  docker build -t ireceptorplus-inesctec/adc-middleware .
+docker login registry-1.docker.io --username=yourhubusername --password=yourpassword
+docker build -t irpinesctec/adc-middleware:$IMG_TAG .
+docker push irpinesctec/adc-middleware:$IMG_TAG
   ```
 
   Load components
@@ -168,6 +170,12 @@ With arguments:
 ./gradlew bootRun --args='--server.port=9999' # --server.port equivalent to java's -Dserver.port 
 ```
 
+With explicit configuration arguments:
+
+```shell
+./gradlew bootRun --args='--spring.config.location=classpath:/application.properties,./dev.properties'
+```
+
 #### Dev properties configuration example
 
 file `dev.properties` (You need to update `uma.clientSecret`):
@@ -217,7 +225,7 @@ If you wish to trigger migrations manually without running the application, run 
 
 If using IntelliJ IDEA, make sure to provide `-Dflyway.configFiles=dev.properties` as `VM options`.
 
-Developer's note: **Avoid changing older/previous migration scripts at all costs**. Flyway is a revision-based system and the migration workflow follows all migration scripts sequentially. If an older existing migration script is changed, **it will cause a checksum error with any existing database** you try to migrate. If the existing data model required changes, please create a new script. 
+Developer's note: **Avoid changing older/previous migration scripts at all costs**. Flyway is a revision-based system and the migration workflow follows all migration scripts sequentially. If an older existing migration script is changed, **it will cause a checksum error with any existing database** you try to migrate. If the existing data model requires changes, please create a new script. 
 
 More details about Flyway can be found on:
 
@@ -350,6 +358,7 @@ spring.cache.type=simple
 
 Value for the `app.adcCsvConfigPath` config param. You can use the default provided `./field-mapping.csv` or extend it.
 The CSV must have header:
+
 - `class`: Specifies whether the field is a `Repertoire` or `Rearrangement`
 - `field`: The field. For nested objects demark with `.`. Example `subject.age_unit.value` or `repertoire_id`. Supports arrays.
 - `protection`: Whether the field is publicly access or protected. Public means any user can access this information, protected means only users that were given access to with the specific scope can access the field information. Valid values are `public` and `protected`. 
@@ -368,22 +377,10 @@ The CSV can include other columns after these which are ignored.
 
 The middleware needs to synchronize with the backend periodically. No automatic synchronization is performed so you must invoke synchronization when data in the resource server changes, namely when: a repertoire or rearrangement ir added, deleted or updated (study, repertoire_id and sequence_id fields).
 
-To synchronize you can make the following request to the `/airr/v1/synchronize` endpoint using the password as Bearer token:
+To synchronize you can make the following request to the `/airr/v1/synchronize` endpoint using an Access Token from a user that has the role defined in the `app.synchronizeRole` property.
 
 ```shell script
-curl --location --request POST "$MIDDLEWARE_HOST/airr/v1/synchronize" --header "Authorization: Bearer $THE_PASSWORD"
-```
-
-
-#### Generating password
-
-You need to hash a BCrypt password with 10 rounds to use the synchronization endpoint
-
-```shell script
-sdk install springboot # need https://sdkman.io/ installed
-PASSWORD=$(xxd -l 32 -c 100000 -p /dev/urandom) # or use a different password
-spring encodepassword -a bcrypt $PASSWORD # $THE_PASSWORD
-# example acceptable password: 'master' for '$2a$10$qr81MrxWblqZlMAt5kf/9.xdBPubtDMuoV3DRKgTk2bu.SPazsaTm'
+curl --location --request POST "$MIDDLEWARE_HOST/airr/v1/synchronize" --header "Authorization: Bearer $ACCESS_TOKEN"
 ```
 
 ### Public fields 
@@ -572,10 +569,6 @@ TSV support is implemented in the middleware itself by translating JSON to TSV.
   For ORCID put `https://orcid.org/oauth/authorize` in the `Authorization URL`, `https://orcid.org/oauth/token` in the token url, set `Client Authentication` to `Client secret sent as post` and input the client ID and client secret from the previous step in `Client ID` and `Client Secret`. Save
 
   For EGI Checkin put `https://aai-dev.egi.eu/oidc/authorize` in the `Authorization URL`, `https://aai-dev.egi.eu/oidc/token` in the token url, set `Client secret sent as post` and input client ID and secret. Save
-
-## Implementation Details
-
-You can see [here](./PSEUDOCODE.md) a python-like pseudo-code which describes this whole middleware server's working.
 
 ## Notes
 

@@ -76,7 +76,6 @@ public class AdcJsonDocumentParser {
      */
     public static StreamingResponseBody buildTsvMapper(InputStream response, String mappedField, IFieldsFilter filter, Map<String, FieldType> headerFields) {
         return os -> {
-
             var jsonWriter = new AdcTsvWriter(os, headerFields);
             var mapper = new AdcJsonDocumentParser(response, mappedField, filter, jsonWriter);
             mapper.process();
@@ -132,6 +131,7 @@ public class AdcJsonDocumentParser {
         while (parser.nextToken() != JsonToken.END_ARRAY) {
             var map = parser.readValueAs(ObjectNode.class);
             var mapped = this.filter.mapResource(map);
+
             if (mapped.isPresent()) {
                 consumer.accept(mapped.get());
             }

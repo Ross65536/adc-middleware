@@ -7,7 +7,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -19,7 +18,7 @@ import org.hibernate.annotations.OnDeleteAction;
 public class Repertoire {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     @Column(unique = true, nullable = false)
     private String repertoireId;
@@ -29,8 +28,7 @@ public class Repertoire {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Study study;
 
-    public Repertoire() {
-    }
+    protected Repertoire() {}
 
     public Repertoire(String repertoireId, Study study) {
         this.repertoireId = repertoireId;

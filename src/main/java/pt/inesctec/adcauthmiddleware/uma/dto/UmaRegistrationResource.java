@@ -1,4 +1,4 @@
-package pt.inesctec.adcauthmiddleware.uma.models;
+package pt.inesctec.adcauthmiddleware.uma.dto;
 
 import java.util.List;
 import java.util.Map;
@@ -35,9 +35,9 @@ public class UmaRegistrationResource {
     }
 
     public UmaRegistrationResource(String name, String type, Set<String> resourceScopes) {
-        this.name = name;
+        this.name = name; // mandatory by keycloak
         this.type = type;
-        this.resourceScopes = resourceScopes;
+        this.resourceScopes = resourceScopes; // keycloak will delete type if not present here
     }
 
     public UmaRegistrationResource(String name, String type, Set<String> resourceScopes, UmaResourceAttributes attributes) {

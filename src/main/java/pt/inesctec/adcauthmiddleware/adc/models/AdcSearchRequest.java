@@ -1,9 +1,9 @@
 package pt.inesctec.adcauthmiddleware.adc.models;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -18,8 +18,8 @@ import pt.inesctec.adcauthmiddleware.adc.models.filters.content.PrimitiveListCon
 import pt.inesctec.adcauthmiddleware.adc.models.filters.content.filters.PrimitiveListContentFilter;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.config.csv.IncludeField;
+import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
 
 /**
  * Models a user's ADC search request body.
@@ -42,53 +42,54 @@ public class AdcSearchRequest {
 
     /**
      * Validates that the user request is semantically correct.
-     * TODO: Possibly delete this function and remove everywhere where its called. It serves no purpose as validation should be done on the Repository's side
      *
-     * @param adcSearch          the user's request
-     * @param validFieldTypes    map of all the valid fields for the resource type of the endpoint and their corresponding types.
+     * @param validFields   list of all valid fields for the resource type of the endpoint and their corresponding types.
      * @param tsvRequestedFields the set of fields that are requested (from 'fields', 'include_fields'). Only applicable in a TSV request.
      * @throws AdcException on validation error.
      */
-    public static void validate(
-            AdcSearchRequest adcSearch,
-            Map<String, FieldType> validFieldTypes,
-            Set<String> tsvRequestedFields)
-            throws AdcException {
-        var fields = adcSearch.getFields();
-        if (fields != null && adcSearch.getFacets() != null) {
+    @JsonIgnore
+    public void validate(List<AdcFields> validFields, Set<String> tsvRequestedFields) throws AdcException {
+        var fields = this.getFields();
+        var validFieldNames = AdcFields.toNameList(validFields);
+
+        if (fields != null && this.getFacets() != null) {
             throw new AdcException("Can't use 'fields' and 'facets' at the same time in request");
         }
 
-        if (adcSearch.getIncludeFields() != null && adcSearch.getFacets() != null) {
+        if (this.getIncludeFields() != null && this.getFacets() != null) {
             throw new AdcException("Can't use 'include_fields' and 'facets' at the same time in request");
         }
 
+        // Validate if unknown fields are being requested
         if (fields != null && !fields.isEmpty()) {
-            for (var field : fields) {
-                if (!validFieldTypes.containsKey(field)) {
-                    throw new AdcException(String.format("'fields' '%s' value is not valid", field));
-                }
+            var fieldsToValidate = new ArrayList<>(fields);
+            fieldsToValidate.removeAll(validFieldNames);
+
+            if (!fieldsToValidate.isEmpty()) {
+                throw new AdcException(
+                    String.format("One or more fields aren't known ADC Fields: %s", fields.toString())
+                );
             }
         }
 
-        if (adcSearch.facets != null && !validFieldTypes.containsKey(adcSearch.facets)) {
-            throw new AdcException(String.format("'facets' '%s' value is not valid", adcSearch.facets));
+        if (this.facets != null && !validFieldNames.contains(this.facets)) {
+            throw new AdcException(String.format("'facets' '%s' value is not valid", this.facets));
         }
 
-        if (adcSearch.filters != null) {
-            adcSearch.filters.validate("filters", validFieldTypes);
+        if (this.filters != null) {
+            this.filters.validate("filters", validFields);
         }
 
-        final boolean isTsv = !adcSearch.isJsonFormat();
-        if (isTsv) {
-            if (adcSearch.isFacetsSearch()) {
+        if (this.isTsvFormat()) {
+            if (this.isFacetsSearch()) {
                 throw new AdcException("can't return TSV format for facets");
             }
 
             for (var field : tsvRequestedFields) {
                 if (field.contains(AdcConstants.ADC_FIELD_SEPARATOR)) {
                     throw new AdcException(
-                            String.format("TSV: The field %s requested cannot be a nested document", field));
+                        String.format("TSV: The field %s requested cannot be a nested document", field)
+                    );
                 }
             }
         }
@@ -103,18 +104,40 @@ public class AdcSearchRequest {
      * @param csvConfig CsvConfig object
      * @return the set of fields that were requested.
      */
-    public Set<String> getRequestedFields(FieldClass fieldClass, CsvConfig csvConfig) {
+    @JsonIgnore
+    public Set<String> getRequestedFieldsCsv(FieldClass fieldClass, CsvConfig csvConfig) {
         final Set<String> fields = this.isFieldsEmpty() ? Set.of() : this.getFields();
+
         final Set<String> includeFields = this.isIncludeFieldsEmpty()
             ? Set.of()
             : csvConfig.getFields(fieldClass, this.getIncludeFields());
 
         final Set<String> requestedFields = Sets.union(fields, includeFields);
 
-        return new HashSet<>(
-            requestedFields.isEmpty()
+        return new HashSet<>(requestedFields.isEmpty()
                 ? csvConfig.getFieldsTypes(fieldClass).keySet()
                 : requestedFields);
+    }
+
+    /**
+     * Get the fields that correspond to this Request, non-facets.
+     * This includes the "fields" attribute and specific fields present in "filter" operations.
+     * If no specific fields were requested, an empty Set will be returned, meaning the user
+     * requested no fields.
+     *
+     * @return the set requested fields.
+     */
+    // TODO: Could expand this method to check "include_fields" somehow?
+    @JsonIgnore
+    public Set<String> getRequestedFields() {
+        final Set<String> fields       = this.isFieldsEmpty() ? Set.of() : this.getFields();
+        final Set<String> filterFields = this.getRequestedFilterFields();
+
+        /*final Set<String> includeFields = this.isIncludeFieldsEmpty()
+            ? Set.of()
+            : csvConfig.getFields(fieldClass, this.getIncludeFields());*/
+
+        return Sets.union(fields, filterFields);
     }
 
     public Set<String> getFields() {
@@ -154,11 +177,6 @@ public class AdcSearchRequest {
         this.format = format;
     }
 
-    @JsonIgnore
-    public void unsetFormat() {
-        this.format = null;
-    }
-
     public String getFacets() {
         return facets;
     }
@@ -170,6 +188,11 @@ public class AdcSearchRequest {
     @JsonIgnore
     public boolean isJsonFormat() {
         return format == null || format.equals("json");
+    }
+
+    @JsonIgnore
+    public boolean isTsvFormat() {
+        return format != null && format.equals("tsv");
     }
 
     @JsonIgnore

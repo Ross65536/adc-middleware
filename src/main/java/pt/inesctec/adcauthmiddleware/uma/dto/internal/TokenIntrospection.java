@@ -1,6 +1,5 @@
-package pt.inesctec.adcauthmiddleware.uma.models.internal;
+package pt.inesctec.adcauthmiddleware.uma.dto.internal;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -8,7 +7,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import pt.inesctec.adcauthmiddleware.uma.models.UmaResource;
+import pt.inesctec.adcauthmiddleware.uma.dto.UmaResource;
 
 /**
  * Models the result of a UMA RPT token introspection response.
