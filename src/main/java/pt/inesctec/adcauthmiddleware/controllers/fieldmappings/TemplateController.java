@@ -1,6 +1,9 @@
 package pt.inesctec.adcauthmiddleware.controllers.fieldmappings;
 
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,9 +19,6 @@ import pt.inesctec.adcauthmiddleware.db.dto.TemplatesListDto;
 import pt.inesctec.adcauthmiddleware.db.models.Templates;
 import pt.inesctec.adcauthmiddleware.db.repository.TemplatesRepository;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @RestController
 public class TemplateController extends ResourceController {
     private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(ResourceController.class);
@@ -27,7 +27,7 @@ public class TemplateController extends ResourceController {
     private TemplatesRepository templatesRepository;
 
     /**
-     * Field Mappings for a Study.
+     * Field Mappings for a Template.
      *
      * @return JSON list of Templates
      * @throws Exception for connection failures, authentication failure
@@ -45,7 +45,7 @@ public class TemplateController extends ResourceController {
     }
 
     /**
-     * Field Mappings for a Study.
+     * Field Mappings for a Template.
      *
      * @return JSON of Template along with Field Mappings
      * @throws Exception for connection failures, authentication failure

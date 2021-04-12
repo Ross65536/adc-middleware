@@ -1,12 +1,12 @@
 package pt.inesctec.adcauthmiddleware.adc.models.filters.content;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
 import pt.inesctec.adcauthmiddleware.adc.models.filters.FiltersUtils;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
+import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
 
 /**
  * Models a filter's content with only a field and no value.
@@ -26,14 +26,16 @@ public class FieldContent {
      * Validate the content for semantic correctness.
      *
      * @param errorField      the fields path for better error messages.
-     * @param validFieldTypes the valid fields and types.
+     * @param validFields     the valid fields.
      * @throws AdcException on validation error.
      */
-    public void validate(String errorField, Map<String, FieldType> validFieldTypes)
-            throws AdcException {
+    public void validate(String errorField, List<AdcFields> validFields) throws AdcException {
         String fieldName = errorField + ".field";
         FiltersUtils.assertNonNull(fieldName, field);
-        if (!validFieldTypes.containsKey(field)) {
+
+        var contains = validFields.stream().anyMatch(validField -> validField.getName().equals(field));
+
+        if (!contains) {
             throw new AdcException(String.format("'%s' value '%s' is not valid", fieldName, field));
         }
     }

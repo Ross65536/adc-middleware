@@ -14,10 +14,10 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
-import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
-import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
 import pt.inesctec.adcauthmiddleware.adc.RearrangementConstants;
 import pt.inesctec.adcauthmiddleware.adc.RepertoireConstants;
+import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
+import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
 import pt.inesctec.adcauthmiddleware.db.models.StudyMappings;
@@ -29,7 +29,6 @@ import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.TemplatesRepository;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
 import pt.inesctec.adcauthmiddleware.uma.dto.UmaRegistrationResource;
-import pt.inesctec.adcauthmiddleware.uma.dto.UmaResourceAttributes;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 
 /**

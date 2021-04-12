@@ -9,9 +9,9 @@ import java.util.Set;
 import com.google.common.collect.ImmutableList;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
-import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
 import pt.inesctec.adcauthmiddleware.uma.dto.UmaResource;
+import pt.inesctec.adcauthmiddleware.uma.exceptions.TicketException;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 
 /**
  * Responsible for the UMA flow.

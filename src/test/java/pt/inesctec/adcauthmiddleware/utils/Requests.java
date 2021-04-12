@@ -113,6 +113,7 @@ public class Requests {
     private HttpHeaders buildAuthorizationHeader(String bearer) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + bearer);
+        headers.set("Content-Protected", "true");
         return headers;
     }
 }
