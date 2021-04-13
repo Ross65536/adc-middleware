@@ -2,6 +2,7 @@ package pt.inesctec.adcauthmiddleware.controllers.fieldmappings;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,10 +36,9 @@ public class AdcFieldsController extends ResourceController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<AdcFieldsDto>> fieldsList() throws Exception {
         List<AdcFields> fields = adcFieldsRepository.findAll();
-        List<AdcFieldsDto> fieldList = new ArrayList<>();
-        for (AdcFields adcField : fields) {
-            fieldList.add(new AdcFieldsDto(adcField));
-        }
+        List<AdcFieldsDto> fieldList = fields.stream()
+                .map(adcFields -> new AdcFieldsDto(adcFields))
+                .collect(Collectors.toList());
         return new ResponseEntity<>(fieldList, HttpStatus.OK);
     }
 }

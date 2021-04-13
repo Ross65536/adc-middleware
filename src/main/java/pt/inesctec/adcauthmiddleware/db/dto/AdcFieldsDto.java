@@ -1,10 +1,12 @@
 package pt.inesctec.adcauthmiddleware.db.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
 
 public class AdcFieldsDto {
     private long id;
     private String name;
+    @JsonProperty("class_id")
     private long classId;
 
     public AdcFieldsDto(AdcFields adcFields) {
