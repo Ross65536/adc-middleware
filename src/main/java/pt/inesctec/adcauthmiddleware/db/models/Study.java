@@ -52,12 +52,20 @@ public class Study {
         this.umaId = umaId;
     }
 
+    public long getId() {
+        return id;
+    }
+
     public String getStudyId() {
         return studyId;
     }
 
     public String getUmaId() {
         return umaId;
+    }
+
+    public List<StudyMappings> getMappings() {
+        return mappings;
     }
 
     @Override
