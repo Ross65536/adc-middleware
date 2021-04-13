@@ -1,6 +1,5 @@
 package pt.inesctec.adcauthmiddleware.adc.resources;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -13,7 +12,6 @@ import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.RepertoireConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
-import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 
@@ -62,24 +60,18 @@ public class RepertoireLoader extends AdcResourceLoader {
 
     @Override
     public ResponseEntity<StreamingResponseBody> response(AdcSearchRequest adcSearch) throws Exception {
-        // TODO: Repertoire Facets
         if (adcSearch.isFacetsSearch()) {
-            List<String> resourceIds = Collections.emptyList();
-
-            if (resourceState.isUmaEnabled()) {
-                resourceIds = UmaUtils.filterFacets(
-                    resourceState.getResources().values(),
-                    resourceState.getScopes(),
-                    (String umaId) -> CollectionsUtils.toSet(this.dbService.getStudyIdByUmaId(umaId))
-                );
-            }
+            List<String> resourceIds = loadFacetIds(
+                adcSearch,
+                resourceState.getResources(),
+                (String umaId) -> CollectionsUtils.toSet(this.dbService.getStudyIdByUmaId(umaId))
+            );
 
             return AdcResourceLoader.responseFilteredFacets(
                 adcSearch,
                 RepertoireConstants.UMA_ID_FIELD,
                 this.adcClient::searchRepertoiresAsStream,
-                resourceIds,
-                resourceState.isUmaEnabled()
+                resourceIds
             );
         }
 

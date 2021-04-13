@@ -26,22 +26,31 @@ import pt.inesctec.adcauthmiddleware.uma.dto.UmaResource;
  *  </ul>
  */
 public class ResourceState {
-    // Defines if the state should trigger the UMA workflow.
-    //  * If Disabled - Will map the resource to only output fields that have been defined as public
-    //  * If Enabled  - Will follow the UMA workflow normally
+    /**
+     * Defines if the state should trigger the UMA workflow.
+     *  - If Disabled - Will map the resource to only output fields that have been defined as public
+     *  - If Enabled  - Will follow the UMA workflow normally
+     */
     private boolean umaEnabled = false;
 
-    // Set of UMA IDs requested and to be inquired with the UMA Service
-    // The size of the Set may not match the number of resources returned by the UMA Service.
-    // This happens when, for example, the user doesn't have permissions to access a certain UMA ID.
+    /**
+     * Set of UMA IDs requested and to be inquired with the UMA Service
+     * The size of the Set may not match the number of resources returned by the UMA Service.
+     * This happens when, for example, the user doesn't have permissions to access a certain UMA ID.
+     */
     private Set<String> umaIds = new HashSet<>();
 
-    // Set of UMA scopes requested and to be inquired with the UMA Service
-    // Follows the same principle of the Set above
+    /**
+     * Set of UMA scopes in the original request and to be inquired with the UMA Service.
+     * Note that: the UMA Service may not return the same Set of scopes and will only return
+     * scopes that the user has access to
+     */
     private Set<String> scopes = new HashSet<>();
 
-    // Map of AdcResources
-    //   Map[UMA ID] => AdcResource
+    /**
+     * Map of AdcResources
+     *   Map[UMA ID] => AdcResource
+     */
     private Map<String, AdcResource> resources = new HashMap<>();
 
     public boolean isUmaEnabled() {

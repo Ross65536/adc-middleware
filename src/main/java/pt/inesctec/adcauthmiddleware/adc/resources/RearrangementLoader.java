@@ -21,7 +21,6 @@ import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
-import pt.inesctec.adcauthmiddleware.uma.UmaUtils;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
@@ -71,24 +70,18 @@ public class RearrangementLoader extends AdcResourceLoader {
 
     @Override
     public ResponseEntity<StreamingResponseBody> response(AdcSearchRequest adcSearch) throws Exception {
-        // TODO: Rearrangement Facets
         if (adcSearch.isFacetsSearch()) {
-            List<String> resourceIds = Collections.emptyList();
-
-            if (resourceState.isUmaEnabled()) {
-                resourceIds = UmaUtils.filterFacets(
-                    resourceState.getResources().values(),
-                    resourceState.getScopes(),
-                    (String umaId) -> this.dbService.getRepertoireIdsByUmaId(umaId)
-                );
-            }
+            List<String> resourceIds = loadFacetIds(
+                adcSearch,
+                resourceState.getResources(),
+                (String umaId) -> this.dbService.getRepertoireIdsByUmaId(umaId)
+            );
 
             return AdcResourceLoader.responseFilteredFacets(
                 adcSearch,
                 RearrangementConstants.REPERTOIRE_ID_FIELD,
                 this.adcClient::searchRearrangementsAsStream,
-                resourceIds,
-                resourceState.isUmaEnabled()
+                resourceIds
             );
         }
 

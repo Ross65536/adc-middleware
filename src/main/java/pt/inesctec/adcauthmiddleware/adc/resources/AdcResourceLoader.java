@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -142,8 +143,8 @@ public abstract class AdcResourceLoader {
      * Loads ADC field mappings according to the defined settings in the UMA Service the Middleware's database
      * and sets them into the current resources.
      * <p>
-     *     If UMA is enabled: Will retrieve the Fields Mappings that correspond to the requested scopes or
-     *     the scopes the user has access to, and sets them to the current resources
+     *     If UMA is enabled: Will retrieve the Fields Mappings that correspond to the
+     *     scopes the user has access to, and sets them to the current resources;
      * </p>
      * <p>
      *     If UMA is disabled: Only Retrieve Fields that have been mapped to the "public" scope.
@@ -159,16 +160,21 @@ public abstract class AdcResourceLoader {
         for (String umaId : resourceState.getUmaIds()) {
             List<String> scopes = new ArrayList<>();
 
-            // Public Request
+            // Determine scope access
+            // * Public Request
             if (!resourceState.isUmaEnabled()) {
                 scopes.add(umaConfig.getPublicScopeName());
-            } else { // Protected Request
-                // If it's a protected request but if for some reason it fails to determine the resource in the UMA service
-                // Fallback to public fields
+            } else {
+                // * Protected Request - Missing Resource
+                // If for some reason it fails to determine the resource in the UMA service
+                // then fallback to public fields
                 if (resourceState.getResources().isEmpty() || !resourceState.getResources().containsKey(umaId)) {
                     Logger.warn("Unable to determine resource with UMA ID {} - not present in UMA Service. Is database /synchronized?", umaId);
                     scopes.add(umaConfig.getPublicScopeName());
                 } else {
+                    // * Protected Request - Default Behaviour
+                    // If it succeeds in getting the resource, determine the scopes accessible to the user
+                    // according to the UMA Service as determined by AdcResourceLoader::processUma()
                     scopes = new ArrayList<>(
                         resourceState.getResources().get(umaId).getUmaResource().getScopes()
                     );
@@ -209,6 +215,37 @@ public abstract class AdcResourceLoader {
     public abstract ResponseEntity<StreamingResponseBody> response(AdcSearchRequest adcSearch) throws Exception;
 
     /**
+     * From a list ADC resources, determine based on their fieldMappings and the requested Facet,
+     * the list of resource IDs that identify the Facets accessible by the user.
+     * Example:
+     *   For /repertoire it shall return a List of study.study_id
+     *   For /rearrangement it shall return a List of repertoire_id
+     *
+     * @param adcSearchRequest user's request
+     * @param adcResources determined resource list from the request
+     * @param resourceGetter function that returns the collection of resource IDs given an UMA ID.
+     * @return List of resource identifying values
+     */
+    public static List<String>  loadFacetIds(
+        AdcSearchRequest adcSearchRequest,
+        Map<String, AdcResource> adcResources,
+        Function<String, Set<String>> resourceGetter
+    ) {
+        String requestedFacet = adcSearchRequest.getFacets();
+
+        List<String> validResources = new ArrayList<>();
+
+        for (var resource : adcResources.entrySet()) {
+            if (resource.getValue().getFieldMappings().contains(requestedFacet)) {
+                var resourceId = resourceGetter.apply(resource.getKey());
+                validResources.addAll(resourceId);
+            }
+        }
+
+        return validResources;
+    }
+
+    /**
      * Build JSON streaming, filtered response.
      *
      * @param resourceId          name of the field that identifies this UMA resource in the AdcRequest response
@@ -238,35 +275,24 @@ public abstract class AdcResourceLoader {
     /**
      * Core facets request.
      *
+     * @param resourceId       name of the field that identifies the resource.
      * @param adcSearch        the user's ADC query.
-     * @param resourceId       the resource's ID field
      * @param adcRequest       the request function
      * @param resourceIds      the permitted list of resource IDs for facets.
-     * @param isProtected      whether the request made is protected or public.
      * @return the streamed facets.
      * @throws Exception on error.
      */
-    // TODO: Rework facets
     public static ResponseEntity<StreamingResponseBody> responseFilteredFacets(
         AdcSearchRequest adcSearch,
         String resourceId,
         ThrowingFunction<AdcSearchRequest, InputStream, Exception> adcRequest,
-        List<String> resourceIds,
-        boolean isProtected
+        List<String> resourceIds
     ) throws Exception {
-        boolean filterResponse = false;
-
-        // Non public facets field
-        if (isProtected) {
-            adcSearch.withFieldIn(resourceId, resourceIds);
-            filterResponse = resourceIds.isEmpty();
-        }
+        adcSearch.withFieldIn(resourceId, resourceIds);
 
         var is = SpringUtils.catchForwardingError(() -> adcRequest.apply(adcSearch));
 
-        // will only perform whitelist filtering if rpt grants access to nothing, for partial access the
-        // backend must perform the filtering
-        IFieldsFilter filter = filterResponse ? FieldsFilter.BlockingFilter : FieldsFilter.OpenFilter;
+        IFieldsFilter filter = FieldsFilter.OpenFilter;
 
         var mapper = AdcJsonDocumentParser.buildJsonMapper(is, AdcConstants.ADC_FACETS, filter);
         return SpringUtils.buildJsonStream(mapper);
