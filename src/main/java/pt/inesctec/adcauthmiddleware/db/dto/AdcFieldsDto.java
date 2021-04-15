@@ -11,7 +11,11 @@ public class AdcFieldsDto {
 
     public AdcFieldsDto(AdcFields adcFields) {
         this.id = adcFields.getId();
-        this.name = adcFields.getName();
+        this.name = "";
+        if (adcFields.getPrefix() != null) {
+            this.name += adcFields.getPrefix() + ".";
+        }
+        this.name += adcFields.getName();
         this.classId = adcFields.getType().getId();
     }
 
