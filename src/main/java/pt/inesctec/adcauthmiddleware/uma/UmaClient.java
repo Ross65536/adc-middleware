@@ -91,8 +91,6 @@ public class UmaClient {
         var request = new HttpRequestBuilderFacade()
             .postForm(uri, form)
             .expectJson()
-            // TODO update to bearer once keycloak follows spec
-            // Keycloak doesn't follow UMA spec in allowing UMA access tokens to be used here
             .withBasicAuth(this.umaConfig.getClientId(), this.umaConfig.getClientSecret())
             .build();
 
@@ -182,11 +180,6 @@ public class UmaClient {
 
     public String createUmaResource(UmaRegistrationResource resource) throws Exception {
         this.updateAccessToken();
-
-        // TODO It makes no sense to define this here. Move it to where the resource is first being created
-        resource.setId(null);
-        resource.setOwnerManagedAccess(true); // keycloak specific
-        resource.setOwner(this.umaConfig.getResourceOwner()); // keycloak specific
 
         Logger.info("Creating UMA 2 resource: {}", resource);
 

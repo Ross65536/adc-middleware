@@ -189,9 +189,6 @@ public class AdcClient {
      * @throws Exception on error
      */
     public Set<String> searchRepertoireStudyIds(AdcSearchRequest adcRequest) throws Exception {
-        // TODO: Why? Disabled
-        // Preconditions.checkArgument(adcRequest.isJsonFormat());
-
         var idsQuery = adcRequest.queryClone();
         idsQuery.withFacets(RearrangementConstants.REPERTOIRE_ID_FIELD);
         idsQuery.setFormat("json");
@@ -213,9 +210,6 @@ public class AdcClient {
      * @throws Exception on error
      */
     public Set<String> searchRearrangementRepertoireIds(AdcSearchRequest adcRequest) throws Exception {
-        // TODO: Why? Disabled
-        //Preconditions.checkArgument(adcRequest.isJsonFormat());
-
         var idsQuery = adcRequest.queryClone();
         idsQuery.withFacets(RearrangementConstants.REPERTOIRE_ID_FIELD);
         idsQuery.setFormat("json");

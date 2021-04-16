@@ -26,8 +26,8 @@ public class UmaRegistrationResource {
     private Set<String> resourceScopes;
 
     @JsonIgnore
-    private String owner; // keycloak specific
-    private Boolean ownerManagedAccess; // keycloak specific
+    private String owner;
+    private Boolean ownerManagedAccess;
 
     private UmaResourceAttributes attributes;
 
@@ -35,9 +35,10 @@ public class UmaRegistrationResource {
     }
 
     public UmaRegistrationResource(String name, String type, Set<String> resourceScopes) {
-        this.name = name; // mandatory by keycloak
+        this.name = name;
         this.type = type;
         this.resourceScopes = resourceScopes; // keycloak will delete type if not present here
+        this.ownerManagedAccess = true;
     }
 
     public UmaRegistrationResource(String name, String type, Set<String> resourceScopes, UmaResourceAttributes attributes) {
@@ -45,6 +46,7 @@ public class UmaRegistrationResource {
         this.type = type;
         this.resourceScopes = resourceScopes;
         this.attributes = attributes;
+        this.ownerManagedAccess = true;
     }
 
     public String getName() {
@@ -95,7 +97,7 @@ public class UmaRegistrationResource {
         this.id = id;
     }
 
-    @JsonProperty("owner") // Keycloak specific
+    @JsonProperty("owner")
     public String getOwner() {
         return owner;
     }

@@ -18,6 +18,7 @@ import pt.inesctec.adcauthmiddleware.adc.RearrangementConstants;
 import pt.inesctec.adcauthmiddleware.adc.RepertoireConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
+import pt.inesctec.adcauthmiddleware.config.UmaConfig;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
 import pt.inesctec.adcauthmiddleware.db.models.StudyMappings;
@@ -46,6 +47,8 @@ public class SynchronizeService {
     DbService dbService;
     @Autowired
     UmaClient umaClient;
+    @Autowired
+    UmaConfig umaConfig;
     @Autowired
     RepertoireRepository repertoireRepository;
     @Autowired
@@ -215,8 +218,11 @@ public class SynchronizeService {
             var studyTitle = repositoryStudyMap.get(newStudyId);
             var umaName = String.format("study ID: %s; title: %s", newStudyId, studyTitle);
             var resource = new UmaRegistrationResource(umaName, AdcConstants.UMA_STUDY_TYPE, allUmaScopes);
+            resource.setId(null);
+            resource.setOwner(this.umaConfig.getResourceOwner());
 
             String createdUmaId;
+
             try {
                 createdUmaId = this.umaClient.createUmaResource(resource);
             } catch (Exception e) {
