@@ -189,9 +189,13 @@ public class AdcClient {
      * @throws Exception on error
      */
     public Set<String> searchRepertoireStudyIds(AdcSearchRequest adcRequest) throws Exception {
-        Preconditions.checkArgument(adcRequest.isJsonFormat());
+        // TODO: Why? Disabled
+        // Preconditions.checkArgument(adcRequest.isJsonFormat());
 
-        var idsQuery = adcRequest.queryClone().withFacets(RepertoireConstants.UMA_ID_FIELD);
+        var idsQuery = adcRequest.queryClone();
+        idsQuery.withFacets(RearrangementConstants.REPERTOIRE_ID_FIELD);
+        idsQuery.setFormat("json");
+
         var request = this.buildSearchRequest("repertoire", idsQuery);
         var facets = HttpFacade.makeExpectJsonRequest(
             request, AdcFacetsResponse.class
@@ -209,9 +213,13 @@ public class AdcClient {
      * @throws Exception on error
      */
     public Set<String> searchRearrangementRepertoireIds(AdcSearchRequest adcRequest) throws Exception {
-        Preconditions.checkArgument(adcRequest.isJsonFormat());
+        // TODO: Why? Disabled
+        //Preconditions.checkArgument(adcRequest.isJsonFormat());
 
-        var idsQuery = adcRequest.queryClone().withFacets(RearrangementConstants.REPERTOIRE_ID_FIELD);
+        var idsQuery = adcRequest.queryClone();
+        idsQuery.withFacets(RearrangementConstants.REPERTOIRE_ID_FIELD);
+        idsQuery.setFormat("json");
+
         var request = this.buildSearchRequest("rearrangement", idsQuery);
         var facets = HttpFacade.makeExpectJsonRequest(request, AdcFacetsResponse.class).getFacets();
 

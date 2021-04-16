@@ -2,7 +2,9 @@ package pt.inesctec.adcauthmiddleware.adc.resourceprocessing;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -14,7 +16,6 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.ThrowingConsumer;
 
@@ -25,28 +26,27 @@ public class AdcTsvWriter implements IAdcWriter {
 
     private static final ObjectMapper Mapper = new ObjectMapper();
     private final OutputStream os;
-    private Map<String, FieldType> headerFields;
+    private final List<String> headers;
     private ObjectWriter csvMapper;
 
     /**
-     * construtor.
+     * Start TSV writer based on the byte stream from the ADC service
      *
-     * @param os           the output byte stream
-     * @param headerFields the TSV header line values and their types
+     * @param os byte stream containing the response of the ADC service
      */
-    public AdcTsvWriter(OutputStream os, Map<String, FieldType> headerFields) {
+    public AdcTsvWriter(OutputStream os, List<String> headers) {
         this.os = os;
-        this.headerFields = headerFields;
+        this.headers = headers;
     }
 
     /**
      * Builds a TSV writer.
      *
-     * @param headerFields the TSV header fields
+     * @param headers the TSV header fields
      * @param writeHeaders true if TSV header is to be written in response. false otherwise.
      * @return the writer
      */
-    private static ObjectWriter buildCsvMapper(Map<String, FieldType> headerFields, boolean writeHeaders) {
+    private static ObjectWriter buildCsvMapper(List<String> headers, boolean writeHeaders) {
         CsvSchema.Builder schema = new CsvSchema.Builder();
         schema.setUseHeader(writeHeaders);
         schema.setColumnSeparator('\t');
@@ -54,27 +54,8 @@ public class AdcTsvWriter implements IAdcWriter {
         schema.setArrayElementSeparator(",");
         schema.disableQuoteChar();
 
-        for (var p : headerFields.entrySet()) {
-            var field = p.getKey();
-            var type = p.getValue();
-
-            switch (type) {
-                case NUMBER:
-                case INTEGER:
-                    schema.addNumberColumn(field);
-                    break;
-                case STRING:
-                    schema.addColumn(field);
-                    break;
-                case BOOLEAN:
-                    schema.addBooleanColumn(field);
-                    break;
-                case ARRAY_STRING:
-                    schema.addArrayColumn(field);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Invalid");
-            }
+        for (String field : headers) {
+            schema.addColumn(field);
         }
 
         SimpleModule simpleModule = new SimpleModule("adc_tsv_boolean_serialization");
@@ -107,9 +88,9 @@ public class AdcTsvWriter implements IAdcWriter {
             // for first element a writer that writes the header is built,
             // for second and other elements a writer that doesn't write the header is built
             if (this.csvMapper == null) {
-                this.csvMapper = buildCsvMapper(this.headerFields, true);
+                this.csvMapper = buildCsvMapper(this.headers, true);
                 this.csvMapper.writeValue(this.os, map);
-                this.csvMapper = buildCsvMapper(this.headerFields, false);
+                this.csvMapper = buildCsvMapper(this.headers, false);
                 return;
             }
 
@@ -119,8 +100,9 @@ public class AdcTsvWriter implements IAdcWriter {
 
     public static class TsvBooleanSerializer extends JsonSerializer<Boolean> {
         @Override
-        public void serialize(Boolean bool, JsonGenerator generator, SerializerProvider provider)
-                throws IOException {
+        public void serialize(
+            Boolean bool, JsonGenerator generator, SerializerProvider provider
+        ) throws IOException {
             generator.writeString(bool ? "T" : "F");
         }
     }

@@ -33,7 +33,7 @@ public class PrimitiveValueContent extends FieldContent {
         String fieldName = errorField + ".value";
         FiltersUtils.assertNonNull(fieldName, value);
 
-        // TODO: Makes no sense to make these checks. Limits filtering possibilities way too much
+        // TODO: Makes no sense to make these checks. Limits filtering possibilities way too much. The ADC Service already makes these types of validations.
         /*
         var fieldType = validFieldTypes.get(this.getField());
 

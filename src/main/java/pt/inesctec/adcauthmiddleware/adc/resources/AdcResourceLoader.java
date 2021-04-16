@@ -31,7 +31,6 @@ import pt.inesctec.adcauthmiddleware.utils.ThrowingSupplier;
 public abstract class AdcResourceLoader {
     private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcResourceLoader.class);
 
-    // Application's singletons
     protected AdcClient adcClient;
     protected DbService dbService;
 
@@ -215,7 +214,7 @@ public abstract class AdcResourceLoader {
     public abstract ResponseEntity<StreamingResponseBody> response(AdcSearchRequest adcSearch) throws Exception;
 
     /**
-     * From a list ADC resources, determine based on their fieldMappings and the requested Facet,
+     * From a list of ADC resources, determine based on their fieldMappings and the requested Facet,
      * the list of resource IDs that identify the Facets accessible by the user.
      * Example:
      *   For /repertoire it shall return a List of study.study_id
@@ -263,8 +262,8 @@ public abstract class AdcResourceLoader {
     ) throws Exception {
         var response = SpringUtils.catchForwardingError(adcRequest);
 
-        /*var stringBody = CharStreams.toString(new InputStreamReader(response, Charsets.UTF_8));
-        System.out.println(stringBody);*/
+        //var stringBody = CharStreams.toString(new InputStreamReader(response, Charsets.UTF_8));
+        //System.out.println(stringBody);
 
         var filter = new FieldsFilter(fieldMapper, resourceId);
         var mapper = AdcJsonDocumentParser.buildJsonMapper(response, responseFilterField, filter);

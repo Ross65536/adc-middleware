@@ -1,7 +1,7 @@
 package pt.inesctec.adcauthmiddleware.adc.resources;
 
 import java.io.InputStream;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +20,7 @@ import pt.inesctec.adcauthmiddleware.adc.resourceprocessing.FieldsFilter;
 import pt.inesctec.adcauthmiddleware.config.csv.CsvConfig;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldClass;
 import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
+import pt.inesctec.adcauthmiddleware.db.models.AdcFields;
 import pt.inesctec.adcauthmiddleware.db.services.DbService;
 import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
@@ -86,16 +87,26 @@ public class RearrangementLoader extends AdcResourceLoader {
         }
 
         if (adcSearch.isTsvFormat()) {
-            /*var requestedFieldTypes = RearrangementSet.getRequestedFieldsAndTypes(
-                adcSearch, FieldClass.REARRANGEMENT, this.csvConfig
-            );
+            // This may seem counter-intuitive, but if we're dealing with a TSV format search,
+            // we're actually going to request data in JSON format, and then convert it to TSV
+            // This allows us to reuse the filtering code also used for filtering standard JSONs
+            var adcSearchClone = adcSearch.queryClone();
+            adcSearchClone.setFormat("json");
+
+            var headers = new ArrayList<>(adcSearch.getRequestedFields());
+
+            if (headers.isEmpty()) {
+                var headerFields = this.dbService.getAdcFieldsRepository().findByType(this.adcFieldType);
+                headers = headerFields.stream().map(AdcFields::getName).collect(Collectors.toCollection(ArrayList::new));
+            }
 
             return responseFilteredTsv(
-                RearrangementSet.REPERTOIRE_ID_FIELD,
-                RearrangementSet.RESPONSE_FILTER_FIELD,
+                RearrangementConstants.REPERTOIRE_ID_FIELD,
+                RearrangementConstants.RESPONSE_FILTER_FIELD,
+                headers,
                 this.resourceState.setupFieldMapper().compose(this.dbService::getRepertoireUmaId),
-                () -> this.adcClient.searchRearrangementsAsStream(adcSearch),
-                requestedFieldTypes);*/
+                () -> this.adcClient.searchRearrangementsAsStream(adcSearchClone)
+            );
         }
 
         return AdcResourceLoader.responseFilteredJson(
@@ -113,38 +124,21 @@ public class RearrangementLoader extends AdcResourceLoader {
      * @param responseFilterField the response's field where the resources are set
      * @param fieldMapper         the ID to granted fields mapper
      * @param adcRequest          the ADC request producer.
-     * @param headerFields        the TSV header fields which will be the response's first line.
      * @return streaming response
      * @throws Exception on error
      */
     public static ResponseEntity<StreamingResponseBody> responseFilteredTsv(
         String resourceId,
         String responseFilterField,
+        List<String> headers,
         Function<String, Set<String>> fieldMapper,
-        ThrowingSupplier<InputStream, Exception> adcRequest,
-        Map<String, FieldType> headerFields
+        ThrowingSupplier<InputStream, Exception> adcRequest
     ) throws Exception {
         var response = SpringUtils.catchForwardingError(adcRequest);
         var filter = new FieldsFilter(fieldMapper, resourceId);
         var mapper = AdcJsonDocumentParser.buildTsvMapper(
-            response, responseFilterField, filter, headerFields
+            response, responseFilterField, headers, filter
         );
         return SpringUtils.buildTsvStream(mapper);
-    }
-
-    /**
-     * Obtain the fields and their types from the user's regular ADC request.
-     * Should check previously that the request is not facets.
-     *
-     * @param request    The user's ADC query
-     * @param fieldClass the resource type
-     * @return the fields and types
-     */
-    public static Map<String, FieldType> getRequestedFieldsAndTypes(
-        AdcSearchRequest request, FieldClass fieldClass, CsvConfig csvConfig
-    ) {
-        var requestedFields = request.getRequestedFields();
-        Map<String, FieldType> allFields = csvConfig.getFieldsTypes(fieldClass);
-        return CollectionsUtils.intersectMapWithSet(allFields, requestedFields);
     }
 }

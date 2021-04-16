@@ -2,7 +2,8 @@ package pt.inesctec.adcauthmiddleware.adc.resourceprocessing;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
+import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
@@ -11,7 +12,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
-import pt.inesctec.adcauthmiddleware.config.csv.FieldType;
 import pt.inesctec.adcauthmiddleware.http.Json;
 
 /**
@@ -23,28 +23,28 @@ public class AdcJsonDocumentParser {
      * Shared JSON factory singleton.
      */
     public static JsonFactory JsonFactory = new JsonFactory();
-    private static org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcJsonDocumentParser.class);
+    private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(AdcJsonDocumentParser.class);
 
     static {
         JsonFactory.setCodec(Json.JsonObjectMapper);
     }
 
-    private final IFieldsFilter filter;
-    private final InputStream response;
+    private final InputStream inputStream;
     private final String mappedField;
+    private final IFieldsFilter filter;
     private IAdcWriter adcWriter;
 
     /**
      * constructor.
      *
-     * @param response    the input ADC JSON byte stream
+     * @param inputStream the input ADC JSON byte stream coming from the ADC Service
      * @param mappedField the ADC response document's field name of the resources.
      * @param filter      the filter function. Will modify the resource by removing/adding fields
-     * @param adcWriter   the writer interface.
+     * @param adcWriter   the writer interface and ultimately the output
      */
-    private AdcJsonDocumentParser(InputStream response, String mappedField, IFieldsFilter filter, IAdcWriter adcWriter) {
+    private AdcJsonDocumentParser(InputStream inputStream, String mappedField, IFieldsFilter filter, IAdcWriter adcWriter) {
         this.filter = filter;
-        this.response = response;
+        this.inputStream = inputStream;
         this.mappedField = mappedField;
         this.adcWriter = adcWriter;
     }
@@ -52,15 +52,15 @@ public class AdcJsonDocumentParser {
     /**
      * Build a JSON to JSON processor.
      *
-     * @param response    the JSON input
+     * @param inputStream    the JSON input
      * @param mappedField the mapped ADC field name
      * @param filter      the resource filter
      * @return spring streaming JSON response
      */
-    public static StreamingResponseBody buildJsonMapper(InputStream response, String mappedField, IFieldsFilter filter) {
+    public static StreamingResponseBody buildJsonMapper(InputStream inputStream, String mappedField, IFieldsFilter filter) {
         return os -> {
             var jsonWriter = new AdcJsonWriter(os);
-            var mapper = new AdcJsonDocumentParser(response, mappedField, filter, jsonWriter);
+            var mapper = new AdcJsonDocumentParser(inputStream, mappedField, filter, jsonWriter);
             mapper.process();
         };
     }
@@ -70,28 +70,29 @@ public class AdcJsonDocumentParser {
      *
      * @param response     the JSON input
      * @param mappedField  the mapped ADC field name
+     * @param headers      set of headers that will be included in the TSV
      * @param filter       the resource filter
-     * @param headerFields the TSV header fields and their types
      * @return spring streaming TSV response
      */
-    public static StreamingResponseBody buildTsvMapper(InputStream response, String mappedField, IFieldsFilter filter, Map<String, FieldType> headerFields) {
+    public static StreamingResponseBody buildTsvMapper(InputStream response, String mappedField, List<String> headers, IFieldsFilter filter) {
         return os -> {
-            var jsonWriter = new AdcTsvWriter(os, headerFields);
-            var mapper = new AdcJsonDocumentParser(response, mappedField, filter, jsonWriter);
+            var tsvWriter = new AdcTsvWriter(os, headers);
+            var mapper = new AdcJsonDocumentParser(response, mappedField, filter, tsvWriter);
             mapper.process();
         };
     }
 
     /**
-     * Entrypoint for starting the processing.
+     * Start processing the inputStream from the ADC Service, apply designated filters and
+     * output result to the IAdcWriter interface.
      *
      * @throws IOException on error.
      */
     private void process() throws IOException {
-        var parser = JsonFactory.createParser(response);
+        var parser = JsonFactory.createParser(inputStream);
 
         if (parser.nextToken() != JsonToken.START_OBJECT) {
-            Logger.error("Received repository response isn't a JSON object");
+            Logger.error("Response from ADC Service isn't a valid JSON object");
             this.adcWriter.close();
             return;
         }
@@ -101,7 +102,7 @@ public class AdcJsonDocumentParser {
             var nextToken = parser.nextToken();
             if (fieldName == null
                     || (nextToken != JsonToken.START_OBJECT && nextToken != JsonToken.START_ARRAY)) {
-                Logger.error("Malformed JSON received from repository");
+                Logger.error("Malformed JSON received from ADC Service");
                 this.adcWriter.close();
                 return;
             }

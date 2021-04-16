@@ -140,8 +140,7 @@ public final class SpringUtils {
      * @param streamer stream producer
      * @return stream response
      */
-    public static ResponseEntity<StreamingResponseBody> buildTsvStream(
-            StreamingResponseBody streamer) {
+    public static ResponseEntity<StreamingResponseBody> buildTsvStream(StreamingResponseBody streamer) {
         return ResponseEntity.ok().header("Content-Type", "text/tab-separated-values").body(streamer);
     }
 

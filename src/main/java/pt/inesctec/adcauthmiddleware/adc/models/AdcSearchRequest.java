@@ -96,36 +96,12 @@ public class AdcSearchRequest {
     }
 
     /**
-     * Get the fields that correspond to this Request, non-facets.
-     * This includes the "fields" and "include_fields" parameters.
-     * If both empty all of the resource's fields are returned.
-     *
-     * @param fieldClass the resource type
-     * @param csvConfig CsvConfig object
-     * @return the set of fields that were requested.
-     */
-    @JsonIgnore
-    public Set<String> getRequestedFieldsCsv(FieldClass fieldClass, CsvConfig csvConfig) {
-        final Set<String> fields = this.isFieldsEmpty() ? Set.of() : this.getFields();
-
-        final Set<String> includeFields = this.isIncludeFieldsEmpty()
-            ? Set.of()
-            : csvConfig.getFields(fieldClass, this.getIncludeFields());
-
-        final Set<String> requestedFields = Sets.union(fields, includeFields);
-
-        return new HashSet<>(requestedFields.isEmpty()
-                ? csvConfig.getFieldsTypes(fieldClass).keySet()
-                : requestedFields);
-    }
-
-    /**
-     * Get the fields that correspond to this Request, non-facets.
+     * Get specifically requested fields that correspond to this Request, non-facets.
      * This includes the "fields" attribute and specific fields present in "filter" operations.
      * If no specific fields were requested, an empty Set will be returned, meaning the user
      * requested no fields.
      *
-     * @return the set requested fields.
+     * @return Set of specifically requested fields. Empty if no specific field were requested.
      */
     // TODO: Could expand this method to check "include_fields" somehow?
     @JsonIgnore
