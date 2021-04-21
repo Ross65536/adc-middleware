@@ -189,8 +189,7 @@ public class AdcClient {
      * @throws Exception on error
      */
     public Set<String> searchRepertoireStudyIds(AdcSearchRequest adcRequest) throws Exception {
-        var idsQuery = adcRequest.queryClone();
-        idsQuery.withFacets(RearrangementConstants.REPERTOIRE_ID_FIELD);
+        var idsQuery = adcRequest.queryClone().withFacets(RepertoireConstants.UMA_ID_FIELD);
         idsQuery.setFormat("json");
 
         var request = this.buildSearchRequest("repertoire", idsQuery);
@@ -210,8 +209,7 @@ public class AdcClient {
      * @throws Exception on error
      */
     public Set<String> searchRearrangementRepertoireIds(AdcSearchRequest adcRequest) throws Exception {
-        var idsQuery = adcRequest.queryClone();
-        idsQuery.withFacets(RearrangementConstants.REPERTOIRE_ID_FIELD);
+        var idsQuery = adcRequest.queryClone().withFacets(RearrangementConstants.REPERTOIRE_ID_FIELD);
         idsQuery.setFormat("json");
 
         var request = this.buildSearchRequest("rearrangement", idsQuery);
