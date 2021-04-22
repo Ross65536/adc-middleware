@@ -37,10 +37,6 @@ services:
       - middleware-redis
     restart: always
 
-  middleware-frontend:
-    image: ros65536/adc-middleware-frontend
-    restart: always
-
   keycloak:
     # based on: jboss/keycloak:10.0.2
     build: ./config/keycloak
