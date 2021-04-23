@@ -38,7 +38,7 @@ services:
     restart: always
 
   keycloak:
-    # based on: jboss/keycloak:10.0.2
+    # based on: jboss/keycloak:12.0.4
     build: ./config/keycloak
     environment:
       DB_VENDOR: postgres

@@ -1,2 +1,2 @@
-FROM jboss/keycloak:10.0.2
+FROM jboss/keycloak:12.0.4
 COPY ./js-policies /opt/jboss/keycloak/standalone/deployments
