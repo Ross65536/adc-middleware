@@ -15,6 +15,10 @@ import pt.inesctec.adcauthmiddleware.controllers.ResourceController;
 import pt.inesctec.adcauthmiddleware.db.dto.AdcFieldTypeDto;
 import pt.inesctec.adcauthmiddleware.db.models.AdcFieldType;
 import pt.inesctec.adcauthmiddleware.db.repository.AdcFieldTypeRepository;
+import pt.inesctec.adcauthmiddleware.uma.dto.internal.TokenIntrospection;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 public class AdcFieldTypeController extends ResourceController {
@@ -33,7 +37,13 @@ public class AdcFieldTypeController extends ResourceController {
             value = "/class",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<AdcFieldTypeDto>> classList() throws Exception {
+    public ResponseEntity<List<AdcFieldTypeDto>> classList(
+            HttpServletRequest request
+    ) throws Exception {
+        String bearer = SpringUtils.getBearer(request);
+        TokenIntrospection introspection = umaClient.introspectToken(bearer, false);
+        if (!introspection.isActive())
+            throw new Exception("Access token is not active");
         List<AdcFieldType> classes = adcFieldTypeRepository.findAll();
         List<AdcFieldTypeDto> classList = classes.stream()
                 .map(AdcFieldTypeDto::new)
