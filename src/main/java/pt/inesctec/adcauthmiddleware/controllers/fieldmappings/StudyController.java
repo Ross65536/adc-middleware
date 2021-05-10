@@ -5,17 +5,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import pt.inesctec.adcauthmiddleware.controllers.ResourceController;
-import pt.inesctec.adcauthmiddleware.db.dto.AdcFieldsDto;
-import pt.inesctec.adcauthmiddleware.db.dto.StudyDto;
-import pt.inesctec.adcauthmiddleware.db.dto.StudyListDto;
+import pt.inesctec.adcauthmiddleware.db.dto.*;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
+import pt.inesctec.adcauthmiddleware.db.repository.StudyMappingsRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
+import pt.inesctec.adcauthmiddleware.uma.dto.UmaRegistrationResource;
+import pt.inesctec.adcauthmiddleware.uma.dto.internal.TokenIntrospection;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,8 +27,11 @@ public class StudyController extends ResourceController {
     @Autowired
     private StudyRepository studyRepository;
 
+    @Autowired
+    private StudyMappingsRepository studyMappingsRepository;
+
     /**
-     * Field Mappings for a Study.
+     * Protected by owner. List of studies.
      *
      * @return JSON list of Studies
      * @throws Exception for connection failures, authentication failure
@@ -37,16 +40,25 @@ public class StudyController extends ResourceController {
             value = "/study",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<StudyListDto>> studiesList() throws Exception {
-        List<Study> studies = studyRepository.findAll();
-        List<StudyListDto> studyList = studies.stream()
-                .map(study -> new StudyListDto(study))
-                .collect(Collectors.toList());
-        return new ResponseEntity<>(studyList, HttpStatus.OK);
+    public ResponseEntity<List<UmaRegistrationResource>> study(
+            HttpServletRequest request
+    ) throws Exception {
+        List<UmaRegistrationResource> owned_resources = new ArrayList<>();
+        String bearer = SpringUtils.getBearer(request);
+        TokenIntrospection introspection = umaClient.introspectToken(bearer, false);
+        String currentUserId = introspection.getUserId();
+        String[] resources = umaClient.listUmaResources();
+        for (String resourceId :
+                resources) {
+            UmaRegistrationResource resource = umaClient.getResource(resourceId);
+            if (resource.getOwner().equals(currentUserId))
+                owned_resources.add(resource);
+        }
+        return new ResponseEntity<>(owned_resources, HttpStatus.OK);
     }
 
     /**
-     * Field Mappings for a Study.
+     * Protected by owner. Field Mappings for a Study.
      *
      * @return JSON of Study along with Field Mappings
      * @throws Exception for connection failures, authentication failure
@@ -56,9 +68,40 @@ public class StudyController extends ResourceController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StudyDto> studySingle(
-            @PathVariable String studyId
+            @PathVariable String studyId,
+            HttpServletRequest request
     ) throws Exception {
-        StudyDto study = new StudyDto(studyRepository.findByStudyId(studyId));
-        return new ResponseEntity<>(study, HttpStatus.OK);
+        String bearer = SpringUtils.getBearer(request);
+        TokenIntrospection introspection = umaClient.introspectToken(bearer, false);
+        String currentUserId = introspection.getUserId();
+        String[] resources = umaClient.listUmaResources();
+        for (String resourceId :
+                resources) {
+            UmaRegistrationResource resource = umaClient.getResource(resourceId);
+            if (resource.getOwner().equals(currentUserId)) {
+                StudyDto study = new StudyDto(studyRepository.findByUmaId(studyId));
+                return new ResponseEntity<>(study, HttpStatus.OK);
+            }
+        }
+        throw new Exception("Not the owner of this resource");
+    }
+
+    @RequestMapping(
+            value = "/study/{studyId}",
+            method = RequestMethod.PUT,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> studySave(
+            @PathVariable Long studyId,
+            @RequestBody PostStudyDto study,
+            HttpServletRequest request
+    ) throws Exception {
+        for (PostTemplateMappingDto mapping:
+             study.getMappings()) {
+            for (Integer fieldMapping:
+                mapping.getFields()) {
+                studyMappingsRepository.updateScope(mapping.getScope(), studyId, fieldMapping);
+            }
+        }
+        return new ResponseEntity<>("Updated successfully", HttpStatus.OK);
     }
 }

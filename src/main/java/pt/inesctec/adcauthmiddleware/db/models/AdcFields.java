@@ -27,6 +27,17 @@ public class AdcFields {
     @Column()
     private String prefix;
 
+    public AdcFields(int id, String name, AdcFieldType type, String prefix) {
+        this.id = id;
+        this.name = name;
+        this.type = type;
+        this.prefix = prefix;
+    }
+
+//    public AdcFields(int id) {
+//        this.id = id;
+//    }
+
     protected AdcFields() {}
 
     public int getId() {
