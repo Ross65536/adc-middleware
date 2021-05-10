@@ -17,6 +17,8 @@ public class TokenIntrospection {
     private boolean active;
     private List<UmaResource> permissions;
     private Set<String> roles;
+    @JsonProperty("sub")
+    private String userId;
 
     @JsonProperty("realm_access")
     //@SuppressWarnings("unchecked")
@@ -46,5 +48,13 @@ public class TokenIntrospection {
 
     public void setRoles(Set<String> roles) {
         this.roles = roles;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }
