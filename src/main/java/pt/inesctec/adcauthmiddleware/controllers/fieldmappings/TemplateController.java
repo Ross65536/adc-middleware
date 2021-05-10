@@ -1,6 +1,7 @@
 package pt.inesctec.adcauthmiddleware.controllers.fieldmappings;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,15 +10,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import pt.inesctec.adcauthmiddleware.controllers.ResourceController;
+import pt.inesctec.adcauthmiddleware.db.dto.PostTemplateDto;
+import pt.inesctec.adcauthmiddleware.db.dto.PostTemplateMappingDto;
 import pt.inesctec.adcauthmiddleware.db.dto.TemplateDto;
 import pt.inesctec.adcauthmiddleware.db.dto.TemplatesListDto;
+import pt.inesctec.adcauthmiddleware.db.models.TemplateMappings;
 import pt.inesctec.adcauthmiddleware.db.models.Templates;
+import pt.inesctec.adcauthmiddleware.db.repository.TemplateMappingsRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.TemplatesRepository;
+import pt.inesctec.adcauthmiddleware.uma.dto.internal.TokenIntrospection;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
+
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 public class TemplateController extends ResourceController {
@@ -25,6 +32,8 @@ public class TemplateController extends ResourceController {
 
     @Autowired
     private TemplatesRepository templatesRepository;
+    @Autowired
+    private TemplateMappingsRepository templateMappingsRepository;
 
     /**
      * Field Mappings for a Template.
@@ -36,7 +45,13 @@ public class TemplateController extends ResourceController {
             value = "/templates",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<TemplatesListDto>> templateList() throws Exception {
+    public ResponseEntity<List<TemplatesListDto>> templateList(
+            HttpServletRequest request
+    ) throws Exception {
+        String bearer = SpringUtils.getBearer(request);
+        TokenIntrospection introspection = umaClient.introspectToken(bearer, false);
+        if (!introspection.isActive())
+            throw new Exception("Access token is not active");
         List<Templates> templates = templatesRepository.findAll();
         List<TemplatesListDto> templateList = templates.stream()
                 .map(TemplatesListDto::new)
@@ -55,9 +70,50 @@ public class TemplateController extends ResourceController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TemplateDto> templateSingle(
-            @PathVariable Long templateId
+            @PathVariable Long templateId,
+            HttpServletRequest request
     ) throws Exception {
+        String bearer = SpringUtils.getBearer(request);
+        TokenIntrospection introspection = umaClient.introspectToken(bearer, false);
+        if (!introspection.isActive())
+            throw new Exception("Access token is not active");
         TemplateDto template = new TemplateDto(templatesRepository.findById(templateId).get());
+        return new ResponseEntity<>(template, HttpStatus.OK);
+    }
+
+    /**
+     * Field Mappings for a Template.
+     *
+     * @return JSON of Template along with Field Mappings
+     * @throws Exception for connection failures, authentication failure
+     */
+    @RequestMapping(
+            value = "/templates",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<PostTemplateDto> templatePost(
+            @RequestBody PostTemplateDto template,
+            HttpServletRequest request
+    ) throws Exception {
+        String bearer = SpringUtils.getBearer(request);
+        TokenIntrospection introspection = umaClient.introspectToken(bearer, false);
+        if (!introspection.isActive())
+            throw new Exception("Access token is not active");
+        Templates new_template = templatesRepository.findByName(template.getName());
+        if (new_template != null)
+            throw new Exception("Template name already exists");
+        Templates t = new Templates(template.getName());
+        templatesRepository.save(t);
+        new_template = templatesRepository.findByName(template.getName());
+        for (PostTemplateMappingDto mapping:
+             template.getMappings()) {
+            long scope = mapping.getScope();
+            for (Integer field:
+                 mapping.getFields()) {
+                // add to template_mappings: new_template.getId, scope, field
+                templateMappingsRepository.saveMappings(new_template.getId(), field, scope);
+            }
+        }
         return new ResponseEntity<>(template, HttpStatus.OK);
     }
 }

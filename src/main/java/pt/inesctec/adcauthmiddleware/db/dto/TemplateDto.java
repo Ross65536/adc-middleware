@@ -35,6 +35,8 @@ public class TemplateDto {
         this.mappings = new ArrayList<TemplateMappingDto>(mapScopeFields.values());
     }
 
+    public TemplateDto() {}
+
     public Long getId() {
         return id;
     }
