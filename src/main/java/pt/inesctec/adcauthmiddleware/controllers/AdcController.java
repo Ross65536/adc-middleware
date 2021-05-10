@@ -5,6 +5,7 @@ import java.util.Set;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcException;
@@ -17,6 +18,7 @@ import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
 import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 
+@CrossOrigin(origins = "*")
 @RequestMapping("${app.airrBasepath}")
 public abstract class AdcController {
     @Autowired
