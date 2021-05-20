@@ -16,8 +16,10 @@ import pt.inesctec.adcauthmiddleware.db.dto.PostTemplateDto;
 import pt.inesctec.adcauthmiddleware.db.dto.PostTemplateMappingDto;
 import pt.inesctec.adcauthmiddleware.db.dto.TemplateDto;
 import pt.inesctec.adcauthmiddleware.db.dto.TemplatesListDto;
+import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
 import pt.inesctec.adcauthmiddleware.db.models.TemplateMappings;
 import pt.inesctec.adcauthmiddleware.db.models.Templates;
+import pt.inesctec.adcauthmiddleware.db.repository.AccessScopeRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.TemplateMappingsRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.TemplatesRepository;
 import pt.inesctec.adcauthmiddleware.uma.dto.internal.TokenIntrospection;
@@ -34,6 +36,8 @@ public class TemplateController extends ResourceController {
     private TemplatesRepository templatesRepository;
     @Autowired
     private TemplateMappingsRepository templateMappingsRepository;
+    @Autowired
+    private AccessScopeRepository accessScopeRepository;
 
     /**
      * Field Mappings for a Template.
@@ -77,7 +81,9 @@ public class TemplateController extends ResourceController {
         TokenIntrospection introspection = umaClient.introspectToken(bearer, false);
         if (!introspection.isActive())
             throw new Exception("Access token is not active");
-        TemplateDto template = new TemplateDto(templatesRepository.findById(templateId).get());
+        Templates templateTemp = templatesRepository.findById(templateId).get();
+        List<AccessScope> scopes = accessScopeRepository.findAll();
+        TemplateDto template = new TemplateDto(templateTemp, scopes);
         return new ResponseEntity<>(template, HttpStatus.OK);
     }
 
@@ -110,10 +116,30 @@ public class TemplateController extends ResourceController {
             long scope = mapping.getScope();
             for (Integer field:
                  mapping.getFields()) {
-                // add to template_mappings: new_template.getId, scope, field
                 templateMappingsRepository.saveMappings(new_template.getId(), field, scope);
             }
         }
         return new ResponseEntity<>(template, HttpStatus.OK);
+    }
+
+    /**
+     * Delete a Template.
+     *
+     * @throws Exception for connection failures, authentication failure
+     */
+    @RequestMapping(
+            value = "/templates/{templateId}",
+            method = RequestMethod.DELETE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> templateDelete(
+            @PathVariable Long templateId,
+            HttpServletRequest request
+    ) throws Exception {
+        String bearer = SpringUtils.getBearer(request);
+        TokenIntrospection introspection = umaClient.introspectToken(bearer, false);
+        if (!introspection.isActive())
+            throw new Exception("Access token is not active");
+        templatesRepository.deleteById(templateId);
+        return new ResponseEntity<>("Deleted successfully", HttpStatus.OK);
     }
 }

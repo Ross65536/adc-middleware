@@ -13,4 +13,9 @@ public interface TemplatesRepository extends JpaRepository<Templates, Long> {
     Templates findByName(
         @Param("templateName") String templateName
     );
+
+    @Query(value = "DELETE FROM Templates WHERE id = :templateId", nativeQuery = true)
+    void deleteById(
+            @Param("templateId") long templateId
+    );
 }
