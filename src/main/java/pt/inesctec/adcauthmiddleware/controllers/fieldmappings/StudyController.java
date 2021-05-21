@@ -8,7 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.inesctec.adcauthmiddleware.controllers.ResourceController;
 import pt.inesctec.adcauthmiddleware.db.dto.*;
+import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
+import pt.inesctec.adcauthmiddleware.db.repository.AccessScopeRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyMappingsRepository;
 import pt.inesctec.adcauthmiddleware.db.repository.StudyRepository;
 import pt.inesctec.adcauthmiddleware.uma.dto.UmaRegistrationResource;
@@ -29,6 +31,9 @@ public class StudyController extends ResourceController {
 
     @Autowired
     private StudyMappingsRepository studyMappingsRepository;
+
+    @Autowired
+    private AccessScopeRepository accessScopeRepository;
 
     /**
      * Protected by owner. List of studies.
@@ -79,7 +84,8 @@ public class StudyController extends ResourceController {
                 resources) {
             UmaRegistrationResource resource = umaClient.getResource(resourceId);
             if (resource.getOwner().equals(currentUserId)) {
-                StudyDto study = new StudyDto(studyRepository.findByUmaId(studyId));
+                List<AccessScope> scopes = accessScopeRepository.findAll();
+                StudyDto study = new StudyDto(studyRepository.findByUmaId(studyId), scopes);
                 return new ResponseEntity<>(study, HttpStatus.OK);
             }
         }
