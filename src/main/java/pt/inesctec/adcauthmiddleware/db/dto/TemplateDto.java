@@ -29,10 +29,6 @@ public class TemplateDto {
         this.name = template.getName();
         this.mappings = new ArrayList<TemplateMappingDto>(mapScopeFields.values());
 
-        for (var mapp : this.mappings) {
-            System.out.println(mapp.getScope());
-        }
-
         for (var scope : scopes) {
             boolean found = false;
             for (var mapp : this.mappings) {
