@@ -1,5 +1,6 @@
 package pt.inesctec.adcauthmiddleware.db.repository;
 
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,6 @@ public interface AccessScopeRepository extends JpaRepository<AccessScope, Long> 
      */
     @Query("SELECT name from AccessScope")
     Set<String> findAllNames();
+
+    List<AccessScope> findAllByOrderByIdAsc();
 }
