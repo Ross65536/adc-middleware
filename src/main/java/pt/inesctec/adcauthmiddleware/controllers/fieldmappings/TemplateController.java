@@ -82,7 +82,7 @@ public class TemplateController extends ResourceController {
         if (!introspection.isActive())
             throw new Exception("Access token is not active");
         Templates templateTemp = templatesRepository.findById(templateId).get();
-        List<AccessScope> scopes = accessScopeRepository.findAll();
+        List<AccessScope> scopes = accessScopeRepository.findAllByOrderByIdAsc();
         TemplateDto template = new TemplateDto(templateTemp, scopes);
         return new ResponseEntity<>(template, HttpStatus.OK);
     }

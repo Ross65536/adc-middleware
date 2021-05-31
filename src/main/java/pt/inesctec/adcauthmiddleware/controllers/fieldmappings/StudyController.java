@@ -84,7 +84,7 @@ public class StudyController extends ResourceController {
                 resources) {
             UmaRegistrationResource resource = umaClient.getResource(resourceId);
             if (resource.getOwner().equals(currentUserId)) {
-                List<AccessScope> scopes = accessScopeRepository.findAll();
+                List<AccessScope> scopes = accessScopeRepository.findAllByOrderByIdAsc();
                 StudyDto study = new StudyDto(studyRepository.findByUmaId(studyId), scopes);
                 return new ResponseEntity<>(study, HttpStatus.OK);
             }
