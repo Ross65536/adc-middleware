@@ -3,6 +3,7 @@ package pt.inesctec.adcauthmiddleware.db.dto;
 import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
 import pt.inesctec.adcauthmiddleware.db.models.Templates;
+import pt.inesctec.adcauthmiddleware.utils.ScopeSorter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,6 +42,8 @@ public class StudyDto {
                 this.mappings.add(new TemplateMappingDto(scope.getId()));
             }
         }
+
+        this.mappings.sort(new ScopeSorter());
     }
 
     public StudyDto(Study study) {

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
 import pt.inesctec.adcauthmiddleware.db.models.Templates;
+import pt.inesctec.adcauthmiddleware.utils.ScopeSorter;
 
 public class TemplateDto {
     Long id;
@@ -40,6 +41,8 @@ public class TemplateDto {
                 this.mappings.add(new TemplateMappingDto(scope.getId()));
             }
         }
+
+        this.mappings.sort(new ScopeSorter());
     }
 
     public TemplateDto(Templates template) {
