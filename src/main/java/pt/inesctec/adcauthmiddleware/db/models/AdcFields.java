@@ -24,6 +24,20 @@ public class AdcFields {
     @JoinColumn(name = "id_type", nullable = false)
     private AdcFieldType type;
 
+    @Column()
+    private String prefix;
+
+    public AdcFields(int id, String name, AdcFieldType type, String prefix) {
+        this.id = id;
+        this.name = name;
+        this.type = type;
+        this.prefix = prefix;
+    }
+
+//    public AdcFields(int id) {
+//        this.id = id;
+//    }
+
     protected AdcFields() {}
 
     public int getId() {
@@ -48,6 +62,14 @@ public class AdcFields {
 
     public void setType(AdcFieldType type) {
         this.type = type;
+    }
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
     }
 
     /**

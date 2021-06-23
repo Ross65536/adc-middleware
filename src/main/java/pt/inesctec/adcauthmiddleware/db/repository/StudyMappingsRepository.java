@@ -4,10 +4,13 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import pt.inesctec.adcauthmiddleware.db.models.AdcFieldType;
 import pt.inesctec.adcauthmiddleware.db.models.StudyMappings;
+
+import javax.transaction.Transactional;
 
 public interface StudyMappingsRepository extends JpaRepository<StudyMappings, Long> {
     /**
@@ -61,4 +64,18 @@ public interface StudyMappingsRepository extends JpaRepository<StudyMappings, Lo
         @Param("umaId") String umaId,
         @Param("adcFieldType") AdcFieldType adcFieldType,
         @Param("scopes") List<String> scopes);
+
+    @Transactional
+    @Modifying
+    @Query(
+        "UPDATE StudyMappings "
+        + "SET id_access_scope = :scope "
+        + "WHERE id_study = :studyId "
+        + "AND id_adc_field = :adcField"
+    )
+    void updateScope(
+            @Param("scope") long scope,
+            @Param("studyId") long studyId,
+            @Param("adcField") Integer adcField
+    );
 }

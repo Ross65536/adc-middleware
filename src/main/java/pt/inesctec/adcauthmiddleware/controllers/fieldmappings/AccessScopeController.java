@@ -15,6 +15,10 @@ import pt.inesctec.adcauthmiddleware.controllers.ResourceController;
 import pt.inesctec.adcauthmiddleware.db.dto.AccessScopeDto;
 import pt.inesctec.adcauthmiddleware.db.models.AccessScope;
 import pt.inesctec.adcauthmiddleware.db.repository.AccessScopeRepository;
+import pt.inesctec.adcauthmiddleware.uma.dto.internal.TokenIntrospection;
+import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 public class AccessScopeController extends ResourceController {
@@ -33,7 +37,13 @@ public class AccessScopeController extends ResourceController {
             value = "/scopes",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<AccessScopeDto>> scopesList() throws Exception {
+    public ResponseEntity<List<AccessScopeDto>> scopesList(
+            HttpServletRequest request
+    ) throws Exception {
+        String bearer = SpringUtils.getBearer(request);
+        TokenIntrospection introspection = umaClient.introspectToken(bearer, false);
+        if (!introspection.isActive())
+            throw new Exception("Access token is not active");
         List<AccessScope> scopes = accessScopeRepository.findAll();
         List<AccessScopeDto> scopeList = scopes.stream()
                 .map(AccessScopeDto::new)

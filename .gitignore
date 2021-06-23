@@ -45,3 +45,5 @@ example/data
 .DS_Store
 
 example/docker-compose.dev.yml
+
+deployed/

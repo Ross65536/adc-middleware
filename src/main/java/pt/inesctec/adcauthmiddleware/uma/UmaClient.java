@@ -1,5 +1,6 @@
 package pt.inesctec.adcauthmiddleware.uma;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
@@ -249,5 +250,54 @@ public class UmaClient {
         Utils.assertNotNull(resource);
 
         return resource;
+    }
+
+    public LinkedHashMap getPat() throws Exception {
+        String stringUri = getIssuer()
+                + "/protocol/openid-connect/token";
+        var uri = Utils.buildUrl(stringUri);
+
+        var form = ImmutableMap.of(
+                "grant_type", "client_credentials",
+                "client_id", umaConfig.getClientId(),
+                "client_secret", umaConfig.getClientSecret()
+                );
+        var request = new HttpRequestBuilderFacade()
+                .postForm(uri, form)
+                .expectJson()
+                .build();
+
+        LinkedHashMap response = null;
+        try {
+            response = (LinkedHashMap) HttpFacade.makeExpectJsonRequest(request, LinkedHashMap.class);
+        } catch (Exception e) {
+            Logger.error("Failed to get PAT because: " + e.getMessage());
+            throw e;
+        }
+        return response;
+    }
+    public LinkedHashMap getUserInfo(String bearer) throws Exception {
+        String stringUri = getIssuer()
+                + "/protocol/openid-connect/userinfo";
+        var uri = Utils.buildUrl(stringUri);
+
+        var request = new HttpRequestBuilderFacade()
+                .getJson(uri)
+                .withBearer(bearer)
+                .expectJson()
+                .build();
+
+        LinkedHashMap response = null;
+        try {
+            response = (LinkedHashMap) HttpFacade.makeExpectJsonRequest(request, LinkedHashMap.class);
+        } catch (Exception e) {
+            Logger.error("Failed to get PAT because: " + e.getMessage());
+            throw e;
+        }
+        return response;
+    }
+
+    public String getKeycloakExtensionApiUri() {
+        return umaConfig.getKeycloakExtensionApiUri();
     }
 }
