@@ -51,6 +51,13 @@ public class UmaConfig {
      */
     private String publicScopeName;
 
+    /**
+     * Keycloak extension API uri
+     */
+//    @NonNull
+//    @NotBlank
+    private String keycloakExtensionApiUri;
+
     @NonNull
     public String getWellKnownUrl() {
         return wellKnownUrl;
@@ -96,5 +103,14 @@ public class UmaConfig {
 
     public void setPublicScopeName(String publicScopeName) {
         this.publicScopeName = publicScopeName;
+    }
+
+    @NonNull
+    public String getKeycloakExtensionApiUri() {
+        return keycloakExtensionApiUri;
+    }
+
+    public void setKeycloakExtensionApiUri(@NonNull String keycloakExtensionApiUri) {
+        this.keycloakExtensionApiUri = keycloakExtensionApiUri;
     }
 }
