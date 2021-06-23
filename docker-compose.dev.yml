@@ -1,19 +1,40 @@
 version: '3'
 
 services:
-  keycloak:
-    build:
-      context: keycloak
-      dockerfile: dev.Dockerfile
+  keycloak_db:
+    image: postgres
     volumes:
-      - ./tmp/keycloak_inner:/keycloak/standalone/data:delegated
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
     ports:
-      - 8082:80
+      - 5433:5432
+    restart: always
+
+  keycloak:
+    image: keycloak-10
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: keycloak_db
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_SCHEMA: public
+      DB_PASSWORD: password
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+    ports:
+      - 8082:8080
+    depends_on:
+      - keycloak_db
+    restart: always
 
   redis:
     image: redis
     ports:
       - 6379:6379
+    restart: always
 
   db:
     image: postgres:12
@@ -25,6 +46,10 @@ services:
       # default user is 'postgres'
       POSTGRES_DB: middleware_db
       POSTGRES_PASSWORD: password
+    restart: always
 
 volumes:
   middleware_db:
+
+  postgres_data:
+    driver: local
