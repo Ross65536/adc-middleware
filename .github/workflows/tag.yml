@@ -50,7 +50,7 @@ jobs:
           context: ./
           file: ./Dockerfile
           push: true
-          tags: irpinesctec/adc-middleware:${{ env.RELEASE_VERSION }}
+          tags: irpinesctec/adc-middleware:${{ env.RELEASE_VERSION }},irpinesctec/adc-middleware:latest
           build-args: |
             RELEASE_VERSION=${{ env.RELEASE_VERSION }}
       
