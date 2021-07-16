@@ -29,10 +29,8 @@ public class DenyController extends AuthzController {
         String bearer = SpringUtils.getBearer(request);
         checkRequestValidity(bearer);
 
-        var patToken = (String) umaClient.getPat().get("access_token");
-
         try {
-            removeTicket(ticketId, patToken);
+            removeTicket(ticketId, umaClient.getAccessToken().getAccessToken());
         } catch (Exception e) {
             Logger.error("Failed to get denying request because: " + e.getMessage());
             throw e;

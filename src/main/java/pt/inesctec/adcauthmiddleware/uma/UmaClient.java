@@ -87,12 +87,15 @@ public class UmaClient {
         var uri = Utils.buildUrl(this.getWellKnownInstance().getIntrospectionEndpoint());
         var form = ImmutableMap.of(
                 "token", token,
-                "token_type_hint", isRpt ? "requesting_party_token" : "access_token"
+                "token_type_hint", isRpt ? "requesting_party_token" : "access_token",
+                "client_id", this.umaConfig.getClientId(),
+                "client_secret", this.umaConfig.getClientSecret()
         );
         var request = new HttpRequestBuilderFacade()
             .postForm(uri, form)
             .expectJson()
-            .withBasicAuth(this.umaConfig.getClientId(), this.umaConfig.getClientSecret())
+//            .withBasicAuth(this.umaConfig.getClientId(), this.umaConfig.getClientSecret())
+            .withBearer(this.accessToken.getAccessToken())
             .build();
 
         TokenIntrospection introspection = null;
@@ -110,14 +113,42 @@ public class UmaClient {
         return introspection;
     }
 
-    private void updateAccessToken() throws Exception {
+    private void createAccessToken() throws Exception {
         // TODO only update token if necessary, use refresh token
 
         Logger.info("Getting new UMA access token");
         var body = Map.of(
-            "grant_type", "client_credentials",
-            "client_id", this.umaConfig.getClientId(),
-            "client_secret", this.umaConfig.getClientSecret()
+                "grant_type", "client_credentials",
+                "client_id", this.umaConfig.getClientId(),
+                "client_secret", this.umaConfig.getClientSecret()
+        );
+
+        var uri = Utils.buildUrl(this.getWellKnownInstance().getTokenEndpoint());
+        AccessToken accessToken = null;
+        var request = new HttpRequestBuilderFacade().postForm(uri, body).expectJson().build();
+
+        try {
+            accessToken = HttpFacade.makeExpectJsonRequest(request, AccessToken.class);
+            Utils.jaxValidate(accessToken);
+        } catch (Exception e) {
+            Logger.error("Failed to get UMA access token because: {}", e.getMessage());
+            throw e;
+        }
+
+        this.accessToken = accessToken;
+    }
+
+    private void updateAccessToken() throws Exception {
+        if (this.accessToken == null) {
+            this.createAccessToken();
+            return;
+        }
+        Logger.info("Getting new UMA access token");
+        var body = Map.of(
+                "grant_type", "refresh_token",
+                "client_id", this.umaConfig.getClientId(),
+                "client_secret", this.umaConfig.getClientSecret(),
+                "refresh_token", this.accessToken.getRefreshToken()
         );
 
         var uri = Utils.buildUrl(this.getWellKnownInstance().getTokenEndpoint());
@@ -299,5 +330,9 @@ public class UmaClient {
 
     public String getKeycloakExtensionApiUri() {
         return umaConfig.getKeycloakExtensionApiUri();
+    }
+
+    public AccessToken getAccessToken() {
+        return accessToken;
     }
 }

@@ -32,10 +32,8 @@ public class GiveAccessController extends AuthzController {
         String bearer = SpringUtils.getBearer(request);
         checkRequestValidity(bearer);
 
-        var patToken = (String) umaClient.getPat().get("access_token");
-
         if (!ticketId.equals("null")) {
-            removeTicket(ticketId, patToken);
+            removeTicket(ticketId, umaClient.getAccessToken().getAccessToken());
         }
 
         var resourceId = (String) request.getParameter("resource_id");

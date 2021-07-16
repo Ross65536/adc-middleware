@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pt.inesctec.adcauthmiddleware.controllers.AuthzController;
 import pt.inesctec.adcauthmiddleware.http.HttpFacade;
 import pt.inesctec.adcauthmiddleware.http.HttpRequestBuilderFacade;
+import pt.inesctec.adcauthmiddleware.uma.dto.internal.TokenIntrospection;
 import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 import pt.inesctec.adcauthmiddleware.utils.Utils;
 
@@ -30,7 +31,6 @@ public class SharedWithMeController extends AuthzController {
         String bearer = SpringUtils.getBearer(request);
         checkRequestValidity(bearer);
 
-        var patToken = (String) umaClient.getPat().get("access_token");
         var ownerId = (String) umaClient.getUserInfo(bearer).get("sub");
 
         String stringUri = umaClient.getIssuer()
@@ -42,7 +42,7 @@ public class SharedWithMeController extends AuthzController {
 
         var toRequest = new HttpRequestBuilderFacade()
                 .getJson(uri)
-                .withBearer(patToken)
+                .withBearer(umaClient.getAccessToken().getAccessToken())
                 .expectJson()
                 .build();
 
@@ -54,5 +54,18 @@ public class SharedWithMeController extends AuthzController {
             throw e;
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @RequestMapping(
+            value = "/test",
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<TokenIntrospection> tester(
+            HttpServletRequest request
+    ) throws Exception {
+        String bearer = SpringUtils.getBearer(request);
+        TokenIntrospection introspection = umaClient.introspectToken(bearer, false);
+
+        return new ResponseEntity<>(introspection, HttpStatus.OK);
     }
 }

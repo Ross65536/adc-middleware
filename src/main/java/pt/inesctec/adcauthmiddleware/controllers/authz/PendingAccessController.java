@@ -31,7 +31,6 @@ public class PendingAccessController extends AuthzController {
         String bearer = SpringUtils.getBearer(request);
         checkRequestValidity(bearer);
 
-        var patToken = (String) umaClient.getPat().get("access_token");
         var ownerId = (String) umaClient.getUserInfo(bearer).get("sub");
 
         String stringUri = umaClient.getIssuer()
@@ -43,7 +42,7 @@ public class PendingAccessController extends AuthzController {
 
         var toRequest = new HttpRequestBuilderFacade()
                 .getJson(uri)
-                .withBearer(patToken)
+                .withBearer(umaClient.getAccessToken().getAccessToken())
                 .expectJson()
                 .build();
 

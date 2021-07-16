@@ -32,7 +32,6 @@ public class RevokeController extends AuthzController {
         checkRequestValidity(bearer);
 
         var ownerId = (String) umaClient.getUserInfo(bearer).get("sub");
-        var patToken = (String) umaClient.getPat().get("access_token");
 
         var requester = (String) request.getParameter("requester");
         var resourceId = (String) request.getParameter("resource_id");
@@ -49,7 +48,7 @@ public class RevokeController extends AuthzController {
 
         var toRequestTickets = new HttpRequestBuilderFacade()
                 .getJson(uriTickets)
-                .withBearer(patToken)
+                .withBearer(umaClient.getAccessToken().getAccessToken())
                 .expectJson()
                 .build();
 
@@ -63,7 +62,7 @@ public class RevokeController extends AuthzController {
 
                     var toRequest = new HttpRequestBuilderFacade()
                             .delete(uri)
-                            .withBearer(patToken)
+                            .withBearer(umaClient.getAccessToken().getAccessToken())
                             .build();
                     HttpFacade.makeRequest(toRequest);
                 }

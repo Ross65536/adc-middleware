@@ -31,7 +31,6 @@ public class ResourceDetailsController extends AuthzController {
         checkRequestValidity(bearer);
 
         var ownerId = (String) umaClient.getUserInfo(bearer).get("sub");
-        var patToken = (String) umaClient.getPat().get("access_token");
 
         var resourceId = (String) request.getParameter("resource_id");
 
@@ -45,7 +44,7 @@ public class ResourceDetailsController extends AuthzController {
 
         var toRequest = new HttpRequestBuilderFacade()
                 .getJson(uri)
-                .withBearer(patToken)
+                .withBearer(umaClient.getAccessToken().getAccessToken())
                 .expectJson()
                 .build();
 

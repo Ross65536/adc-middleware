@@ -30,7 +30,6 @@ public class OwnResourcesController extends AuthzController {
         String bearer = SpringUtils.getBearer(request);
         checkRequestValidity(bearer);
 
-        var patToken = (String) umaClient.getPat().get("access_token");
         var username = (String) umaClient.getUserInfo(bearer).get("preferred_username");
 
         String stringUri = umaClient.getIssuer()
@@ -41,7 +40,7 @@ public class OwnResourcesController extends AuthzController {
 
         var toRequest = new HttpRequestBuilderFacade()
                 .getJson(uri)
-                .withBearer(patToken)
+                .withBearer(umaClient.getAccessToken().getAccessToken())
                 .expectJson()
                 .build();
 
