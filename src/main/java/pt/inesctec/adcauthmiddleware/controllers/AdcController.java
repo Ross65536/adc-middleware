@@ -18,7 +18,7 @@ import pt.inesctec.adcauthmiddleware.utils.CollectionsUtils;
 import pt.inesctec.adcauthmiddleware.utils.Delayer;
 import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "${app.resourceAllowedOrigins}")
 @RequestMapping("${app.airrBasepath}")
 public abstract class AdcController {
     @Autowired
