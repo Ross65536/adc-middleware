@@ -38,7 +38,11 @@ services:
     restart: always
 
   keycloak:
-    image: jboss/keycloak:10.0.2
+    build:
+      context: ../keycloak
+      dockerfile: Dockerfile
+    volumes:
+      ./keycloak/realm-export.json:/tmp/realm-export.json
     environment:
       DB_VENDOR: postgres
       DB_ADDR: keycloak_db
@@ -52,6 +56,7 @@ services:
       DB_SCHEMA: public
       PROXY_ADDRESS_FORWARDING: 'true'
       # KEYCLOAK_LOGLEVEL: ALL
+      KEYCLOAK_IMPORT: /tmp/realm-export.json # comment this line if you don't want the default realm to be imported
     depends_on:
       - keycloak_db
     restart: always

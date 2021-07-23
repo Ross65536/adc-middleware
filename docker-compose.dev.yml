@@ -14,7 +14,11 @@ services:
     restart: always
 
   keycloak:
-    image: keycloak-10
+    build:
+      context: ./keycloak
+      dockerfile: Dockerfile
+    volumes:
+      ./example/keycloak/realm-export.json:/tmp/realm-export.json
     environment:
       DB_VENDOR: POSTGRES
       DB_ADDR: keycloak_db
@@ -22,8 +26,10 @@ services:
       DB_USER: keycloak
       DB_SCHEMA: public
       DB_PASSWORD: password
+      KEYCLOAK_EXTRA_ARGS: "-Dkeycloak.profile.feature.upload_scripts=enabled"
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: admin
+      KEYCLOAK_IMPORT: /tmp/realm-export.json # comment this line if you don't want the default realm to be imported
     ports:
       - 8082:8080
     depends_on:
@@ -35,6 +41,20 @@ services:
     ports:
       - 6379:6379
     restart: always
+
+  keycloakextensionapi:
+    image: irpinesctec/keycloak_extension_api:0.1.0
+    environment:
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: password
+      DB_HOST: keycloak_db
+      DB_PORT: 5432
+      KEYCLOAK_URL: http://keycloak:8080/auth/
+      REALM: master
+    restart: always
+    ports:
+      - 5454:8000
 
   db:
     image: postgres:12
