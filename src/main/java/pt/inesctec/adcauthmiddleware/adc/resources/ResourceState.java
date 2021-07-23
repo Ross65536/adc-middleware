@@ -92,6 +92,9 @@ public class ResourceState {
      * @param resources list of UmaResources
      */
     public void setFromUmaResources(List<UmaResource> resources) {
+        if (resources == null || resources.isEmpty()) {
+            return;
+        }
         this.resources = resources.stream().collect(
             Collectors.toMap(
                 UmaResource::getUmaId, // key   -> UMA ID

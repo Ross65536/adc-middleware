@@ -55,17 +55,4 @@ public class SharedWithMeController extends AuthzController {
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
-    @RequestMapping(
-            value = "/test",
-            method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TokenIntrospection> tester(
-            HttpServletRequest request
-    ) throws Exception {
-        String bearer = SpringUtils.getBearer(request);
-        TokenIntrospection introspection = umaClient.introspectToken(bearer, false);
-
-        return new ResponseEntity<>(introspection, HttpStatus.OK);
-    }
 }

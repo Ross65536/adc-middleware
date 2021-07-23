@@ -124,10 +124,7 @@ public abstract class AdcResourceLoader {
      */
     public void processUma(String bearerToken, UmaFlow umaFlow) throws Exception {
         if (resourceState.getScopes().isEmpty()) {
-            String error = MessageFormat.format(
-                "Internal Error - Error while processing UMA: No scopes were found while trying to determine the permissions for UMA IDs: {}. Failed to run loadScopes()?",
-                resourceState.getResources().toString()
-            );
+            String error = "Internal Error - Error while processing UMA: No scopes were found.";
             Logger.error(error);
             throw new Exception(error);
         }
