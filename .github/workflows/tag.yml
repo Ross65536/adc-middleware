@@ -9,11 +9,7 @@ on:
     branches: [ master ]
     tags:
       - '**'
-  pull_request:
-    branches: [ master ]
-    tags-ignore:
-      - '**'
-      
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
