@@ -107,8 +107,15 @@ docker push irpinesctec/adc-middleware:$IMG_TAG
 3. Create a new client in the `Clients` side bar tab: load (import) and save the client from the file `./example/config/keycloak/adc-middleware.json`. Go to credentials tab in the client and note the generated `Secret` value which is the client secret while `adc-middleware` is the client ID.
 4. In the `Users` tab create a user with username `owner`, this is the resource owner. Create a user with username `user`, this is the user that will access resources. For each created user in the user's `Credentials` tab create the password. 
 A user can then login (`$HOSTNAME/auth/realms/master/account`), for example as an owner to grant accesses to users.
+5. Go to `Roles` in the sidebar and press `Add Role`, naming it `synchronize`.
+6. Go to the `Users` tab and press `admin`, in the `Role Mappings` tab select `synchronize` from `Available Roles` and press `Add selected >`, making sure the role is now shown in the `Assigned Roles` group.
 
 You can use different values for these strings, but you would need to update a lot of configuration variables.
+
+Alternatively instead of setting up from points ```2``` through ```6```, you can just select the import option from the sidebar and select the ```example/config/keycloak/realm-export.json```.
+If the import method is used, the secrets for each client must be generated.
+
+When running keycloak from the provided ```docker-compose.yml``` files the realm will be automatically imported
 
 #### SSL
 
@@ -272,6 +279,14 @@ Dockerhub has setup a hook to automatically pull and build images from repositor
 ```shell script
 git tag -a v<VERSION> -m <MESSAGE> # tag latest commit
 git push origin --tags # This should trigger a build in dockerhub
+```
+
+#### Running Keycloak's extension API
+```shell script
+git clone https://github.com/ireceptorplus-inesctec/keycloak_extension_api # clone the repository
+cd keycloak_extension_api # change directory to cloned repository
+cp db_connection.env.example .env # creating .env file that should be edited
+python3 api.py # run the API
 ```
 
 ### Configuration
