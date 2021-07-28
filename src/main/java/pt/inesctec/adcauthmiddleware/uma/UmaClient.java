@@ -113,7 +113,7 @@ public class UmaClient {
     }
 
     private void updateAccessToken() throws Exception {
-        Logger.info("Getting new UMA access token");
+        Logger.debug("Getting new UMA access token");
         var body = Map.of(
                 "grant_type", "client_credentials",
                 "client_id", this.umaConfig.getClientId(),
@@ -257,7 +257,7 @@ public class UmaClient {
     public UmaRegistrationResource getResource(String umaId) throws Exception {
         this.updateAccessToken();
 
-        Logger.info("Getting UMA 2 resource: {}", umaId);
+        Logger.debug("Getting UMA 2 resource: {}", umaId);
 
         var uri = Utils.buildUrl(this.getWellKnownInstance().getResourceRegistrationEndpoint(), umaId);
         var request =
