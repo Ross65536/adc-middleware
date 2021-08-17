@@ -197,6 +197,9 @@ uma.clientId=adc-middleware
 uma.clientSecret=<the generated client secret from keycloak>
 uma.resourceOwner=owner
 
+# CORS settings
+app.resourceAllowedOrigins=*
+
 # Role of the user that's able to call /synchronize
 app.synchronizeRole=admin
 
@@ -217,6 +220,9 @@ spring.flyway.enabled=true
 spring.cache.type=redis
 spring.redis.host=localhost
 spring.redis.port=6379
+
+# Timeout for external requests (mainly used for accessing the AIRR Repository)
+spring.mvc.async.request-timeout=3600000
 ```
 
 #### Creating and Migrating the Database
