@@ -35,7 +35,7 @@ public class UmaClient {
     }
 
     private static UmaWellKnown getWellKnown(String wellKnownUrl) throws Exception {
-        Logger.info("Requesting UMA 2 well known doc at: {}", wellKnownUrl);
+        Logger.debug("Requesting UMA 2 well-known configuration at: {}", wellKnownUrl);
         var uri = Utils.buildUrl(wellKnownUrl);
         var request = new HttpRequestBuilderFacade().getJson(uri).build();
         try {
@@ -172,7 +172,7 @@ public class UmaClient {
     public String[] listUmaResources() throws Exception {
         this.updateAccessToken();
 
-        Logger.info("Requesting UMA 2 resource list");
+        Logger.debug("Requesting UMA 2 resource list");
 
         var uri = Utils.buildUrl(this.getWellKnownInstance().getResourceRegistrationEndpoint());
         var request = new HttpRequestBuilderFacade()
