@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestBody;
 import pt.inesctec.adcauthmiddleware.adc.AdcClient;
 import pt.inesctec.adcauthmiddleware.adc.AdcConstants;
 import pt.inesctec.adcauthmiddleware.adc.RearrangementConstants;
@@ -19,6 +20,7 @@ import pt.inesctec.adcauthmiddleware.adc.RepertoireConstants;
 import pt.inesctec.adcauthmiddleware.adc.models.AdcSearchRequest;
 import pt.inesctec.adcauthmiddleware.adc.models.RepertoireModel;
 import pt.inesctec.adcauthmiddleware.config.UmaConfig;
+import pt.inesctec.adcauthmiddleware.db.dto.SynchronizeDto;
 import pt.inesctec.adcauthmiddleware.db.models.Repertoire;
 import pt.inesctec.adcauthmiddleware.db.models.Study;
 import pt.inesctec.adcauthmiddleware.db.models.StudyMappings;
@@ -68,9 +70,9 @@ public class SynchronizeService {
      * @throws Exception on internal error.
      */
     @CacheEvict(cacheNames = {CacheConstants.STUDIES_CACHE_NAME, CacheConstants.REPERTOIRES_CACHE_NAME, CacheConstants.REARRANGEMENTS_CACHE_NAME}, allEntries = true)
-    public boolean synchronize() throws Exception {
+    public boolean synchronize(List<SynchronizeDto> syncData) throws Exception {
         synchronized (SynchronizeService.SyncMonitor) {
-            return synchronizeGuts();
+            return synchronizeGuts(syncData);
         }
     }
 
@@ -85,7 +87,7 @@ public class SynchronizeService {
      * @throws Exception on internal error.
      */
     @Transactional
-    private boolean synchronizeGuts() throws Exception {
+    private boolean synchronizeGuts(List<SynchronizeDto> syncData) throws Exception {
         Logger.info("Synchronizing DB and cache");
 
         // Start by querying the ADC service to determine available Repertoires
@@ -111,7 +113,7 @@ public class SynchronizeService {
             repertoires, RepertoireModel::getStudyId, RepertoireModel::getStudyTitle
         );
 
-        if (!this.synchronizeStudies(repositoryStudyMap)) {
+        if (!this.synchronizeStudies(repositoryStudyMap, syncData)) {
             syncSuccessful = false;
         }
 
@@ -139,7 +141,7 @@ public class SynchronizeService {
      * @return true on 100% successful synchronization.
      * @throws Exception on internal error.
      */
-    private boolean synchronizeStudies(Map<String, String> repositoryStudyMap) throws Exception {
+    private boolean synchronizeStudies(Map<String, String> repositoryStudyMap, List<SynchronizeDto> syncData) throws Exception {
         boolean syncSuccessful = true;
 
         // Get UMA IDs present in the AuthZ server
@@ -213,13 +215,29 @@ public class SynchronizeService {
         var allUmaScopes = this.accessScopeRepository.findAllNames();
 
         dbStudyIds = new HashSet<>(studyRepository.findAllMapByUmaId().values());
-
+        
         for (String newStudyId : Sets.difference(adcStudyIds, dbStudyIds)) {
+            String owner = null;
+            for (SynchronizeDto syncDto : syncData) {
+                if (syncDto.getStudies().contains(newStudyId)) {
+                    owner = syncDto.getOwnerId();
+                }
+            }
+
+            if (syncData.size() > 0 && owner == null) {
+                continue;
+            }
+
             var studyTitle = repositoryStudyMap.get(newStudyId);
             var umaName = String.format("study ID: %s; title: %s", newStudyId, studyTitle);
             var resource = new UmaRegistrationResource(umaName, AdcConstants.UMA_STUDY_TYPE, allUmaScopes);
             resource.setId(null);
-            resource.setOwner(this.umaConfig.getResourceOwner());
+
+            if (owner == null) {
+                resource.setOwner(this.umaConfig.getResourceOwner());
+            } else {
+                resource.setOwner(owner);
+            }
 
             String createdUmaId;
 

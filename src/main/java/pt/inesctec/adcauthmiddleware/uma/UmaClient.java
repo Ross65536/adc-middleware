@@ -332,4 +332,12 @@ public class UmaClient {
     public AccessToken getAccessToken() {
         return accessToken;
     }
+
+    public void setResourceOwner(String owner) {
+        this.umaConfig.setResourceOwner(owner);
+    }
+
+    public String getResourceOwner() {
+        return umaConfig.getResourceOwner();
+    }
 }

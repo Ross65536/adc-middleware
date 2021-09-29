@@ -1,17 +1,16 @@
 package pt.inesctec.adcauthmiddleware.controllers;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import pt.inesctec.adcauthmiddleware.config.AppConfig;
+import pt.inesctec.adcauthmiddleware.db.dto.SynchronizeDto;
 import pt.inesctec.adcauthmiddleware.db.services.SynchronizeService;
 import pt.inesctec.adcauthmiddleware.http.SyncException;
 import pt.inesctec.adcauthmiddleware.uma.UmaClient;
@@ -71,7 +70,10 @@ public class SynchronizeController {
      * @throws Exception on user errors such as invalid password or some internal errors.
      */
     @RequestMapping(value = "/synchronize", method = RequestMethod.POST)
-    public Map<String, Object> synchronize(HttpServletRequest request) throws Exception {
+    public Map<String, Object> synchronizeOwner(
+            @RequestBody(required = false) List<SynchronizeDto> payload,
+            HttpServletRequest request
+    ) throws Exception {
         String bearer = SpringUtils.getBearer(request);
 
         if (bearer == null) {
@@ -84,10 +86,10 @@ public class SynchronizeController {
             throw new SyncException("User doesn't have the required role to synchronize resources");
         }
 
-        if (!this.synchronizeService.synchronize()) {
+        if (!this.synchronizeService.synchronize(payload)) {
             throw SpringUtils.buildHttpException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "One or more DB or UMA resources failed to synchronize, check logs");
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "One or more DB or UMA resources failed to synchronize, check logs");
         }
 
         return SpringUtils.buildStatusMessage(200, null);
