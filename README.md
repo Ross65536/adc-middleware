@@ -196,6 +196,8 @@ uma.wellKnownUrl=http://localhost:8082/auth/realms/master/.well-known/uma2-confi
 uma.clientId=adc-middleware
 uma.clientSecret=<the generated client secret from keycloak>
 uma.resourceOwner=owner
+uma.publicScopeName=public
+uma.keycloakExtensionApiUri=http://localhost:5000
 
 # CORS settings
 app.resourceAllowedOrigins=*
@@ -307,11 +309,14 @@ Required:
 - `uma.clientId`: Client ID for this middleware in keycloak
 - `uma.clientSecret`: Client Secret for the client ID
 - `uma.resourceOwner`: The Keycloak username who will be the owner of the created resources.
+- `uma.publicScopeName`: Scope that acts as public.
+- `uma.keycloakExtensionApiUri`: The url to the service extending keycloak's base functionality
 - `spring.datasource.url`: The url to the DB
 - `spring.datasource.username`: DB username
 - `spring.datasource.password`: DB password
 - `spring.datasource.platform`: The platform. Omit for H2 DB, set to `postgres` for PostgreSQL DB.
 - `app.synchronizeRole`: String that defines the role of the user that's able to call the /synchronize endpoint.
+- `app.resourceAllowedOrigins`: String that defines the allowed origins for resource requests.
 
 Optional:
 - `server.servlet.context-path`: The base path of the middleware API. Defaults to: `/airr/v1`
