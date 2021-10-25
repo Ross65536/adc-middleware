@@ -16,6 +16,8 @@ import pt.inesctec.adcauthmiddleware.utils.SpringUtils;
 import pt.inesctec.adcauthmiddleware.utils.Utils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 @RestController
 public class GiveAccessController extends AuthzController {
@@ -42,15 +44,13 @@ public class GiveAccessController extends AuthzController {
         var ownerId = (String) umaClient.getUserInfo(bearer).get("sub");
 
         String stringUri = umaClient.getKeycloakExtensionApiUri()
-//        String stringUri = "http://localhost:5000"
-                + "/give_access/adc-middleware"; //TODO - remove hard coded adc-middleware and base url
+                + "/get_user_scope_id/" + requester;
+
         var uri = Utils.buildUrl(stringUri);
 
         var form = ImmutableMap.of(
-                "resource_id", resourceId,
-                "requester", requester,
-                "scope_name", scopeName,
-                "owner_id", ownerId
+                "owner_id", ownerId,
+                "scope_name", scopeName
         );
 
         var toRequest = new HttpRequestBuilderFacade()
@@ -60,7 +60,62 @@ public class GiveAccessController extends AuthzController {
                 .build();
 
         try {
-            HttpFacade.makeRequest(toRequest);
+            ArrayList<String> response = (ArrayList) HttpFacade.makeExpectJsonRequest(toRequest, ArrayList.class);
+            stringUri = umaClient.getIssuer()
+                    + "/authz/protection/permission/ticket";
+
+            uri = Utils.buildUrl(stringUri);
+
+            form = ImmutableMap.of(
+                    "resource", resourceId,
+                    "requester", response.get(0),
+                    "scopeName", scopeName,
+                    "granted", "true"
+            );
+
+            toRequest = new HttpRequestBuilderFacade()
+                    .postJson(uri, form)
+                    .withBearer(umaClient.exchangeToken(bearer).getAccessToken())
+                    .expectJson()
+                    .build();
+
+            try {
+                HttpFacade.makeRequest(toRequest);
+            } catch (Exception e) {
+                String stringUriTemp = umaClient.getIssuer()
+                        + "/authz/protection/permission/ticket"
+                        + "?granted=false"
+                        + "&owner=" + ownerId
+                        + "&resourceId=" + resourceId
+                        + "&requester=" + response.get(0)
+                        + "&scopeId=" + response.get(1);
+
+                var uriTemp = Utils.buildUrl(stringUriTemp);
+
+                var toRequestTemp = new HttpRequestBuilderFacade()
+                        .getJson(uriTemp)
+                        .withBearer(umaClient.getAccessToken().getAccessToken())
+                        .expectJson()
+                        .build();
+
+                ArrayList responseTemp = (ArrayList) HttpFacade.makeExpectJsonRequest(toRequestTemp, ArrayList.class);
+
+                if (responseTemp.size() != 1) {
+                    throw new Exception("Ticket finding error");
+                }
+
+                stringUriTemp = umaClient.getIssuer()
+                        + "/authz/protection/permission/ticket/" + ((LinkedHashMap) responseTemp.get(0)).get("id");
+                uriTemp = Utils.buildUrl(stringUriTemp);
+
+                toRequestTemp = new HttpRequestBuilderFacade()
+                        .delete(uriTemp)
+                        .withBearer(umaClient.getAccessToken().getAccessToken())
+                        .build();
+                HttpFacade.makeRequest(toRequestTemp);
+
+                HttpFacade.makeRequest(toRequest);
+            }
         } catch (Exception e) {
             Logger.error("Failed to give access because: " + e.getMessage());
             throw e;
