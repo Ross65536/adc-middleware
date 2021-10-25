@@ -17,8 +17,8 @@ services:
     build:
       context: ./keycloak
       dockerfile: Dockerfile
-    volumes:
-      - ./example/config/keycloak/realm-export.json:/tmp/realm-export.json
+#    volumes:
+#      - ./example/config/keycloak/realm-export.json:/tmp/realm-export.json
     environment:
       DB_VENDOR: POSTGRES
       DB_ADDR: keycloak_db
@@ -26,10 +26,10 @@ services:
       DB_USER: keycloak
       DB_SCHEMA: public
       DB_PASSWORD: password
-      KEYCLOAK_EXTRA_ARGS: "-Dkeycloak.profile.feature.upload_scripts=enabled"
+      JAVA_OPTS_APPEND: "-Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.profile.feature.admin_fine_grained_authz=enabled -Dkeycloak.profile.feature.token_exchange=enabled"
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: admin
-      KEYCLOAK_IMPORT: /tmp/realm-export.json # comment this line if you don't want the default realm to be imported
+#      KEYCLOAK_IMPORT: /tmp/realm-export.json # comment this line if you don't want the default realm to be imported
     ports:
       - 8082:8080
     depends_on:

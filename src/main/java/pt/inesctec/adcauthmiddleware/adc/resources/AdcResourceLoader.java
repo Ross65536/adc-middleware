@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -98,15 +100,15 @@ public abstract class AdcResourceLoader {
             requestedFields = adcSearch.getRequestedFields();
         }
 
-        // If specific fields were requested, get permissions just for those fields
+        // If no specific fields, get all mappings for this resource type (defined by adcFieldType).
+        // More time consuming but probably the most common request too
         if (requestedFields.isEmpty()) {
             return this.dbService.getStudyMappingsRepository().findScopesByUmaIds(
                 this.resourceState.getUmaIds(), this.adcFieldType
             );
         }
 
-        // If no specific fields, get all mappings for this resource type (defined by adcFieldType).
-        // More time consuming but probably the most common request too
+        // If specific fields were requested, get permissions just for those fields
         return this.dbService.getStudyMappingsRepository().findScopesByUmaIdsAndByFields(
             this.resourceState.getUmaIds(), this.adcFieldType, requestedFields
         );
@@ -154,26 +156,24 @@ public abstract class AdcResourceLoader {
     public void loadFieldMappings(UmaConfig umaConfig) throws Exception {
         // Iterate requested resources
         for (String umaId : resourceState.getUmaIds()) {
-            List<String> scopes = new ArrayList<>();
+            // Always assume public scope is available
+            List<String> scopes = List.of(umaConfig.getPublicScopeName());
 
             // Determine scope access
-            // * Public Request
-            if (!resourceState.isUmaEnabled()) {
-                scopes.add(umaConfig.getPublicScopeName());
-            } else {
+            if (resourceState.isUmaEnabled()) {
                 // * Protected Request - Missing Resource
                 // If for some reason it fails to determine the resource in the UMA service
                 // then fallback to public fields
                 if (resourceState.getResources().isEmpty() || !resourceState.getResources().containsKey(umaId)) {
                     Logger.warn("Unable to determine resource with UMA ID {} - not present in UMA Service. Is database /synchronized?", umaId);
-                    scopes.add(umaConfig.getPublicScopeName());
                 } else {
                     // * Protected Request - Default Behaviour
                     // If it succeeds in getting the resource, determine the scopes accessible to the user
                     // according to the UMA Service as determined by AdcResourceLoader::processUma()
-                    scopes = new ArrayList<>(
-                        resourceState.getResources().get(umaId).getUmaResource().getScopes()
-                    );
+                    Set<String> resourceScopes = resourceState.getResources().get(umaId).getUmaResource().getScopes();
+                    resourceScopes.remove(umaConfig.getPublicScopeName());
+
+                    scopes = Stream.concat(scopes.stream(), resourceScopes.stream()).collect(Collectors.toList());
                 }
             }
 
