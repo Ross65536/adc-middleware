@@ -218,14 +218,16 @@ public class SynchronizeService {
         
         for (String newStudyId : Sets.difference(adcStudyIds, dbStudyIds)) {
             String owner = null;
-            for (SynchronizeDto syncDto : syncData) {
-                if (syncDto.getStudies().contains(newStudyId)) {
-                    owner = syncDto.getOwnerId();
+            if (syncData != null) {
+                for (SynchronizeDto syncDto : syncData) {
+                    if (syncDto.getStudies().contains(newStudyId)) {
+                        owner = syncDto.getOwnerId();
+                    }
                 }
-            }
 
-            if (syncData.size() > 0 && owner == null) {
-                continue;
+                if (syncData.size() > 0 && owner == null) {
+                    continue;
+                }
             }
 
             var studyTitle = repositoryStudyMap.get(newStudyId);
