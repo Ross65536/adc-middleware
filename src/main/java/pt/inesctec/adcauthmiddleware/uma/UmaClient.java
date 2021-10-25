@@ -135,33 +135,26 @@ public class UmaClient {
         this.accessToken = accessToken;
     }
 
-//    private void updateAccessToken() throws Exception {
-//        if (this.accessToken == null) {
-//            this.createAccessToken();
-//            return;
-//        }
-//        Logger.info("Getting new UMA access token");
-//        var body = Map.of(
-//                "grant_type", "refresh_token",
-//                "client_id", this.umaConfig.getClientId(),
-//                "client_secret", this.umaConfig.getClientSecret(),
-//                "refresh_token", this.accessToken.getRefreshToken()
-//        );
-//
-//        var uri = Utils.buildUrl(this.getWellKnownInstance().getTokenEndpoint());
-//        AccessToken accessToken = null;
-//        var request = new HttpRequestBuilderFacade().postForm(uri, body).expectJson().build();
-//
-//        try {
-//            accessToken = HttpFacade.makeExpectJsonRequest(request, AccessToken.class);
-//            Utils.jaxValidate(accessToken);
-//        } catch (Exception e) {
-//            Logger.error("Failed to get UMA access token because: {}", e.getMessage());
-//            throw e;
-//        }
-//
-//        this.accessToken = accessToken;
-//    }
+    public AccessToken exchangeToken(String bearer) throws Exception {
+        String stringUri = this.getIssuer()
+                + "/protocol/openid-connect/token";
+
+        var uri = Utils.buildUrl(stringUri);
+
+        var form = ImmutableMap.of(
+                "client_id", umaConfig.getClientId(),
+                "client_secret", umaConfig.getClientSecret(),
+                "grant_type", "urn:ietf:params:oauth:grant-type:token-exchange",
+                "subject_token", bearer
+        );
+
+        var toRequest = new HttpRequestBuilderFacade()
+                .postForm(uri, form)
+                .expectJson()
+                .build();
+
+        return (AccessToken) HttpFacade.makeExpectJsonRequest(toRequest, AccessToken.class);
+    }
 
     /**
      * Requests the UMA Server for a list of available UMA resources and returns their IDs.
